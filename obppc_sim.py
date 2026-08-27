@@ -199,164 +199,162 @@ if segments and brands:
 else:
     df_filtered = df_initial.copy()
 
-# Utiliser un seul conteneur pour les deux tableaux
-main_container = st.container()
+# Tableau éditable
+st.subheader("📝 Tableau Éditable")
 
-with main_container:
-    # Créer le DataFrame éditable
-    st.subheader("📝 Tableau Éditable")
+edited_df = st.data_editor(
+    df_filtered,
+    column_config={
+        "Segment": st.column_config.SelectboxColumn(
+            "Segment",
+            options=['Energie', 'Boisson Gazeuse', 'Eaux', 'Bière'],
+            required=True,
+            width="small"
+        ),
+        "Marque": st.column_config.SelectboxColumn(
+            "Marque",
+            options=sorted(df_initial['Marque'].unique()),
+            required=True,
+            width="small"
+        ),
+        "Occasion": st.column_config.SelectboxColumn(
+            "Occasion",
+            options=['IC (VER)', 'IC (PET)', 'FC (VER)', 'FC (PET)', 'Upscale', ''],
+            required=False,
+            width="small"
+        ),
+        "Role_OBPPC": st.column_config.SelectboxColumn(
+            "Rôle OBPPC",
+            options=[
+                'Entry (Entrée de gamme)',
+                'Frequency (Cœur de gamme)',
+                'Upsize (Grand format)',
+                'Upscale (Premium)',
+                'Upscale (Super-Premium Niche)'
+            ],
+            required=True,
+            width="medium"
+        ),
+        "Description": st.column_config.TextColumn(
+            "Description / Format",
+            width="medium"
+        ),
+        "Volume_L": st.column_config.NumberColumn(
+            "Volume (L)",
+            min_value=0.1,
+            step=0.01,
+            format="%.2f",
+            required=True,
+            width="small"
+        ),
+        "PVF_Ar": st.column_config.NumberColumn(
+            "PVF (Ar)",
+            min_value=0,
+            step=100,
+            format="%d",
+            required=True,
+            width="medium"
+        )
+    },
+    hide_index=True,
+    use_container_width=True,
+    num_rows="dynamic",
+    key="data_editor",
+    height=400
+)
 
-    edited_df = st.data_editor(
-        df_filtered,
-        column_config={
-            "Segment": st.column_config.SelectboxColumn(
-                "Segment",
-                options=['Energie', 'Boisson Gazeuse', 'Eaux', 'Bière'],
-                required=True,
-                width="small"
-            ),
-            "Marque": st.column_config.SelectboxColumn(
-                "Marque",
-                options=sorted(df_initial['Marque'].unique()),
-                required=True,
-                width="small"
-            ),
-            "Occasion": st.column_config.SelectboxColumn(
-                "Occasion",
-                options=['IC (VER)', 'IC (PET)', 'FC (VER)', 'FC (PET)', 'Upscale', ''],
-                required=False,
-                width="small"
-            ),
-            "Role_OBPPC": st.column_config.SelectboxColumn(
-                "Rôle OBPPC",
-                options=[
-                    'Entry (Entrée de gamme)',
-                    'Frequency (Cœur de gamme)',
-                    'Upsize (Grand format)',
-                    'Upscale (Premium)',
-                    'Upscale (Super-Premium Niche)'
-                ],
-                required=True,
-                width="medium"
-            ),
-            "Description": st.column_config.TextColumn(
-                "Description / Format",
-                width="medium"
-            ),
-            "Volume_L": st.column_config.NumberColumn(
-                "Volume (L)",
-                min_value=0.1,
-                step=0.01,
-                format="%.2f",
-                required=True,
-                width="small"
-            ),
-            "PVF_Ar": st.column_config.NumberColumn(
-                "PVF (Ar)",
-                min_value=0,
-                step=100,
-                format="%d",
-                required=True,
-                width="medium"
-            )
-        },
-        hide_index=True,
-        use_container_width=True,
-        num_rows="dynamic",
-        key="data_editor",
+# Séparateur
+st.markdown("---")
+
+# Bouton en bas à gauche
+col_left, col_right = st.columns([1, 3])
+
+with col_left:
+    calculate_button = st.button("🔄 Recalculer les index", type="primary")
+
+# Si le bouton est cliqué, afficher le tableau des résultats
+if calculate_button:
+    # Calculer les prix au litre
+    edited_df['P_Litre_Ar'] = edited_df['PVF_Ar'] / edited_df['Volume_L']
+    
+    # Initialiser les colonnes d'index
+    edited_df['Index_PVF'] = 0.0
+    edited_df['Index_P_Litre'] = 0.0
+    edited_df['Index_PVF_Freq'] = 0.0
+    edited_df['Index_P_Litre_Freq'] = 0.0
+    
+    # Calculer les index par segment
+    for segment in edited_df['Segment'].unique():
+        segment_mask = edited_df['Segment'] == segment
+        segment_data = edited_df[segment_mask]
+        
+        if len(segment_data) > 0:
+            # Base = premier produit du segment
+            base_pvf = segment_data.iloc[0]['PVF_Ar']
+            base_p_litre = segment_data.iloc[0]['P_Litre_Ar']
+            
+            if base_pvf > 0:
+                edited_df.loc[segment_mask, 'Index_PVF'] = (edited_df.loc[segment_mask, 'PVF_Ar'] / base_pvf * 100).round(0).astype(int)
+            if base_p_litre > 0:
+                edited_df.loc[segment_mask, 'Index_P_Litre'] = (edited_df.loc[segment_mask, 'P_Litre_Ar'] / base_p_litre * 100).round(0).astype(int)
+    
+    # Calculer les index vs Frequency global
+    frequency_data = edited_df[edited_df['Role_OBPPC'].str.contains('Frequency', na=False)]
+    if len(frequency_data) > 0:
+        base_freq_pvf = frequency_data['PVF_Ar'].mean()
+        base_freq_p_litre = frequency_data['P_Litre_Ar'].mean()
+        
+        if base_freq_pvf > 0:
+            edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(0).astype(int)
+        if base_freq_p_litre > 0:
+            edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(0).astype(int)
+    else:
+        # Si pas de produit Frequency, utiliser la moyenne globale
+        base_freq_pvf = edited_df['PVF_Ar'].mean()
+        base_freq_p_litre = edited_df['P_Litre_Ar'].mean()
+        
+        if base_freq_pvf > 0:
+            edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(0).astype(int)
+        if base_freq_p_litre > 0:
+            edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(0).astype(int)
+    
+    # Créer le tableau final avec les 11 colonnes + colonnes de comparaison
+    display_df = pd.DataFrame({
+        'Marque': edited_df['Marque'],
+        'Occasion': edited_df['Occasion'],
+        'Rôle OBPPC': edited_df['Role_OBPPC'],
+        'Description / Format': edited_df['Description'],
+        'Volume (L)': edited_df['Volume_L'],
+        'PVF (Ar)': edited_df['PVF_Ar'].round(0).astype(int),
+        'P/L (Ar)': edited_df['P_Litre_Ar'].round(0).astype(int),
+        'Index PVF': edited_df['Index_PVF'].round(0).astype(int),
+        'Index P/L': edited_df['Index_P_Litre'].round(0).astype(int),
+        'Index PVF (Vs Freq)': edited_df['Index_PVF_Freq'].round(0).astype(int),
+        'Index P/L (Vs Freq)': edited_df['Index_P_Litre_Freq'].round(0).astype(int),
+        'Référence': edited_df['Role_OBPPC'].apply(lambda x: 
+            '101-110' if x == 'Entry (Entrée de gamme)' else
+            '100' if x == 'Frequency (Cœur de gamme)' else
+            '90-99' if x == 'Upsize (Grand format)' else
+            '≥111' if x in ['Upscale (Premium)', 'Upscale (Super-Premium Niche)'] else
+            'N/A'
+        ),
+        'Statut': edited_df.apply(lambda row: check_index_status(row['Index_P_Litre'], row['Role_OBPPC']), axis=1)
+    })
+    
+    # Afficher le tableau final avec la même largeur
+    st.subheader("📋 Tableau avec les Index Calculés")
+    
+    st.dataframe(
+        display_df, 
+        use_container_width=True, 
         height=400
     )
-
-    # Bouton pour recalculer
-    st.markdown("---")
-    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-
-    with col_btn2:
-        if st.button("🔄 Recalculer les index", type="primary", use_container_width=True):
-            # Calculer les prix au litre
-            edited_df['P_Litre_Ar'] = edited_df['PVF_Ar'] / edited_df['Volume_L']
-            
-            # Initialiser les colonnes d'index
-            edited_df['Index_PVF'] = 0.0
-            edited_df['Index_P_Litre'] = 0.0
-            edited_df['Index_PVF_Freq'] = 0.0
-            edited_df['Index_P_Litre_Freq'] = 0.0
-            
-            # Calculer les index par segment
-            for segment in edited_df['Segment'].unique():
-                segment_mask = edited_df['Segment'] == segment
-                segment_data = edited_df[segment_mask]
-                
-                if len(segment_data) > 0:
-                    # Base = premier produit du segment
-                    base_pvf = segment_data.iloc[0]['PVF_Ar']
-                    base_p_litre = segment_data.iloc[0]['P_Litre_Ar']
-                    
-                    if base_pvf > 0:
-                        edited_df.loc[segment_mask, 'Index_PVF'] = (edited_df.loc[segment_mask, 'PVF_Ar'] / base_pvf * 100).round(0).astype(int)
-                    if base_p_litre > 0:
-                        edited_df.loc[segment_mask, 'Index_P_Litre'] = (edited_df.loc[segment_mask, 'P_Litre_Ar'] / base_p_litre * 100).round(0).astype(int)
-            
-            # Calculer les index vs Frequency global
-            frequency_data = edited_df[edited_df['Role_OBPPC'].str.contains('Frequency', na=False)]
-            if len(frequency_data) > 0:
-                base_freq_pvf = frequency_data['PVF_Ar'].mean()
-                base_freq_p_litre = frequency_data['P_Litre_Ar'].mean()
-                
-                if base_freq_pvf > 0:
-                    edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(0).astype(int)
-                if base_freq_p_litre > 0:
-                    edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(0).astype(int)
-            else:
-                # Si pas de produit Frequency, utiliser la moyenne globale
-                base_freq_pvf = edited_df['PVF_Ar'].mean()
-                base_freq_p_litre = edited_df['P_Litre_Ar'].mean()
-                
-                if base_freq_pvf > 0:
-                    edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(0).astype(int)
-                if base_freq_p_litre > 0:
-                    edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(0).astype(int)
-            
-            # Créer le tableau final avec les 11 colonnes + colonnes de comparaison
-            display_df = pd.DataFrame({
-                'Marque': edited_df['Marque'],
-                'Occasion': edited_df['Occasion'],
-                'Rôle OBPPC': edited_df['Role_OBPPC'],
-                'Description / Format': edited_df['Description'],
-                'Volume (L)': edited_df['Volume_L'],
-                'PVF (Ar)': edited_df['PVF_Ar'].round(0).astype(int),
-                'P/L (Ar)': edited_df['P_Litre_Ar'].round(0).astype(int),
-                'Index PVF': edited_df['Index_PVF'].round(0).astype(int),
-                'Index P/L': edited_df['Index_P_Litre'].round(0).astype(int),
-                'Index PVF (Vs Freq)': edited_df['Index_PVF_Freq'].round(0).astype(int),
-                'Index P/L (Vs Freq)': edited_df['Index_P_Litre_Freq'].round(0).astype(int),
-                'Référence': edited_df['Role_OBPPC'].apply(lambda x: 
-                    '101-110' if x == 'Entry (Entrée de gamme)' else
-                    '100' if x == 'Frequency (Cœur de gamme)' else
-                    '90-99' if x == 'Upsize (Grand format)' else
-                    '≥111' if x in ['Upscale (Premium)', 'Upscale (Super-Premium Niche)'] else
-                    'N/A'
-                ),
-                'Statut': edited_df.apply(lambda row: check_index_status(row['Index_P_Litre'], row['Role_OBPPC']), axis=1)
-            })
-            
-            # Afficher le tableau final avec la même taille que le tableau éditable
-            st.subheader("📋 Tableau avec les Index Calculés")
-            
-            # Utiliser exactement la même hauteur que le tableau éditable (400px)
-            st.dataframe(
-                display_df, 
-                use_container_width=True, 
-                height=400
-            )
-            
-            # Export CSV
-            csv = display_df.to_csv(index=False)
-            st.download_button(
-                label="📥 Télécharger les résultats (CSV)",
-                data=csv,
-                file_name="simulation_obppc.csv",
-                mime="text/csv"
-            )
-        else:
-            st.info("👆 Modifiez les données dans le tableau, puis cliquez sur 'Recalculer les index' pour voir les résultats avec les 11 colonnes.")
+    
+    # Export CSV
+    csv = display_df.to_csv(index=False)
+    st.download_button(
+        label="📥 Télécharger les résultats (CSV)",
+        data=csv,
+        file_name="simulation_obppc.csv",
+        mime="text/csv"
+    )
