@@ -210,7 +210,8 @@ edited_df = st.data_editor(
     hide_index=True,
     use_container_width=True,
     num_rows="dynamic",
-    key="data_editor"
+    key="data_editor",
+    height=500
 )
 
 # Bouton pour recalculer
@@ -239,9 +240,9 @@ with col_btn2:
                 base_p_litre = segment_data.iloc[0]['P_Litre_Ar']
                 
                 if base_pvf > 0:
-                    edited_df.loc[segment_mask, 'Index_PVF'] = (edited_df.loc[segment_mask, 'PVF_Ar'] / base_pvf * 100).round(1)
+                    edited_df.loc[segment_mask, 'Index_PVF'] = (edited_df.loc[segment_mask, 'PVF_Ar'] / base_pvf * 100).round(0).astype(int)
                 if base_p_litre > 0:
-                    edited_df.loc[segment_mask, 'Index_P_Litre'] = (edited_df.loc[segment_mask, 'P_Litre_Ar'] / base_p_litre * 100).round(1)
+                    edited_df.loc[segment_mask, 'Index_P_Litre'] = (edited_df.loc[segment_mask, 'P_Litre_Ar'] / base_p_litre * 100).round(0).astype(int)
         
         # Calculer les index vs Frequency global
         frequency_data = edited_df[edited_df['Role_OBPPC'].str.contains('Frequency', na=False)]
@@ -250,18 +251,18 @@ with col_btn2:
             base_freq_p_litre = frequency_data['P_Litre_Ar'].mean()
             
             if base_freq_pvf > 0:
-                edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(1)
+                edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(0).astype(int)
             if base_freq_p_litre > 0:
-                edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(1)
+                edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(0).astype(int)
         else:
             # Si pas de produit Frequency, utiliser la moyenne globale
             base_freq_pvf = edited_df['PVF_Ar'].mean()
             base_freq_p_litre = edited_df['P_Litre_Ar'].mean()
             
             if base_freq_pvf > 0:
-                edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(1)
+                edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(0).astype(int)
             if base_freq_p_litre > 0:
-                edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(1)
+                edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(0).astype(int)
         
         # Créer le tableau final avec les 11 colonnes
         display_df = pd.DataFrame({
@@ -270,17 +271,23 @@ with col_btn2:
             'Rôle OBPPC': edited_df['Role_OBPPC'],
             'Description / Format': edited_df['Description'],
             'Volume (L)': edited_df['Volume_L'],
-            'Prix de Vente Facial (PVF) en Ar': edited_df['PVF_Ar'],
-            'Prix au Litre (P/L) en Ar': edited_df['P_Litre_Ar'].round(1),
-            'Index PVF': edited_df['Index_PVF'].round(1),
-            'Index Prix/Litre': edited_df['Index_P_Litre'].round(1),
-            'Index PVF (Vs Frequency global)': edited_df['Index_PVF_Freq'].round(1),
-            'Index Prix/Litre (Vs Frequency global)': edited_df['Index_P_Litre_Freq'].round(1)
+            'Prix de Vente Facial (PVF) en Ar': edited_df['PVF_Ar'].round(0).astype(int),
+            'Prix au Litre (P/L) en Ar': edited_df['P_Litre_Ar'].round(0).astype(int),
+            'Index PVF': edited_df['Index_PVF'].round(0).astype(int),
+            'Index Prix/Litre': edited_df['Index_P_Litre'].round(0).astype(int),
+            'Index PVF (Vs Frequency global)': edited_df['Index_PVF_Freq'].round(0).astype(int),
+            'Index Prix/Litre (Vs Frequency global)': edited_df['Index_P_Litre_Freq'].round(0).astype(int)
         })
         
-        # Afficher le tableau final
+        # Afficher le tableau final avec une grande hauteur
         st.subheader("📋 Tableau avec les Index Calculés")
-        st.dataframe(display_df, use_container_width=True, height=600)
+        
+        # Utiliser st.dataframe avec une hauteur de 800px pour une lecture confortable
+        st.dataframe(
+            display_df, 
+            use_container_width=True, 
+            height=800
+        )
         
         # Export CSV
         csv = display_df.to_csv(index=False)
