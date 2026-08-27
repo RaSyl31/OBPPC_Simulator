@@ -157,41 +157,45 @@ if segments and brands:
 else:
     df_filtered = df_initial.copy()
 
+# Légende des colonnes
+st.markdown("""
+### 📋 Guide des colonnes :
+| Type | Couleur | Description |
+|------|---------|-------------|
+| 🟡 **À compléter manuellement** | Jaune | Colonnes modifiables |
+| 🔵 **Calculées automatiquement** | Bleu | Colonnes calculées après clic sur 'Recalculer' |
+| ⚪ **Non modifiables** | Gris | Informations fixes |
+""")
+
 # Créer le DataFrame éditable
-st.subheader("📝 Tableau Éditable - Modifiez les prix en Ariary (Ar)")
-st.markdown("*Modifiez les prix dans la colonne PVF, puis cliquez sur 'Recalculer les index'*")
+st.subheader("📝 Tableau Éditable")
+st.markdown("*Les colonnes en **jaune** sont à compléter manuellement*")
 
 edited_df = st.data_editor(
     df_filtered,
     column_config={
         "PVF_Ar": st.column_config.NumberColumn(
-            "Prix de Vente Facial (PVF) en Ar",
+            "🟡 Prix de Vente Facial (PVF) en Ar",
             min_value=0,
             step=100,
             format="%d",
-            required=True
+            required=True,
+            help="À compléter manuellement"
         ),
         "Volume_L": st.column_config.NumberColumn(
-            "Volume (L)",
+            "🟡 Volume (L)",
             min_value=0.1,
             step=0.01,
             format="%.2f",
-            required=True
-        ),
-        "Segment": st.column_config.TextColumn(
-            "Segment",
-            disabled=True
-        ),
-        "Marque": st.column_config.TextColumn(
-            "Marque",
-            disabled=True
+            required=True,
+            help="À compléter manuellement"
         ),
         "Occasion": st.column_config.TextColumn(
-            "Occasion",
-            disabled=False
+            "🟡 Occasion",
+            help="À compléter manuellement (IC, FC, Upscale)"
         ),
         "Role_OBPPC": st.column_config.SelectboxColumn(
-            "Rôle OBPPC",
+            "🟡 Rôle OBPPC",
             options=[
                 'Entry (Entrée de gamme)',
                 'Frequency (Cœur de gamme)',
@@ -199,10 +203,19 @@ edited_df = st.data_editor(
                 'Upscale (Premium)',
                 'Upscale (Super-Premium Niche)'
             ],
-            required=True
+            required=True,
+            help="À compléter manuellement"
+        ),
+        "Segment": st.column_config.TextColumn(
+            "⚪ Segment",
+            disabled=True
+        ),
+        "Marque": st.column_config.TextColumn(
+            "⚪ Marque",
+            disabled=True
         ),
         "Description": st.column_config.TextColumn(
-            "Description / Format",
+            "⚪ Description / Format",
             disabled=True
         )
     },
@@ -214,77 +227,82 @@ edited_df = st.data_editor(
 
 # Bouton pour recalculer
 st.markdown("---")
-if st.button("🔄 Recalculer les index", type="primary"):
-    # Calculer les prix au litre
-    edited_df['P_Litre_Ar'] = edited_df['PVF_Ar'] / edited_df['Volume_L']
-    
-    # Initialiser les colonnes d'index
-    edited_df['Index_PVF'] = 0.0
-    edited_df['Index_P_Litre'] = 0.0
-    edited_df['Index_PVF_Freq'] = 0.0
-    edited_df['Index_P_Litre_Freq'] = 0.0
-    
-    # Calculer les index par segment
-    for segment in edited_df['Segment'].unique():
-        segment_mask = edited_df['Segment'] == segment
-        segment_data = edited_df[segment_mask]
+col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+
+with col_btn2:
+    if st.button("🔄 Recalculer les index", type="primary", use_container_width=True):
+        # Calculer les prix au litre
+        edited_df['P_Litre_Ar'] = edited_df['PVF_Ar'] / edited_df['Volume_L']
         
-        if len(segment_data) > 0:
-            # Base = premier produit du segment
-            base_pvf = segment_data.iloc[0]['PVF_Ar']
-            base_p_litre = segment_data.iloc[0]['P_Litre_Ar']
+        # Initialiser les colonnes d'index
+        edited_df['Index_PVF'] = 0.0
+        edited_df['Index_P_Litre'] = 0.0
+        edited_df['Index_PVF_Freq'] = 0.0
+        edited_df['Index_P_Litre_Freq'] = 0.0
+        
+        # Calculer les index par segment
+        for segment in edited_df['Segment'].unique():
+            segment_mask = edited_df['Segment'] == segment
+            segment_data = edited_df[segment_mask]
             
-            if base_pvf > 0:
-                edited_df.loc[segment_mask, 'Index_PVF'] = (edited_df.loc[segment_mask, 'PVF_Ar'] / base_pvf * 100).round(1)
-            if base_p_litre > 0:
-                edited_df.loc[segment_mask, 'Index_P_Litre'] = (edited_df.loc[segment_mask, 'P_Litre_Ar'] / base_p_litre * 100).round(1)
-    
-    # Calculer les index vs Frequency global
-    frequency_data = edited_df[edited_df['Role_OBPPC'].str.contains('Frequency', na=False)]
-    if len(frequency_data) > 0:
-        base_freq_pvf = frequency_data['PVF_Ar'].mean()
-        base_freq_p_litre = frequency_data['P_Litre_Ar'].mean()
+            if len(segment_data) > 0:
+                # Base = premier produit du segment
+                base_pvf = segment_data.iloc[0]['PVF_Ar']
+                base_p_litre = segment_data.iloc[0]['P_Litre_Ar']
+                
+                if base_pvf > 0:
+                    edited_df.loc[segment_mask, 'Index_PVF'] = (edited_df.loc[segment_mask, 'PVF_Ar'] / base_pvf * 100).round(1)
+                if base_p_litre > 0:
+                    edited_df.loc[segment_mask, 'Index_P_Litre'] = (edited_df.loc[segment_mask, 'P_Litre_Ar'] / base_p_litre * 100).round(1)
         
-        if base_freq_pvf > 0:
-            edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(1)
-        if base_freq_p_litre > 0:
-            edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(1)
+        # Calculer les index vs Frequency global
+        frequency_data = edited_df[edited_df['Role_OBPPC'].str.contains('Frequency', na=False)]
+        if len(frequency_data) > 0:
+            base_freq_pvf = frequency_data['PVF_Ar'].mean()
+            base_freq_p_litre = frequency_data['P_Litre_Ar'].mean()
+            
+            if base_freq_pvf > 0:
+                edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(1)
+            if base_freq_p_litre > 0:
+                edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(1)
+        else:
+            # Si pas de produit Frequency, utiliser la moyenne globale
+            base_freq_pvf = edited_df['PVF_Ar'].mean()
+            base_freq_p_litre = edited_df['P_Litre_Ar'].mean()
+            
+            if base_freq_pvf > 0:
+                edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(1)
+            if base_freq_p_litre > 0:
+                edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(1)
+        
+        # Créer le tableau final avec les 11 colonnes
+        display_df = pd.DataFrame({
+            'Marque': edited_df['Marque'],
+            'Occasion': edited_df['Occasion'],
+            'Rôle OBPPC': edited_df['Role_OBPPC'],
+            'Description / Format': edited_df['Description'],
+            'Volume (L)': edited_df['Volume_L'],
+            '🟡 Prix de Vente Facial (PVF) en Ar': edited_df['PVF_Ar'],
+            '🔵 Prix au Litre (P/L) en Ar': edited_df['P_Litre_Ar'].round(1),
+            '🔵 Index PVF': edited_df['Index_PVF'].round(1),
+            '🔵 Index Prix/Litre': edited_df['Index_P_Litre'].round(1),
+            '🔵 Index PVF (Vs Frequency global)': edited_df['Index_PVF_Freq'].round(1),
+            '🔵 Index Prix/Litre (Vs Frequency global)': edited_df['Index_P_Litre_Freq'].round(1)
+        })
+        
+        # Afficher le tableau final
+        st.subheader("📋 Tableau avec les Index Calculés")
+        st.markdown("*Les colonnes en **bleu** sont calculées automatiquement*")
+        st.dataframe(display_df, use_container_width=True, height=600)
+        
+        # Export CSV
+        csv = display_df.to_csv(index=False)
+        st.download_button(
+            label="📥 Télécharger les résultats (CSV)",
+            data=csv,
+            file_name="simulation_obppc.csv",
+            mime="text/csv"
+        )
     else:
-        # Si pas de produit Frequency, utiliser la moyenne globale
-        base_freq_pvf = edited_df['PVF_Ar'].mean()
-        base_freq_p_litre = edited_df['P_Litre_Ar'].mean()
-        
-        if base_freq_pvf > 0:
-            edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(1)
-        if base_freq_p_litre > 0:
-            edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(1)
-    
-    # Créer le tableau final avec les 11 colonnes
-    display_df = pd.DataFrame({
-        'Marque': edited_df['Marque'],
-        'Occasion': edited_df['Occasion'],
-        'Rôle OBPPC': edited_df['Role_OBPPC'],
-        'Description / Format': edited_df['Description'],
-        'Volume (L)': edited_df['Volume_L'],
-        'Prix de Vente Facial (PVF) en Ar': edited_df['PVF_Ar'],
-        'Prix au Litre (P/L) en Ar': edited_df['P_Litre_Ar'].round(1),
-        'Index PVF': edited_df['Index_PVF'].round(1),
-        'Index Prix/Litre': edited_df['Index_P_Litre'].round(1),
-        'Index PVF (Vs Frequency global)': edited_df['Index_PVF_Freq'].round(1),
-        'Index Prix/Litre (Vs Frequency global)': edited_df['Index_P_Litre_Freq'].round(1)
-    })
-    
-    # Afficher le tableau final
-    st.subheader("📋 Tableau avec les Index Calculés")
-    st.dataframe(display_df, use_container_width=True, height=600)
-    
-    # Export CSV
-    csv = display_df.to_csv(index=False)
-    st.download_button(
-        label="📥 Télécharger les résultats (CSV)",
-        data=csv,
-        file_name="simulation_obppc.csv",
-        mime="text/csv"
-    )
-else:
-    st.info("👆 Modifiez les prix dans le tableau ci-dessus, puis cliquez sur 'Recalculer les index' pour voir les résultats avec les 11 colonnes.")
+        st.info("👆 **Complétez les colonnes en JAUNE** dans le tableau ci-dessus, puis cliquez sur 'Recalculer les index' pour voir les résultats avec les 11 colonnes.")
+        st.info("🔵 Les colonnes en BLEU seront calculées automatiquement : Prix au Litre, Index PVF, Index Prix/Litre, Index vs Frequency global")
