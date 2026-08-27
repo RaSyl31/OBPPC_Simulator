@@ -120,14 +120,38 @@ def load_initial_data():
 # Charger les données
 df_initial = load_initial_data()
 
-# Références des index Prix/Litre
-references = {
-    'Entry (Entrée de gamme)': 110,
-    'Frequency (Cœur de gamme)': 100,
-    'Upsize (Grand format)': 90,
-    'Upscale (Premium)': 140,
-    'Upscale (Super-Premium Niche)': 140
-}
+# Fonction pour vérifier si l'index est dans la plage de référence
+def check_index_status(index_value, role):
+    if role == 'Entry (Entrée de gamme)':
+        if 101 <= index_value <= 110:
+            return '✅ OK'
+        elif index_value < 101:
+            return '⚠️ Trop bas'
+        else:
+            return '⚠️ Trop haut'
+    elif role == 'Frequency (Cœur de gamme)':
+        if index_value == 100:
+            return '✅ OK'
+        elif index_value < 100:
+            return '⚠️ Trop bas'
+        else:
+            return '⚠️ Trop haut'
+    elif role == 'Upsize (Grand format)':
+        if 90 <= index_value <= 99:
+            return '✅ OK'
+        elif index_value < 90:
+            return '⚠️ Trop bas'
+        else:
+            return '⚠️ Trop haut'
+    elif role in ['Upscale (Premium)', 'Upscale (Super-Premium Niche)']:
+        if index_value >= 111:
+            return '✅ OK'
+        elif index_value >= 101:
+            return '⚠️ À vérifier'
+        else:
+            return '❌ Trop bas'
+    else:
+        return 'ℹ️ Non défini'
 
 # Titre
 st.title("🎯 Simulateur OBPPC")
@@ -160,10 +184,10 @@ with st.sidebar:
     st.markdown("---")
     st.header("📊 Références Index Prix/Litre")
     st.markdown("""
-    - **Entry** : ~110
+    - **Entry** : Entre 110 et 101
     - **Frequency** : 100
-    - **Upsize** : ~90
-    - **Upscale** : ~140
+    - **Upsize** : Entre 99 et 90
+    - **Upscale** : 111 et plus (même > 140)
     """)
 
 # Filtrer les données
@@ -188,17 +212,20 @@ with main_container:
             "Segment": st.column_config.SelectboxColumn(
                 "Segment",
                 options=['Energie', 'Boisson Gazeuse', 'Eaux', 'Bière'],
-                required=True
+                required=True,
+                width="small"
             ),
             "Marque": st.column_config.SelectboxColumn(
                 "Marque",
                 options=sorted(df_initial['Marque'].unique()),
-                required=True
+                required=True,
+                width="small"
             ),
             "Occasion": st.column_config.SelectboxColumn(
                 "Occasion",
                 options=['IC (VER)', 'IC (PET)', 'FC (VER)', 'FC (PET)', 'Upscale', ''],
-                required=False
+                required=False,
+                width="small"
             ),
             "Role_OBPPC": st.column_config.SelectboxColumn(
                 "Rôle OBPPC",
@@ -209,31 +236,35 @@ with main_container:
                     'Upscale (Premium)',
                     'Upscale (Super-Premium Niche)'
                 ],
-                required=True
+                required=True,
+                width="medium"
             ),
             "Description": st.column_config.TextColumn(
-                "Description / Format"
+                "Description / Format",
+                width="medium"
             ),
             "Volume_L": st.column_config.NumberColumn(
                 "Volume (L)",
                 min_value=0.1,
                 step=0.01,
                 format="%.2f",
-                required=True
+                required=True,
+                width="small"
             ),
             "PVF_Ar": st.column_config.NumberColumn(
                 "Prix de Vente Facial (PVF) en Ar",
                 min_value=0,
                 step=100,
                 format="%d",
-                required=True
+                required=True,
+                width="medium"
             )
         },
         hide_index=True,
         use_container_width=True,
         num_rows="dynamic",
         key="data_editor",
-        height=500
+        height=400
     )
 
     # Bouton pour recalculer
@@ -286,32 +317,41 @@ with main_container:
                 if base_freq_p_litre > 0:
                     edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(0).astype(int)
             
-            # Créer le tableau final avec les 11 colonnes + colonne de comparaison
+            # Créer le tableau final avec les 11 colonnes + colonnes de comparaison
             display_df = pd.DataFrame({
                 'Marque': edited_df['Marque'],
                 'Occasion': edited_df['Occasion'],
                 'Rôle OBPPC': edited_df['Role_OBPPC'],
                 'Description / Format': edited_df['Description'],
                 'Volume (L)': edited_df['Volume_L'],
-                'Prix de Vente Facial (PVF) en Ar': edited_df['PVF_Ar'].round(0).astype(int),
-                'Prix au Litre (P/L) en Ar': edited_df['P_Litre_Ar'].round(0).astype(int),
+                'PVF (Ar)': edited_df['PVF_Ar'].round(0).astype(int),
+                'P/L (Ar)': edited_df['P_Litre_Ar'].round(0).astype(int),
                 'Index PVF': edited_df['Index_PVF'].round(0).astype(int),
-                'Index Prix/Litre': edited_df['Index_P_Litre'].round(0).astype(int),
-                'Index PVF (Vs Frequency global)': edited_df['Index_PVF_Freq'].round(0).astype(int),
-                'Index Prix/Litre (Vs Frequency global)': edited_df['Index_P_Litre_Freq'].round(0).astype(int),
-                'Référence Index P/L': edited_df['Role_OBPPC'].map(references).fillna(100).astype(int),
-                'Écart vs Référence': (edited_df['Index_P_Litre'] - edited_df['Role_OBPPC'].map(references).fillna(100)).round(0).astype(int),
-                'Statut': edited_df.apply(lambda row: '✅ OK' if abs(row['Index_P_Litre'] - references.get(row['Role_OBPPC'], 100)) <= 10 else ('⚠️ À vérifier' if abs(row['Index_P_Litre'] - references.get(row['Role_OBPPC'], 100)) <= 20 else '❌ Hors cible'), axis=1)
+                'Index P/L': edited_df['Index_P_Litre'].round(0).astype(int),
+                'Index PVF (Vs Freq)': edited_df['Index_PVF_Freq'].round(0).astype(int),
+                'Index P/L (Vs Freq)': edited_df['Index_P_Litre_Freq'].round(0).astype(int),
+                'Référence': edited_df['Role_OBPPC'].apply(lambda x: 
+                    '101-110' if x == 'Entry (Entrée de gamme)' else
+                    '100' if x == 'Frequency (Cœur de gamme)' else
+                    '90-99' if x == 'Upsize (Grand format)' else
+                    '≥111' if x in ['Upscale (Premium)', 'Upscale (Super-Premium Niche)'] else
+                    'N/A'
+                ),
+                'Statut': edited_df.apply(lambda row: check_index_status(row['Index_P_Litre'], row['Role_OBPPC']), axis=1)
             })
             
-            # Afficher le tableau final avec la même largeur
+            # Afficher le tableau final avec une taille compacte
             st.subheader("📋 Tableau avec les Index Calculés")
             
-            # Utiliser st.dataframe avec use_container_width=True pour la même largeur
+            # Ajuster la hauteur automatiquement selon le nombre de lignes
+            num_rows = len(display_df)
+            height = min(num_rows * 40 + 50, 600)  # 40px par ligne + 50px pour l'en-tête
+            
+            # Utiliser st.dataframe avec une taille compacte
             st.dataframe(
                 display_df, 
                 use_container_width=True, 
-                height=800
+                height=height
             )
             
             # Export CSV
