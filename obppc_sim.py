@@ -37,41 +37,41 @@ def load_initial_data():
         ('Boisson Gazeuse', 'COCA', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35 (N° 1 vente en col)', 0.35, 1500),
         ('Boisson Gazeuse', 'COCA', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
         ('Boisson Gazeuse', 'COCA', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 2500),
-        ('Boisson Gazeuse', 'COCA', 'FC (PET)', 'Entry (Entrée de gamme)', 'PET 150', 1.50, 5000),
+        ('Boisson Gazeuse', 'COCA', 'FC (PET)', 'Upsize (Grand format)', 'PET 150', 1.50, 5000),
         ('Boisson Gazeuse', 'WOCO', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35', 0.35, 1500),
         ('Boisson Gazeuse', 'WOCO', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
         ('Boisson Gazeuse', 'WOCO', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 2500),
         ('Boisson Gazeuse', 'WOCO', 'IC (VER)', 'Entry (Entrée de gamme)', 'VC 30', 0.30, 1200),
-        ('Boisson Gazeuse', 'WOCO', 'FC (PET)', 'Entry (Entrée de gamme)', 'PET 150', 1.50, 5000),
-        ('Boisson Gazeuse', 'WOCO', 'FC (VER)', 'Entry (Entrée de gamme)', 'VC 100', 1.00, 3000),
+        ('Boisson Gazeuse', 'WOCO', 'FC (PET)', 'Upsize (Grand format)', 'PET 150', 1.50, 5000),
+        ('Boisson Gazeuse', 'WOCO', 'FC (VER)', 'Upsize (Grand format)', 'VC 100', 1.00, 3000),
         ('Boisson Gazeuse', 'FANTA', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35 (N° 1 vente en col)', 0.35, 1500),
         ('Boisson Gazeuse', 'FANTA', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
-        ('Boisson Gazeuse', 'FANTA', 'FC (PET)', 'Entry (Entrée de gamme)', 'PET 150', 1.50, 5000),
+        ('Boisson Gazeuse', 'FANTA', 'FC (PET)', 'Upsize (Grand format)', 'PET 150', 1.50, 5000),
         ('Boisson Gazeuse', 'CAPRICE', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35', 0.35, 1500),
         ('Boisson Gazeuse', 'CAPRICE', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
         ('Boisson Gazeuse', 'CAPRICE', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 2500),
         ('Boisson Gazeuse', 'CAPRICE', 'IC (VER)', 'Entry (Entrée de gamme)', 'VC 30', 0.30, 1200),
-        ('Boisson Gazeuse', 'CAPRICE', 'FC (PET)', 'Entry (Entrée de gamme)', 'PET 150', 1.50, 5000),
-        ('Boisson Gazeuse', 'CAPRICE', 'FC (VER)', 'Entry (Entrée de gamme)', 'VC 100', 1.00, 3000),
+        ('Boisson Gazeuse', 'CAPRICE', 'FC (PET)', 'Upsize (Grand format)', 'PET 150', 1.50, 5000),
+        ('Boisson Gazeuse', 'CAPRICE', 'FC (VER)', 'Upsize (Grand format)', 'VC 100', 1.00, 3000),
         ('Boisson Gazeuse', 'TONIC', 'IC (VER)', 'Entry (Entrée de gamme)', 'VC 30', 0.30, 1200),
-        ('Boisson Gazeuse', 'TONIC', 'FC (VER)', 'Entry (Entrée de gamme)', 'VC 100', 1.00, 3000),
+        ('Boisson Gazeuse', 'TONIC', 'FC (VER)', 'Upsize (Grand format)', 'VC 100', 1.00, 3000),
     ]
     
     # Eaux
     eaux_data = [
         ('Eaux', 'Cristal', 'IC (VER)', 'Entry (Entrée de gamme)', 'Cristal 30 cl VER', 0.30, 1500),
         ('Eaux', 'Cristal', 'IC (VER)', 'Frequency (Cœur de gamme)', 'Cristal 50 cl VER', 0.50, 2200),
-        ('Eaux', 'Cristal', 'FC (VER)', 'Upscale (Premium)', 'Cristal 100 cl VER', 1.00, 3800),
-        ('Eaux', 'Cristal', 'FC (PET)', 'Frequency (Cœur de gamme)', 'Cristal 150 cl PET', 1.50, 5500),
+        ('Eaux', 'Cristal', 'FC (VER)', 'Upsize (Grand format)', 'Cristal 100 cl VER', 1.00, 3800),
+        ('Eaux', 'Cristal', 'FC (PET)', 'Upsize (Grand format)', 'Cristal 150 cl PET', 1.50, 5500),
         ('Eaux', 'RANOVISY', 'IC (PET)', 'Entry (Entrée de gamme)', 'RANOVISY 33 PET', 0.33, 1000),
         ('Eaux', 'RANOVISY', 'IC (PET)', 'Frequency (Cœur de gamme)', 'RANOVISY 50 CL PET', 0.50, 2400),
         ('Eaux', 'RANOVISY', 'IC (PET)', 'Upsize (Grand format)', 'RANOVISY 75 PET', 0.75, 3000),
         ('Eaux', 'VISY GASY', 'IC (PET)', 'Entry (Entrée de gamme)', 'VISY GASY 60 PET', 0.60, 2500),
-        ('Eaux', 'VISY GASY', 'FC (PET)', 'Entry (Entrée de gamme)', 'VISY GASY 100 PET', 1.00, 3000),
+        ('Eaux', 'VISY GASY', 'FC (PET)', 'Upsize (Grand format)', 'VISY GASY 100 PET', 1.00, 3000),
         ('Eaux', 'Eau vive', 'IC (PET)', 'Entry (Entrée de gamme)', 'Eau vive 50 cl PET', 0.50, 1600),
-        ('Eaux', 'Eau vive', 'FC (PET)', 'Frequency (Cœur de gamme)', 'Eau vive 150 cl PET', 1.50, 3300),
+        ('Eaux', 'Eau vive', 'FC (PET)', 'Upsize (Grand format)', 'Eau vive 150 cl PET', 1.50, 3300),
         ('Eaux', 'Eau vive', 'IC (VER)', 'Frequency (Cœur de gamme)', 'Eau vive 50 cl VER', 0.50, 2200),
-        ('Eaux', 'Cristalline', 'FC (PET)', 'Frequency (Cœur de gamme)', 'Cristalline 100 cl PET', 1.50, 2100),
+        ('Eaux', 'Cristalline', 'FC (PET)', 'Upsize (Grand format)', 'Cristalline 100 cl PET', 1.50, 2100),
         ('Eaux', 'Cristalline', 'FC (PET)', 'Upsize (Grand format)', 'Cristalline 200 cl PET', 2.00, 3600),
         ('Eaux', 'OLYMPIKO', 'IC (PET)', 'Entry (Entrée de gamme)', 'OLYMPIKO 50', 0.50, 1500),
         ('Eaux', 'OLYMPIKO', 'FC (PET)', 'Frequency (Cœur de gamme)', 'OLYMPIKO 100', 1.00, 2000),
@@ -122,34 +122,37 @@ df_initial = load_initial_data()
 
 # Fonction pour vérifier si l'index est dans la plage de référence
 def check_index_status(index_value, role):
+    """
+    Vérifie si l'index Prix/Litre est conforme à la logique marketing OBPPC
+    """
     if role == 'Entry (Entrée de gamme)':
         if 101 <= index_value <= 110:
             return '✅ OK'
         elif index_value < 101:
-            return '⚠️ Trop bas'
+            return '⚠️ Trop bas (devrait être 101-110)'
         else:
-            return '⚠️ Trop haut'
+            return '⚠️ Trop haut (devrait être 101-110)'
     elif role == 'Frequency (Cœur de gamme)':
         if index_value == 100:
             return '✅ OK'
         elif index_value < 100:
-            return '⚠️ Trop bas'
+            return '⚠️ Trop bas (devrait être 100)'
         else:
-            return '⚠️ Trop haut'
+            return '⚠️ Trop haut (devrait être 100)'
     elif role == 'Upsize (Grand format)':
         if 90 <= index_value <= 99:
             return '✅ OK'
         elif index_value < 90:
-            return '⚠️ Trop bas'
+            return '⚠️ Trop bas (devrait être 90-99)'
         else:
-            return '⚠️ Trop haut'
+            return '⚠️ Trop haut (devrait être 90-99)'
     elif role in ['Upscale (Premium)', 'Upscale (Super-Premium Niche)']:
         if index_value >= 111:
             return '✅ OK'
         elif index_value >= 101:
-            return '⚠️ À vérifier'
+            return '⚠️ À vérifier (devrait être ≥ 111)'
         else:
-            return '❌ Trop bas'
+            return '❌ Trop bas (devrait être ≥ 111)'
     else:
         return 'ℹ️ Non défini'
 
@@ -182,12 +185,21 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.header("📊 Références Index Prix/Litre")
+    st.header("📊 Logique Marketing OBPPC")
     st.markdown("""
-    - **Entry** : Entre 110 et 101
+    **Index Prix/Litre par rôle :**
+    
+    - **Entry** : 101-110
+      *Petit format, prix d'accès*
+    
     - **Frequency** : 100
-    - **Upsize** : Entre 99 et 90
-    - **Upscale** : 111 et plus (même > 140)
+      *Format standard, référence*
+    
+    - **Upsize** : 90-99
+      *Grand format, économique*
+    
+    - **Upscale** : ≥ 111
+      *Premium, marge élevée*
     """)
 
 # Filtrer les données
@@ -331,11 +343,11 @@ if calculate_button:
         'Index P/L': edited_df['Index_P_Litre'].round(0).astype(int),
         'Index PVF (Vs Freq)': edited_df['Index_PVF_Freq'].round(0).astype(int),
         'Index P/L (Vs Freq)': edited_df['Index_P_Litre_Freq'].round(0).astype(int),
-        'Référence': edited_df['Role_OBPPC'].apply(lambda x: 
-            '101-110' if x == 'Entry (Entrée de gamme)' else
-            '100' if x == 'Frequency (Cœur de gamme)' else
-            '90-99' if x == 'Upsize (Grand format)' else
-            '≥111' if x in ['Upscale (Premium)', 'Upscale (Super-Premium Niche)'] else
+        'Cible Marketing': edited_df['Role_OBPPC'].apply(lambda x: 
+            '101-110 (Accès marque)' if x == 'Entry (Entrée de gamme)' else
+            '100 (Référence)' if x == 'Frequency (Cœur de gamme)' else
+            '90-99 (Économique)' if x == 'Upsize (Grand format)' else
+            '≥111 (Premium)' if x in ['Upscale (Premium)', 'Upscale (Super-Premium Niche)'] else
             'N/A'
         ),
         'Statut': edited_df.apply(lambda row: check_index_status(row['Index_P_Litre'], row['Role_OBPPC']), axis=1)
