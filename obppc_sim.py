@@ -41,38 +41,6 @@ def load_initial_data():
                   4000, 4500, 4500, 4000, 2500]
     }
     df = pd.DataFrame(data)
-    df['P_Litre_Ar'] = df['PVF_Ar'] / df['Volume_L']
-    
-    # Initialiser les colonnes d'index avec des floats
-    df['Index_PVF'] = 0.0
-    df['Index_P_Litre'] = 0.0
-    df['Index_PVF_Freq'] = 0.0
-    df['Index_P_Litre_Freq'] = 0.0
-    
-    # Calculer les index initiaux par segment
-    for segment in df['Segment'].unique():
-        segment_mask = df['Segment'] == segment
-        segment_data = df[segment_mask]
-        
-        # Base = premier produit du segment
-        base_pvf = segment_data.iloc[0]['PVF_Ar']
-        base_p_litre = segment_data.iloc[0]['P_Litre_Ar']
-        
-        df.loc[segment_mask, 'Index_PVF'] = (df.loc[segment_mask, 'PVF_Ar'] / base_pvf * 100).round(1)
-        df.loc[segment_mask, 'Index_P_Litre'] = (df.loc[segment_mask, 'P_Litre_Ar'] / base_p_litre * 100).round(1)
-    
-    # Calculer les index vs Frequency global
-    frequency_data = df[df['Role_OBPPC'] == 'Frequency']
-    if len(frequency_data) > 0:
-        base_freq_pvf = frequency_data['PVF_Ar'].mean()
-        base_freq_p_litre = frequency_data['P_Litre_Ar'].mean()
-        
-        df['Index_PVF_Freq'] = (df['PVF_Ar'] / base_freq_pvf * 100).round(1)
-        df['Index_P_Litre_Freq'] = (df['P_Litre_Ar'] / base_freq_p_litre * 100).round(1)
-    else:
-        df['Index_PVF_Freq'] = 100.0
-        df['Index_P_Litre_Freq'] = 100.0
-    
     return df
 
 # Charger les données
@@ -82,7 +50,7 @@ df_initial = load_initial_data()
 st.title("🎯 Simulateur OBPPC")
 st.markdown("---")
 
-# Sidebar
+# Sidebar pour les filtres
 with st.sidebar:
     st.header("🔍 Filtres")
     
@@ -105,20 +73,6 @@ with st.sidebar:
         options=available_brands,
         default=available_brands
     )
-    
-    st.markdown("---")
-    st.header("⚙️ Paramètres")
-    
-    # Type d'index à ajuster
-    index_type = st.radio(
-        "Type d'index à ajuster",
-        options=['Index PVF', 'Index Prix/Litre']
-    )
-    
-    # Réinitialisation
-    if st.button("🔄 Réinitialiser tous les index"):
-        st.session_state.index_values = {}
-        st.rerun()
 
 # Filtrer les données
 if segments and brands:
@@ -129,121 +83,114 @@ if segments and brands:
 else:
     df_filtered = df_initial.copy()
 
-# Créer deux colonnes : sliders à gauche, tableau à droite
-col1, col2 = st.columns([1, 2])
+# Créer le DataFrame éditable
+edited_df = st.data_editor(
+    df_filtered,
+    column_config={
+        "PVF_Ar": st.column_config.NumberColumn(
+            "Prix de Vente Facial (PVF) en Ar",
+            min_value=0,
+            step=100,
+            format="%d",
+            required=True
+        ),
+        "Volume_L": st.column_config.NumberColumn(
+            "Volume (L)",
+            disabled=True
+        ),
+        "Segment": st.column_config.TextColumn(
+            "Segment",
+            disabled=True
+        ),
+        "Marque": st.column_config.TextColumn(
+            "Marque",
+            disabled=True
+        ),
+        "Occasion": st.column_config.TextColumn(
+            "Occasion",
+            disabled=True
+        ),
+        "Role_OBPPC": st.column_config.TextColumn(
+            "Rôle OBPPC",
+            disabled=True
+        ),
+        "Description": st.column_config.TextColumn(
+            "Description / Format",
+            disabled=True
+        )
+    },
+    hide_index=True,
+    use_container_width=True,
+    num_rows="dynamic",
+    key="data_editor"
+)
 
-# Sliders dans la colonne gauche
-with col1:
-    st.subheader("🎚️ Ajustement des Index")
+# Bouton pour recalculer
+if st.button("🔄 Recalculer les index", type="primary"):
+    # Calculer les prix au litre
+    edited_df['P_Litre_Ar'] = edited_df['PVF_Ar'] / edited_df['Volume_L']
     
-    # Initialiser le dictionnaire des index
-    if 'index_values' not in st.session_state:
-        st.session_state.index_values = {}
+    # Initialiser les colonnes d'index
+    edited_df['Index_PVF'] = 0.0
+    edited_df['Index_P_Litre'] = 0.0
+    edited_df['Index_PVF_Freq'] = 0.0
+    edited_df['Index_P_Litre_Freq'] = 0.0
     
-    index_values = {}
-    
-    # Organiser par segment
-    for segment in segments if segments else df_filtered['Segment'].unique():
-        segment_data = df_filtered[df_filtered['Segment'] == segment]
+    # Calculer les index par segment
+    for segment in edited_df['Segment'].unique():
+        segment_mask = edited_df['Segment'] == segment
+        segment_data = edited_df[segment_mask]
+        
         if len(segment_data) > 0:
-            st.markdown(f"### {segment}")
+            # Base = premier produit du segment
+            base_pvf = segment_data.iloc[0]['PVF_Ar']
+            base_p_litre = segment_data.iloc[0]['P_Litre_Ar']
             
-            for idx, row in segment_data.iterrows():
-                # Index initial selon le type choisi
-                if index_type == 'Index PVF':
-                    initial_index = row['Index_PVF']
-                else:
-                    initial_index = row['Index_P_Litre']
-                
-                # Récupérer la valeur stockée
-                current_value = st.session_state.index_values.get(row['Description'], initial_index)
-                
-                # Slider
-                st.markdown(f"**{row['Marque']}** - *{row['Role_OBPPC']}*")
-                new_index = st.slider(
-                    row['Description'],
-                    min_value=float(max(10, initial_index - 50)),
-                    max_value=float(initial_index + 100),
-                    value=float(current_value),
-                    step=1.0,
-                    key=f"slider_{row['Description']}"
-                )
-                index_values[row['Description']] = new_index
-                st.markdown("---")
+            if base_pvf > 0:
+                edited_df.loc[segment_mask, 'Index_PVF'] = (edited_df.loc[segment_mask, 'PVF_Ar'] / base_pvf * 100).round(1)
+            if base_p_litre > 0:
+                edited_df.loc[segment_mask, 'Index_P_Litre'] = (edited_df.loc[segment_mask, 'P_Litre_Ar'] / base_p_litre * 100).round(1)
     
-    # Stocker les valeurs
-    st.session_state.index_values = index_values
-
-# Tableau dans la colonne droite
-with col2:
-    st.subheader("📋 Tableau des Prix")
-    
-    # Créer le DataFrame de simulation
-    df_sim = df_filtered.copy()
-    
-    # Calculer les nouveaux prix selon les index
-    if index_type == 'Index PVF':
-        df_sim['Index_PVF_Simule'] = df_sim['Description'].map(index_values).astype(float)
-        
-        # Trouver le prix de référence (produit avec index = 100 dans le segment)
-        for segment in df_sim['Segment'].unique():
-            segment_mask = df_sim['Segment'] == segment
-            segment_indices = df_sim.loc[segment_mask, 'Index_PVF_Simule']
-            base_index = segment_indices.min()  # On garde la même base que l'initial
-            base_pvf = df_initial[df_initial['Segment'] == segment].iloc[0]['PVF_Ar']
-            
-            df_sim.loc[segment_mask, 'PVF_Simule'] = (df_sim.loc[segment_mask, 'Index_PVF_Simule'] / 100) * base_pvf
-        
-        df_sim['P_Litre_Simule'] = df_sim['PVF_Simule'] / df_sim['Volume_L']
-        df_sim['Index_P_Litre_Simule'] = (df_sim['P_Litre_Simule'] / df_sim['P_Litre_Ar']) * df_sim['Index_P_Litre']
-    else:
-        df_sim['Index_P_Litre_Simule'] = df_sim['Description'].map(index_values).astype(float)
-        
-        # Trouver le prix de référence (produit avec index = 100 dans le segment)
-        for segment in df_sim['Segment'].unique():
-            segment_mask = df_sim['Segment'] == segment
-            base_p_litre = df_initial[df_initial['Segment'] == segment].iloc[0]['P_Litre_Ar']
-            
-            df_sim.loc[segment_mask, 'P_Litre_Simule'] = (df_sim.loc[segment_mask, 'Index_P_Litre_Simule'] / 100) * base_p_litre
-        
-        df_sim['PVF_Simule'] = df_sim['P_Litre_Simule'] * df_sim['Volume_L']
-        df_sim['Index_PVF_Simule'] = (df_sim['PVF_Simule'] / df_sim['PVF_Ar']) * df_sim['Index_PVF']
-    
-    # Recalculer les index vs Frequency global
-    frequency_data = df_sim[df_sim['Role_OBPPC'] == 'Frequency']
+    # Calculer les index vs Frequency global
+    frequency_data = edited_df[edited_df['Role_OBPPC'] == 'Frequency']
     if len(frequency_data) > 0:
-        base_freq_pvf = frequency_data['PVF_Simule'].mean()
-        base_freq_p_litre = frequency_data['P_Litre_Simule'].mean()
+        base_freq_pvf = frequency_data['PVF_Ar'].mean()
+        base_freq_p_litre = frequency_data['P_Litre_Ar'].mean()
         
-        df_sim['Index_PVF_Freq_Simule'] = (df_sim['PVF_Simule'] / base_freq_pvf * 100).round(1)
-        df_sim['Index_P_Litre_Freq_Simule'] = (df_sim['P_Litre_Simule'] / base_freq_p_litre * 100).round(1)
+        if base_freq_pvf > 0:
+            edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(1)
+        if base_freq_p_litre > 0:
+            edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(1)
     else:
-        df_sim['Index_PVF_Freq_Simule'] = df_sim['Index_PVF_Simule']
-        df_sim['Index_P_Litre_Freq_Simule'] = df_sim['Index_P_Litre_Simule']
+        edited_df['Index_PVF_Freq'] = edited_df['Index_PVF']
+        edited_df['Index_P_Litre_Freq'] = edited_df['Index_P_Litre']
     
-    # Créer le tableau avec les 11 colonnes
+    # Créer le tableau final avec les 11 colonnes
     display_df = pd.DataFrame({
-        'Marque': df_sim['Marque'],
-        'Occasion': df_sim['Occasion'],
-        'Rôle OBPPC': df_sim['Role_OBPPC'],
-        'Description / Format': df_sim['Description'],
-        'Volume (L)': df_sim['Volume_L'],
-        'Prix de Vente Facial (PVF)': df_sim['PVF_Simule'].round(0).astype(int),
-        'Prix au Litre (P/L)': df_sim['P_Litre_Simule'].round(1),
-        'Index PVF': df_sim['Index_PVF_Simule'].round(1),
-        'Index Prix/Litre': df_sim['Index_P_Litre_Simule'].round(1),
-        'Index PVF (Vs Frequency global)': df_sim['Index_PVF_Freq_Simule'].round(1),
-        'Index Prix/Litre (Vs Frequency global)': df_sim['Index_P_Litre_Freq_Simule'].round(1)
+        'Marque': edited_df['Marque'],
+        'Occasion': edited_df['Occasion'],
+        'Rôle OBPPC': edited_df['Role_OBPPC'],
+        'Description / Format': edited_df['Description'],
+        'Volume (L)': edited_df['Volume_L'],
+        'Prix de Vente Facial (PVF) en Ar': edited_df['PVF_Ar'],
+        'Prix au Litre (P/L) en Ar': edited_df['P_Litre_Ar'].round(1),
+        'Index PVF': edited_df['Index_PVF'].round(1),
+        'Index Prix/Litre': edited_df['Index_P_Litre'].round(1),
+        'Index PVF (Vs Frequency global)': edited_df['Index_PVF_Freq'].round(1),
+        'Index Prix/Litre (Vs Frequency global)': edited_df['Index_P_Litre_Freq'].round(1)
     })
     
-    # Afficher le tableau
+    # Afficher le tableau final
+    st.subheader("📋 Tableau avec les Index Calculés")
     st.dataframe(display_df, use_container_width=True, height=600)
     
     # Export CSV
     csv = display_df.to_csv(index=False)
     st.download_button(
-        label="📥 Télécharger (CSV)",
+        label="📥 Télécharger les résultats (CSV)",
         data=csv,
         file_name="simulation_obppc.csv",
         mime="text/csv"
     )
+else:
+    st.info("👆 Modifiez les prix dans le tableau ci-dessus, puis cliquez sur 'Recalculer les index' pour voir les résultats.")
