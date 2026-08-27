@@ -23,10 +23,10 @@ def load_initial_data():
                     'Rafraîchissement', 'Rafraîchissement', 'Rafraîchissement', 'Rafraîchissement', 'Rafraîchissement',
                     'Hydratation', 'Hydratation', 'Hydratation', 'Hydratation', 'Hydratation', 'Hydratation', 'Hydratation',
                     'Sociale', 'Sociale', 'Sociale', 'Sociale', 'Sociale'],
-        'Role_OBPPC': ['Premium', 'Premium', 'Value', 'Value', 'Value', 'Premium',
-                      'Frequency', 'Value', 'Frequency', 'Value', 'Premium',
-                      'Entry', 'Entry', 'Value', 'Premium', 'Entry', 'Value', 'Entry',
-                      'Frequency', 'Entry', 'Frequency', 'Entry', 'Frequency'],
+        'Role_OBPPC': ['Upscale (Premium)', 'Upscale (Premium)', 'Entry (Entrée de gamme)', 'Entry (Entrée de gamme)', 'Entry (Entrée de gamme)', 'Upscale (Premium)',
+                      'Frequency (Cœur de gamme)', 'Entry (Entrée de gamme)', 'Frequency (Cœur de gamme)', 'Entry (Entrée de gamme)', 'Upscale (Premium)',
+                      'Entry (Entrée de gamme)', 'Entry (Entrée de gamme)', 'Entry (Entrée de gamme)', 'Upscale (Premium)', 'Entry (Entrée de gamme)', 'Entry (Entrée de gamme)', 'Entry (Entrée de gamme)',
+                      'Frequency (Cœur de gamme)', 'Entry (Entrée de gamme)', 'Frequency (Cœur de gamme)', 'Entry (Entrée de gamme)', 'Frequency (Cœur de gamme)'],
         'Description': ['Red Bull 25cl CAN', 'Monster 50cl CAN', 'FOSA 33cl VER', 'XXL 33cl CAN', 'DYNAMIC 33cl CAN', 'BOOST VITALITY 25cl CAN',
                        'COCA 33cl VER', 'WOCO 33cl VER', 'FANTA 33cl VER', 'CAPRICE 33cl VER', 'TONIC 33cl VER',
                        'Cristal 50cl VER', 'RANOVISY 50cl VER', 'VISY GASY 50cl VER', 'Eau vive 50cl VER', 'Cristalline 50cl VER', 'OLYMPIKO 50cl VER', 'NATUR EAU 50cl VER',
@@ -73,17 +73,38 @@ with st.sidebar:
         options=available_brands,
         default=available_brands
     )
+    
+    # Filtre par rôle OBPPC
+    st.markdown("---")
+    st.subheader("Rôle OBPPC")
+    
+    all_roles = [
+        'Entry (Entrée de gamme)',
+        'Frequency (Cœur de gamme)',
+        'Upsize (Grand format)',
+        'Upscale (Premium)'
+    ]
+    
+    selected_roles = st.multiselect(
+        "Filtrer par rôle",
+        options=all_roles,
+        default=all_roles
+    )
 
 # Filtrer les données
 if segments and brands:
     df_filtered = df_initial[
         (df_initial['Segment'].isin(segments)) &
-        (df_initial['Marque'].isin(brands))
+        (df_initial['Marque'].isin(brands)) &
+        (df_initial['Role_OBPPC'].isin(selected_roles))
     ].copy()
 else:
-    df_filtered = df_initial.copy()
+    df_filtered = df_initial[df_initial['Role_OBPPC'].isin(selected_roles)].copy()
 
 # Créer le DataFrame éditable
+st.subheader("📝 Tableau Éditable - Modifiez les prix en Ariary (Ar)")
+st.markdown("*Modifiez les prix dans la colonne PVF, puis cliquez sur 'Recalculer les index'*")
+
 edited_df = st.data_editor(
     df_filtered,
     column_config={
@@ -96,7 +117,8 @@ edited_df = st.data_editor(
         ),
         "Volume_L": st.column_config.NumberColumn(
             "Volume (L)",
-            disabled=True
+            disabled=True,
+            format="%.2f"
         ),
         "Segment": st.column_config.TextColumn(
             "Segment",
@@ -110,9 +132,15 @@ edited_df = st.data_editor(
             "Occasion",
             disabled=True
         ),
-        "Role_OBPPC": st.column_config.TextColumn(
+        "Role_OBPPC": st.column_config.SelectboxColumn(
             "Rôle OBPPC",
-            disabled=True
+            options=[
+                'Entry (Entrée de gamme)',
+                'Frequency (Cœur de gamme)',
+                'Upsize (Grand format)',
+                'Upscale (Premium)'
+            ],
+            required=True
         ),
         "Description": st.column_config.TextColumn(
             "Description / Format",
@@ -126,6 +154,7 @@ edited_df = st.data_editor(
 )
 
 # Bouton pour recalculer
+st.markdown("---")
 if st.button("🔄 Recalculer les index", type="primary"):
     # Calculer les prix au litre
     edited_df['P_Litre_Ar'] = edited_df['PVF_Ar'] / edited_df['Volume_L']
@@ -152,7 +181,7 @@ if st.button("🔄 Recalculer les index", type="primary"):
                 edited_df.loc[segment_mask, 'Index_P_Litre'] = (edited_df.loc[segment_mask, 'P_Litre_Ar'] / base_p_litre * 100).round(1)
     
     # Calculer les index vs Frequency global
-    frequency_data = edited_df[edited_df['Role_OBPPC'] == 'Frequency']
+    frequency_data = edited_df[edited_df['Role_OBPPC'] == 'Frequency (Cœur de gamme)']
     if len(frequency_data) > 0:
         base_freq_pvf = frequency_data['PVF_Ar'].mean()
         base_freq_p_litre = frequency_data['P_Litre_Ar'].mean()
@@ -162,8 +191,14 @@ if st.button("🔄 Recalculer les index", type="primary"):
         if base_freq_p_litre > 0:
             edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(1)
     else:
-        edited_df['Index_PVF_Freq'] = edited_df['Index_PVF']
-        edited_df['Index_P_Litre_Freq'] = edited_df['Index_P_Litre']
+        # Si pas de produit Frequency, utiliser la moyenne globale
+        base_freq_pvf = edited_df['PVF_Ar'].mean()
+        base_freq_p_litre = edited_df['P_Litre_Ar'].mean()
+        
+        if base_freq_pvf > 0:
+            edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_freq_pvf * 100).round(1)
+        if base_freq_p_litre > 0:
+            edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_freq_p_litre * 100).round(1)
     
     # Créer le tableau final avec les 11 colonnes
     display_df = pd.DataFrame({
@@ -193,4 +228,4 @@ if st.button("🔄 Recalculer les index", type="primary"):
         mime="text/csv"
     )
 else:
-    st.info("👆 Modifiez les prix dans le tableau ci-dessus, puis cliquez sur 'Recalculer les index' pour voir les résultats.")
+    st.info("👆 Modifiez les prix dans le tableau ci-dessus, puis cliquez sur 'Recalculer les index' pour voir les résultats avec les 11 colonnes.")
