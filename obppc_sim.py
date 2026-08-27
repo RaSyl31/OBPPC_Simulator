@@ -157,45 +157,29 @@ if segments and brands:
 else:
     df_filtered = df_initial.copy()
 
-# Légende des colonnes
-st.markdown("""
-### 📋 Guide des colonnes :
-| Type | Couleur | Description |
-|------|---------|-------------|
-| 🟡 **À compléter manuellement** | Jaune | Colonnes modifiables |
-| 🔵 **Calculées automatiquement** | Bleu | Colonnes calculées après clic sur 'Recalculer' |
-| ⚪ **Non modifiables** | Gris | Informations fixes |
-""")
-
 # Créer le DataFrame éditable
 st.subheader("📝 Tableau Éditable")
-st.markdown("*Les colonnes en **jaune** sont à compléter manuellement*")
 
 edited_df = st.data_editor(
     df_filtered,
     column_config={
-        "PVF_Ar": st.column_config.NumberColumn(
-            "🟡 Prix de Vente Facial (PVF) en Ar",
-            min_value=0,
-            step=100,
-            format="%d",
-            required=True,
-            help="À compléter manuellement"
+        "Segment": st.column_config.SelectboxColumn(
+            "Segment",
+            options=['Energie', 'Boisson Gazeuse', 'Eaux', 'Bière'],
+            required=True
         ),
-        "Volume_L": st.column_config.NumberColumn(
-            "🟡 Volume (L)",
-            min_value=0.1,
-            step=0.01,
-            format="%.2f",
-            required=True,
-            help="À compléter manuellement"
+        "Marque": st.column_config.SelectboxColumn(
+            "Marque",
+            options=sorted(df_initial['Marque'].unique()),
+            required=True
         ),
-        "Occasion": st.column_config.TextColumn(
-            "🟡 Occasion",
-            help="À compléter manuellement (IC, FC, Upscale)"
+        "Occasion": st.column_config.SelectboxColumn(
+            "Occasion",
+            options=['IC (VER)', 'IC (PET)', 'FC (VER)', 'FC (PET)', 'Upscale', ''],
+            required=False
         ),
         "Role_OBPPC": st.column_config.SelectboxColumn(
-            "🟡 Rôle OBPPC",
+            "Rôle OBPPC",
             options=[
                 'Entry (Entrée de gamme)',
                 'Frequency (Cœur de gamme)',
@@ -203,20 +187,24 @@ edited_df = st.data_editor(
                 'Upscale (Premium)',
                 'Upscale (Super-Premium Niche)'
             ],
-            required=True,
-            help="À compléter manuellement"
-        ),
-        "Segment": st.column_config.TextColumn(
-            "⚪ Segment",
-            disabled=True
-        ),
-        "Marque": st.column_config.TextColumn(
-            "⚪ Marque",
-            disabled=True
+            required=True
         ),
         "Description": st.column_config.TextColumn(
-            "⚪ Description / Format",
-            disabled=True
+            "Description / Format"
+        ),
+        "Volume_L": st.column_config.NumberColumn(
+            "Volume (L)",
+            min_value=0.1,
+            step=0.01,
+            format="%.2f",
+            required=True
+        ),
+        "PVF_Ar": st.column_config.NumberColumn(
+            "Prix de Vente Facial (PVF) en Ar",
+            min_value=0,
+            step=100,
+            format="%d",
+            required=True
         )
     },
     hide_index=True,
@@ -282,17 +270,16 @@ with col_btn2:
             'Rôle OBPPC': edited_df['Role_OBPPC'],
             'Description / Format': edited_df['Description'],
             'Volume (L)': edited_df['Volume_L'],
-            '🟡 Prix de Vente Facial (PVF) en Ar': edited_df['PVF_Ar'],
-            '🔵 Prix au Litre (P/L) en Ar': edited_df['P_Litre_Ar'].round(1),
-            '🔵 Index PVF': edited_df['Index_PVF'].round(1),
-            '🔵 Index Prix/Litre': edited_df['Index_P_Litre'].round(1),
-            '🔵 Index PVF (Vs Frequency global)': edited_df['Index_PVF_Freq'].round(1),
-            '🔵 Index Prix/Litre (Vs Frequency global)': edited_df['Index_P_Litre_Freq'].round(1)
+            'Prix de Vente Facial (PVF) en Ar': edited_df['PVF_Ar'],
+            'Prix au Litre (P/L) en Ar': edited_df['P_Litre_Ar'].round(1),
+            'Index PVF': edited_df['Index_PVF'].round(1),
+            'Index Prix/Litre': edited_df['Index_P_Litre'].round(1),
+            'Index PVF (Vs Frequency global)': edited_df['Index_PVF_Freq'].round(1),
+            'Index Prix/Litre (Vs Frequency global)': edited_df['Index_P_Litre_Freq'].round(1)
         })
         
         # Afficher le tableau final
         st.subheader("📋 Tableau avec les Index Calculés")
-        st.markdown("*Les colonnes en **bleu** sont calculées automatiquement*")
         st.dataframe(display_df, use_container_width=True, height=600)
         
         # Export CSV
@@ -304,5 +291,4 @@ with col_btn2:
             mime="text/csv"
         )
     else:
-        st.info("👆 **Complétez les colonnes en JAUNE** dans le tableau ci-dessus, puis cliquez sur 'Recalculer les index' pour voir les résultats avec les 11 colonnes.")
-        st.info("🔵 Les colonnes en BLEU seront calculées automatiquement : Prix au Litre, Index PVF, Index Prix/Litre, Index vs Frequency global")
+        st.info("👆 Modifiez les données dans le tableau, puis cliquez sur 'Recalculer les index' pour voir les résultats avec les 11 colonnes.")
