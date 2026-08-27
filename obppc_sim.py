@@ -47,11 +47,14 @@ def load_initial_data():
     df = pd.DataFrame(data)
     df['P_Litre'] = df['PVF'] / df['Volume_L']
     
+    # Initialiser les colonnes d'index avec des floats
+    df['Index_PVF'] = 0.0
+    df['Index_P_Litre'] = 0.0
+    df['Index_PVF_Freq'] = 0.0
+    df['Index_P_Litre_Freq'] = 0.0
+    
     # Calculer les index initiaux
     # Index PVF et Prix/Litre par segment (base = premier produit du segment)
-    df['Index_PVF'] = 0
-    df['Index_P_Litre'] = 0
-    
     for segment in df['Segment'].unique():
         segment_mask = df['Segment'] == segment
         segment_data = df[segment_mask]
@@ -72,12 +75,17 @@ def load_initial_data():
         df['Index_PVF_Freq'] = (df['PVF'] / base_freq_pvf * 100).round(1)
         df['Index_P_Litre_Freq'] = (df['P_Litre'] / base_freq_p_litre * 100).round(1)
     else:
-        df['Index_PVF_Freq'] = 100
-        df['Index_P_Litre_Freq'] = 100
+        df['Index_PVF_Freq'] = 100.0
+        df['Index_P_Litre_Freq'] = 100.0
     
     return df
 
-df_initial = load_initial_data()
+# Charger les données
+try:
+    df_initial = load_initial_data()
+except Exception as e:
+    st.error(f"Erreur lors du chargement des données : {str(e)}")
+    st.stop()
 
 # Titre principal
 st.title("🎯 Simulateur OBPPC - Multi-Segments")
@@ -125,15 +133,18 @@ with st.sidebar:
     # Prix de référence
     st.subheader("💰 Prix de Référence")
     
-    # Produit de référence (peut changer selon le type d'index)
+    # Produit de référence
+    default_ref = 'THB 65cl VER' if 'THB 65cl VER' in df_initial['Description'].tolist() else df_initial['Description'].iloc[0]
+    reference_product = st.selectbox(
+        "Produit de référence",
+        options=df_initial['Description'].tolist(),
+        index=df_initial['Description'].tolist().index(default_ref),
+        help="Le produit dont l'index sera fixé à 100"
+    )
+    
+    ref_data = df_initial[df_initial['Description'] == reference_product].iloc[0]
+    
     if index_type == 'Index PVF':
-        reference_product = st.selectbox(
-            "Produit de référence",
-            options=df_initial['Description'].tolist(),
-            index=df_initial[df_initial['Description'] == 'THB 65cl VER'].index[0] if 'THB 65cl VER' in df_initial['Description'].tolist() else 0,
-            help="Le produit dont l'index sera fixé à 100"
-        )
-        ref_data = df_initial[df_initial['Description'] == reference_product].iloc[0]
         reference_price = st.number_input(
             "Prix de référence (PVF)",
             value=float(ref_data['PVF']),
@@ -141,13 +152,6 @@ with st.sidebar:
             format="%.0f"
         )
     else:
-        reference_product = st.selectbox(
-            "Produit de référence",
-            options=df_initial['Description'].tolist(),
-            index=df_initial[df_initial['Description'] == 'THB 65cl VER'].index[0] if 'THB 65cl VER' in df_initial['Description'].tolist() else 0,
-            help="Le produit dont l'index sera fixé à 100"
-        )
-        ref_data = df_initial[df_initial['Description'] == reference_product].iloc[0]
         reference_price = st.number_input(
             "Prix de référence (P/Litre)",
             value=float(ref_data['P_Litre']),
@@ -167,10 +171,13 @@ with st.sidebar:
         st.rerun()
 
 # Filtrer les données
-df_filtered = df_initial[
-    (df_initial['Segment'].isin(segments)) &
-    (df_initial['Marque'].isin(brands))
-].copy() if segments and brands else df_initial.copy()
+if segments and brands:
+    df_filtered = df_initial[
+        (df_initial['Segment'].isin(segments)) &
+        (df_initial['Marque'].isin(brands))
+    ].copy()
+else:
+    df_filtered = df_initial.copy()
 
 # Créer les colonnes pour l'affichage
 col1, col2 = st.columns([1, 2])
@@ -188,7 +195,7 @@ with col1:
     index_values = {}
     
     # Grouper par segment pour une meilleure organisation
-    for segment in segments:
+    for segment in segments if segments else df_filtered['Segment'].unique():
         segment_data = df_filtered[df_filtered['Segment'] == segment]
         if len(segment_data) > 0:
             st.markdown(f"### {segment}")
@@ -207,7 +214,7 @@ with col1:
                 st.markdown(f"**{row['Marque']}** - *{row['Role_OBPPC']}*")
                 new_index = st.slider(
                     row['Description'],
-                    min_value=float(initial_index - 50),
+                    min_value=float(max(10, initial_index - 50)),
                     max_value=float(initial_index + 100),
                     value=float(current_value),
                     step=1.0,
@@ -227,12 +234,12 @@ with col2:
     
     # Calculer les nouveaux prix en fonction des index
     if index_type == 'Index PVF':
-        df_sim['Index_PVF_Simule'] = df_sim['Description'].map(index_values)
+        df_sim['Index_PVF_Simule'] = df_sim['Description'].map(index_values).astype(float)
         df_sim['PVF_Simule'] = (df_sim['Index_PVF_Simule'] / 100) * reference_price
         df_sim['P_Litre_Simule'] = df_sim['PVF_Simule'] / df_sim['Volume_L']
         df_sim['Index_P_Litre_Simule'] = (df_sim['P_Litre_Simule'] / df_sim['P_Litre']) * df_sim['Index_P_Litre']
     else:
-        df_sim['Index_P_Litre_Simule'] = df_sim['Description'].map(index_values)
+        df_sim['Index_P_Litre_Simule'] = df_sim['Description'].map(index_values).astype(float)
         df_sim['P_Litre_Simule'] = (df_sim['Index_P_Litre_Simule'] / 100) * reference_price
         df_sim['PVF_Simule'] = df_sim['P_Litre_Simule'] * df_sim['Volume_L']
         df_sim['Index_PVF_Simule'] = (df_sim['PVF_Simule'] / df_sim['PVF']) * df_sim['Index_PVF']
@@ -245,6 +252,9 @@ with col2:
         
         df_sim['Index_PVF_Freq_Simule'] = (df_sim['PVF_Simule'] / base_freq_pvf * 100).round(1)
         df_sim['Index_P_Litre_Freq_Simule'] = (df_sim['P_Litre_Simule'] / base_freq_p_litre * 100).round(1)
+    else:
+        df_sim['Index_PVF_Freq_Simule'] = df_sim['Index_PVF_Simule']
+        df_sim['Index_P_Litre_Freq_Simule'] = df_sim['Index_P_Litre_Simule']
     
     # Onglets pour différentes vues
     tab1, tab2, tab3, tab4 = st.tabs([
@@ -258,34 +268,19 @@ with col2:
         st.subheader("Tableau des Résultats avec les 11 colonnes")
         
         # Créer le tableau final avec les 11 colonnes demandées
-        if index_type == 'Index PVF':
-            display_df = pd.DataFrame({
-                'Marque': df_sim['Marque'],
-                'Occasion': df_sim['Occasion'],
-                'Rôle OBPPC': df_sim['Role_OBPPC'],
-                'Description / Format': df_sim['Description'],
-                'Volume (L)': df_sim['Volume_L'],
-                'Prix de Vente Facial (PVF)': df_sim['PVF_Simule'].round(0),
-                'Prix au Litre (P/L)': df_sim['P_Litre_Simule'].round(1),
-                'Index PVF': df_sim['Index_PVF_Simule'].round(1),
-                'Index Prix/Litre': df_sim['Index_P_Litre_Simule'].round(1),
-                'Index PVF (Vs Frequency global)': df_sim['Index_PVF_Freq_Simule'].round(1),
-                'Index Prix/Litre (Vs Frequency global)': df_sim['Index_P_Litre_Freq_Simule'].round(1)
-            })
-        else:
-            display_df = pd.DataFrame({
-                'Marque': df_sim['Marque'],
-                'Occasion': df_sim['Occasion'],
-                'Rôle OBPPC': df_sim['Role_OBPPC'],
-                'Description / Format': df_sim['Description'],
-                'Volume (L)': df_sim['Volume_L'],
-                'Prix de Vente Facial (PVF)': df_sim['PVF_Simule'].round(0),
-                'Prix au Litre (P/L)': df_sim['P_Litre_Simule'].round(1),
-                'Index PVF': df_sim['Index_PVF_Simule'].round(1),
-                'Index Prix/Litre': df_sim['Index_P_Litre_Simule'].round(1),
-                'Index PVF (Vs Frequency global)': df_sim['Index_PVF_Freq_Simule'].round(1),
-                'Index Prix/Litre (Vs Frequency global)': df_sim['Index_P_Litre_Freq_Simule'].round(1)
-            })
+        display_df = pd.DataFrame({
+            'Marque': df_sim['Marque'],
+            'Occasion': df_sim['Occasion'],
+            'Rôle OBPPC': df_sim['Role_OBPPC'],
+            'Description / Format': df_sim['Description'],
+            'Volume (L)': df_sim['Volume_L'],
+            'Prix de Vente Facial (PVF)': df_sim['PVF_Simule'].round(0),
+            'Prix au Litre (P/L)': df_sim['P_Litre_Simule'].round(1),
+            'Index PVF': df_sim['Index_PVF_Simule'].round(1),
+            'Index Prix/Litre': df_sim['Index_P_Litre_Simule'].round(1),
+            'Index PVF (Vs Frequency global)': df_sim['Index_PVF_Freq_Simule'].round(1),
+            'Index Prix/Litre (Vs Frequency global)': df_sim['Index_P_Litre_Freq_Simule'].round(1)
+        })
         
         # Afficher le tableau
         st.dataframe(display_df, use_container_width=True, height=500)
@@ -352,13 +347,13 @@ with col2:
         alerts = []
         
         # Vérifier la hiérarchie des rôles
+        hierarchy = [('Entry', 'Frequency'), ('Entry', 'Premium'), ('Entry', 'Value'), 
+                    ('Value', 'Frequency'), ('Value', 'Premium'), ('Frequency', 'Premium')]
+        
         for segment in df_sim['Segment'].unique():
             segment_data = df_sim[df_sim['Segment'] == segment]
             
-            for role_pair in [('Entry', 'Frequency'), ('Frequency', 'Premium'), ('Entry', 'Premium'), ('Value', 'Premium')]:
-                role_low = role_pair[0]
-                role_high = role_pair[1]
-                
+            for role_low, role_high in hierarchy:
                 if role_low in segment_data['Role_OBPPC'].values and role_high in segment_data['Role_OBPPC'].values:
                     price_low = segment_data[segment_data['Role_OBPPC'] == role_low]['P_Litre_Simule'].min()
                     price_high = segment_data[segment_data['Role_OBPPC'] == role_high]['P_Litre_Simule'].min()
@@ -369,24 +364,6 @@ with col2:
                             'Segment': segment,
                             'Message': f'{role_low} ({price_low:.0f} FCFA/L) devrait être inférieur à {role_high} ({price_high:.0f} FCFA/L)'
                         })
-        
-        # Vérifier les écarts trop importants
-        for segment in df_sim['Segment'].unique():
-            segment_data = df_sim[df_sim['Segment'] == segment]
-            
-            for role in segment_data['Role_OBPPC'].unique():
-                role_data = segment_data[segment_data['Role_OBPPC'] == role]
-                if len(role_data) > 1:
-                    mean_price = role_data['P_Litre_Simule'].mean()
-                    std_price = role_data['P_Litre_Simule'].std()
-                    
-                    for _, row in role_data.iterrows():
-                        if abs(row['P_Litre_Simule'] - mean_price) > 1.5 * std_price:
-                            alerts.append({
-                                'Type': '📊 Écart',
-                                'Segment': segment,
-                                'Message': f'{row["Description"]} : {row["P_Litre_Simule"]:.0f} FCFA/L est éloigné de la moyenne {role} ({mean_price:.0f} FCFA/L)'
-                            })
         
         if show_alerts and alerts:
             st.warning(f"**{len(alerts)} alertes de cohérence détectées**")
