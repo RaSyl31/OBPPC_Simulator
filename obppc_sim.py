@@ -73,33 +73,15 @@ with st.sidebar:
         options=available_brands,
         default=available_brands
     )
-    
-    # Filtre par rôle OBPPC
-    st.markdown("---")
-    st.subheader("Rôle OBPPC")
-    
-    all_roles = [
-        'Entry (Entrée de gamme)',
-        'Frequency (Cœur de gamme)',
-        'Upsize (Grand format)',
-        'Upscale (Premium)'
-    ]
-    
-    selected_roles = st.multiselect(
-        "Filtrer par rôle",
-        options=all_roles,
-        default=all_roles
-    )
 
 # Filtrer les données
 if segments and brands:
     df_filtered = df_initial[
         (df_initial['Segment'].isin(segments)) &
-        (df_initial['Marque'].isin(brands)) &
-        (df_initial['Role_OBPPC'].isin(selected_roles))
+        (df_initial['Marque'].isin(brands))
     ].copy()
 else:
-    df_filtered = df_initial[df_initial['Role_OBPPC'].isin(selected_roles)].copy()
+    df_filtered = df_initial.copy()
 
 # Créer le DataFrame éditable
 st.subheader("📝 Tableau Éditable - Modifiez les prix en Ariary (Ar)")
