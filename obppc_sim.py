@@ -11,68 +11,110 @@ st.set_page_config(
 @st.cache_data
 def load_initial_data():
     data = {
-        'Segment': ['Energie', 'Energie', 'Energie', 'Energie', 'Energie', 'Energie',
-                   'Boisson Gazeuse', 'Boisson Gazeuse', 'Boisson Gazeuse', 'Boisson Gazeuse', 'Boisson Gazeuse',
-                   'Eaux', 'Eaux', 'Eaux', 'Eaux', 'Eaux', 'Eaux', 'Eaux',
-                   'Bière', 'Bière', 'Bière', 'Bière', 'Bière'],
-        'Marque': ['Red Bull', 'Monster', 'FOSA', 'XXL', 'DYNAMIC', 'BOOST VITALITY',
-                  'COCA', 'WOCO', 'FANTA', 'CAPRICE', 'TONIC',
-                  'Cristal', 'RANOVISY', 'VISY GASY', 'Eau vive', 'Cristalline', 'OLYMPIKO', 'NATUR EAU',
-                  'Beaufort', 'Gold', 'THB', 'Queen', 'Fresh'],
-        'Description': ['Red Bull 25cl CAN', 'Monster 50cl CAN', 'FOSA 33cl VER', 'XXL 33cl CAN', 'DYNAMIC 33cl CAN', 'BOOST VITALITY 25cl CAN',
-                       'COCA 33cl VER', 'WOCO 33cl VER', 'FANTA 33cl VER', 'CAPRICE 33cl VER', 'TONIC 33cl VER',
-                       'Cristal 50cl VER', 'RANOVISY 50cl VER', 'VISY GASY 50cl VER', 'Eau vive 50cl VER', 'Cristalline 50cl VER', 'OLYMPIKO 50cl VER', 'NATUR EAU 50cl VER',
-                       'Beaufort 33cl VER', 'Gold 50cl VER', 'THB 65cl VER', 'Queen 65cl VER', 'Fresh 33cl VER'],
-        'Volume_L': [0.25, 0.50, 0.33, 0.33, 0.33, 0.25,
-                    0.33, 0.33, 0.33, 0.33, 0.33,
-                    0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50,
-                    0.33, 0.50, 0.65, 0.65, 0.33],
-        'PVF_Ar': [8000, 10000, 3500, 4000, 3500, 9000,
-                  3500, 2500, 3500, 2500, 4500,
-                  2000, 1500, 1500, 2500, 1500, 1500, 1500,
-                  4000, 4500, 4500, 4000, 2500]
+        'Segment': [],
+        'Marque': [],
+        'Occasion': [],
+        'Role_OBPPC': [],
+        'Description': [],
+        'Volume_L': [],
+        'PVF_Ar': []
     }
+    
+    # Energie
+    energie_data = [
+        ('Energie', 'Red Bull', 'Upscale', 'Upscale (Premium)', 'CAN 25', 0.25, 9900),
+        ('Energie', 'Monster', 'Upscale', 'Upscale (Premium)', 'CAN 50', 0.50, 9900),
+        ('Energie', 'FOSA', 'Upscale', 'Upscale (Premium)', 'CAN 50', 0.50, 5000),
+        ('Energie', 'XXL', 'IC (VER)', 'Entry (Entrée de gamme)', 'VC 30', 0.30, 2500),
+        ('Energie', 'XXL', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 35', 0.35, 3500),
+        ('Energie', 'XXL', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 4000),
+        ('Energie', 'DYNAMIC', 'Upscale', 'Upscale (Premium)', 'CAN 25', 0.25, 3500),
+        ('Energie', 'BOOST VITALITY', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 4000),
+    ]
+    
+    # Boisson Gazeuse
+    boisson_data = [
+        ('Boisson Gazeuse', 'COCA', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35 (N° 1 vente en col)', 0.35, 1500),
+        ('Boisson Gazeuse', 'COCA', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
+        ('Boisson Gazeuse', 'COCA', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 2500),
+        ('Boisson Gazeuse', 'COCA', 'FC (PET)', 'Entry (Entrée de gamme)', 'PET 150', 1.50, 5000),
+        ('Boisson Gazeuse', 'WOCO', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35', 0.35, 1500),
+        ('Boisson Gazeuse', 'WOCO', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
+        ('Boisson Gazeuse', 'WOCO', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 2500),
+        ('Boisson Gazeuse', 'WOCO', 'IC (VER)', 'Entry (Entrée de gamme)', 'VC 30', 0.30, 1200),
+        ('Boisson Gazeuse', 'WOCO', 'FC (PET)', 'Entry (Entrée de gamme)', 'PET 150', 1.50, 5000),
+        ('Boisson Gazeuse', 'WOCO', 'FC (VER)', 'Entry (Entrée de gamme)', 'VC 100', 1.00, 3000),
+        ('Boisson Gazeuse', 'FANTA', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35 (N° 1 vente en col)', 0.35, 1500),
+        ('Boisson Gazeuse', 'FANTA', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
+        ('Boisson Gazeuse', 'FANTA', 'FC (PET)', 'Entry (Entrée de gamme)', 'PET 150', 1.50, 5000),
+        ('Boisson Gazeuse', 'CAPRICE', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35', 0.35, 1500),
+        ('Boisson Gazeuse', 'CAPRICE', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
+        ('Boisson Gazeuse', 'CAPRICE', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 2500),
+        ('Boisson Gazeuse', 'CAPRICE', 'IC (VER)', 'Entry (Entrée de gamme)', 'VC 30', 0.30, 1200),
+        ('Boisson Gazeuse', 'CAPRICE', 'FC (PET)', 'Entry (Entrée de gamme)', 'PET 150', 1.50, 5000),
+        ('Boisson Gazeuse', 'CAPRICE', 'FC (VER)', 'Entry (Entrée de gamme)', 'VC 100', 1.00, 3000),
+        ('Boisson Gazeuse', 'TONIC', 'IC (VER)', 'Entry (Entrée de gamme)', 'VC 30', 0.30, 1200),
+        ('Boisson Gazeuse', 'TONIC', 'FC (VER)', 'Entry (Entrée de gamme)', 'VC 100', 1.00, 3000),
+    ]
+    
+    # Eaux
+    eaux_data = [
+        ('Eaux', 'Cristal', 'IC (VER)', 'Entry (Entrée de gamme)', 'Cristal 30 cl VER', 0.30, 1500),
+        ('Eaux', 'Cristal', 'IC (VER)', 'Frequency (Cœur de gamme)', 'Cristal 50 cl VER', 0.50, 2200),
+        ('Eaux', 'Cristal', 'FC (VER)', 'Upscale (Premium)', 'Cristal 100 cl VER', 1.00, 3800),
+        ('Eaux', 'Cristal', 'FC (PET)', 'Frequency (Cœur de gamme)', 'Cristal 150 cl PET', 1.50, 5500),
+        ('Eaux', 'RANOVISY', 'IC (PET)', 'Entry (Entrée de gamme)', 'RANOVISY 33 PET', 0.33, 1000),
+        ('Eaux', 'RANOVISY', 'IC (PET)', 'Frequency (Cœur de gamme)', 'RANOVISY 50 CL PET', 0.50, 2400),
+        ('Eaux', 'RANOVISY', 'IC (PET)', 'Upsize (Grand format)', 'RANOVISY 75 PET', 0.75, 3000),
+        ('Eaux', 'VISY GASY', 'IC (PET)', 'Entry (Entrée de gamme)', 'VISY GASY 60 PET', 0.60, 2500),
+        ('Eaux', 'VISY GASY', 'FC (PET)', 'Entry (Entrée de gamme)', 'VISY GASY 100 PET', 1.00, 3000),
+        ('Eaux', 'Eau vive', 'IC (PET)', 'Entry (Entrée de gamme)', 'Eau vive 50 cl PET', 0.50, 1600),
+        ('Eaux', 'Eau vive', 'FC (PET)', 'Frequency (Cœur de gamme)', 'Eau vive 150 cl PET', 1.50, 3300),
+        ('Eaux', 'Eau vive', 'IC (VER)', 'Frequency (Cœur de gamme)', 'Eau vive 50 cl VER', 0.50, 2200),
+        ('Eaux', 'Cristalline', 'FC (PET)', 'Frequency (Cœur de gamme)', 'Cristalline 100 cl PET', 1.50, 2100),
+        ('Eaux', 'Cristalline', 'FC (PET)', 'Upsize (Grand format)', 'Cristalline 200 cl PET', 2.00, 3600),
+        ('Eaux', 'OLYMPIKO', 'IC (PET)', 'Entry (Entrée de gamme)', 'OLYMPIKO 50', 0.50, 1500),
+        ('Eaux', 'OLYMPIKO', 'FC (PET)', 'Frequency (Cœur de gamme)', 'OLYMPIKO 100', 1.00, 2000),
+        ('Eaux', 'OLYMPIKO', 'FC (PET)', 'Upsize (Grand format)', 'OLYMPIKO 150', 1.50, 2500),
+        ('Eaux', 'NATUR EAU', 'IC (PET)', 'Entry (Entrée de gamme)', 'NATUR EAU 50', 0.50, 1500),
+        ('Eaux', 'NATUR EAU', 'FC (PET)', 'Frequency (Cœur de gamme)', 'NATUR EAU 100', 1.00, 2000),
+        ('Eaux', 'NATUR EAU', 'FC (PET)', 'Upsize (Grand format)', 'NATUR EAU 150', 1.50, 2500),
+    ]
+    
+    # Bière
+    biere_data = [
+        ('Bière', 'Beaufort', '', 'Frequency (Cœur de gamme)', 'Beaufort 33CL VER', 0.33, 4000),
+        ('Bière', 'Beaufort', '', 'Upscale (Premium)', 'Beaufort 33 CL CAN', 0.33, 5000),
+        ('Bière', 'Gold', '', 'Entry (Entrée de gamme)', 'Gold Blanche 33cl VER', 0.33, 3500),
+        ('Bière', 'Gold', '', 'Entry (Entrée de gamme)', 'Gold 8 50 cl VER', 0.50, 4500),
+        ('Bière', 'Gold', '', 'Frequency (Cœur de gamme)', 'Gold Blanche 50 cl VER', 0.50, 4500),
+        ('Bière', 'Gold', '', 'Frequency (Cœur de gamme)', 'Gold Blonde 50 cl VER', 0.50, 4500),
+        ('Bière', 'Gold', '', 'Frequency (Cœur de gamme)', 'Gold Blonde 65 cl VER', 0.65, 5000),
+        ('Bière', 'Gold', '', 'Upscale (Premium)', 'Gold 8 50 cl CAN', 0.50, 6000),
+        ('Bière', 'Gold', '', 'Upscale (Premium)', 'Gold Blanche 50 cl CAN', 0.50, 6000),
+        ('Bière', 'Gold', '', 'Upscale (Premium)', 'Gold Blonde 50 cl CAN', 0.50, 6000),
+        ('Bière', 'THB', '', 'Entry (Entrée de gamme)', 'THB Pilsener 33 cl VER', 0.33, 2500),
+        ('Bière', 'THB', '', 'Frequency (Cœur de gamme)', 'THB Pilsener 65 cl VER', 0.65, 4500),
+        ('Bière', 'THB', '', 'Upscale (Premium)', 'THB Pilsener 50 cl CAN', 0.50, 5000),
+        ('Bière', 'Queen', '', 'Entry (Entrée de gamme)', 'Queen s 65 cl VER', 0.65, 4000),
+        ('Bière', 'Fresh', '', 'Entry (Entrée de gamme)', 'THB Fresh 33 cl VER', 0.33, 2500),
+        ('Bière', 'Fresh', '', 'Frequency (Cœur de gamme)', 'THB Fresh 65 cl VER', 0.65, 4000),
+        ('Bière', 'Fresh', '', 'Upscale (Premium)', 'FRESH 33 cl CAN', 0.33, 3500),
+    ]
+    
+    # Combiner toutes les données
+    all_data = energie_data + boisson_data + eaux_data + biere_data
+    
+    for item in all_data:
+        data['Segment'].append(item[0])
+        data['Marque'].append(item[1])
+        data['Occasion'].append(item[2])
+        data['Role_OBPPC'].append(item[3])
+        data['Description'].append(item[4])
+        data['Volume_L'].append(item[5])
+        data['PVF_Ar'].append(item[6])
+    
     df = pd.DataFrame(data)
-    
-    # Déterminer automatiquement l'Occasion selon le volume
-    df['Occasion'] = df['Volume_L'].apply(lambda x: 'FC' if x > 0.99 else 'IC')
-    
-    # Initialiser le Role_OBPPC
-    df['Role_OBPPC'] = ''
-    
-    # Attribution automatique du Role_OBPPC selon l'Occasion
-    # Pour IC (volume < 1L) : Entry ou Frequency ou Upscale
-    # Pour FC (volume > 0.99L) : Upsize (Grand format)
-    # Pour Upscale : Upscale (Premium)
-    
-    # Attribution manuelle pour l'exemple (à ajuster selon vos besoins)
-    role_mapping = {
-        'Red Bull 25cl CAN': 'Upscale (Premium)',
-        'Monster 50cl CAN': 'Upscale (Premium)',
-        'FOSA 33cl VER': 'Entry (Entrée de gamme)',
-        'XXL 33cl CAN': 'Entry (Entrée de gamme)',
-        'DYNAMIC 33cl CAN': 'Entry (Entrée de gamme)',
-        'BOOST VITALITY 25cl CAN': 'Upscale (Premium)',
-        'COCA 33cl VER': 'Frequency (Cœur de gamme)',
-        'WOCO 33cl VER': 'Entry (Entrée de gamme)',
-        'FANTA 33cl VER': 'Frequency (Cœur de gamme)',
-        'CAPRICE 33cl VER': 'Entry (Entrée de gamme)',
-        'TONIC 33cl VER': 'Upscale (Premium)',
-        'Cristal 50cl VER': 'Entry (Entrée de gamme)',
-        'RANOVISY 50cl VER': 'Entry (Entrée de gamme)',
-        'VISY GASY 50cl VER': 'Entry (Entrée de gamme)',
-        'Eau vive 50cl VER': 'Upscale (Premium)',
-        'Cristalline 50cl VER': 'Entry (Entrée de gamme)',
-        'OLYMPIKO 50cl VER': 'Entry (Entrée de gamme)',
-        'NATUR EAU 50cl VER': 'Entry (Entrée de gamme)',
-        'Beaufort 33cl VER': 'Frequency (Cœur de gamme)',
-        'Gold 50cl VER': 'Entry (Entrée de gamme)',
-        'THB 65cl VER': 'Frequency (Cœur de gamme)',
-        'Queen 65cl VER': 'Entry (Entrée de gamme)',
-        'Fresh 33cl VER': 'Frequency (Cœur de gamme)'
-    }
-    df['Role_OBPPC'] = df['Description'].map(role_mapping)
-    
     return df
 
 # Charger les données
@@ -119,23 +161,6 @@ else:
 st.subheader("📝 Tableau Éditable - Modifiez les prix en Ariary (Ar)")
 st.markdown("*Modifiez les prix dans la colonne PVF, puis cliquez sur 'Recalculer les index'*")
 
-# Fonction pour mettre à jour l'occasion selon le volume
-def update_occasion(volume):
-    return 'FC' if volume > 0.99 else 'IC'
-
-# Fonction pour mettre à jour le rôle OBPPC selon l'occasion
-def update_role_obppc(occasion, current_role):
-    if occasion == 'Upscale':
-        return 'Upscale (Premium)'
-    elif occasion == 'FC':
-        return 'Upsize (Grand format)'
-    else:  # IC
-        # Garder le rôle actuel si c'est Entry, Frequency ou Upscale
-        if current_role in ['Entry (Entrée de gamme)', 'Frequency (Cœur de gamme)', 'Upscale (Premium)']:
-            return current_role
-        else:
-            return 'Entry (Entrée de gamme)'  # Par défaut
-
 edited_df = st.data_editor(
     df_filtered,
     column_config={
@@ -161,10 +186,9 @@ edited_df = st.data_editor(
             "Marque",
             disabled=True
         ),
-        "Occasion": st.column_config.SelectboxColumn(
+        "Occasion": st.column_config.TextColumn(
             "Occasion",
-            options=['IC', 'FC', 'Upscale'],
-            required=True
+            disabled=False
         ),
         "Role_OBPPC": st.column_config.SelectboxColumn(
             "Rôle OBPPC",
@@ -172,7 +196,8 @@ edited_df = st.data_editor(
                 'Entry (Entrée de gamme)',
                 'Frequency (Cœur de gamme)',
                 'Upsize (Grand format)',
-                'Upscale (Premium)'
+                'Upscale (Premium)',
+                'Upscale (Super-Premium Niche)'
             ],
             required=True
         ),
@@ -186,24 +211,6 @@ edited_df = st.data_editor(
     num_rows="dynamic",
     key="data_editor"
 )
-
-# Appliquer les règles automatiques après édition
-# Si le volume change, mettre à jour l'occasion automatiquement
-for idx in edited_df.index:
-    # Règle : Volume > 0.99 => FC, sinon IC
-    if edited_df.at[idx, 'Volume_L'] > 0.99:
-        if edited_df.at[idx, 'Occasion'] != 'Upscale':
-            edited_df.at[idx, 'Occasion'] = 'FC'
-    else:
-        if edited_df.at[idx, 'Occasion'] != 'Upscale':
-            edited_df.at[idx, 'Occasion'] = 'IC'
-    
-    # Règle : Si Occasion == Upscale, alors Role_OBPPC == Upscale (Premium)
-    if edited_df.at[idx, 'Occasion'] == 'Upscale':
-        edited_df.at[idx, 'Role_OBPPC'] = 'Upscale (Premium)'
-    # Règle : Si Occasion == FC, alors Role_OBPPC == Upsize (Grand format)
-    elif edited_df.at[idx, 'Occasion'] == 'FC':
-        edited_df.at[idx, 'Role_OBPPC'] = 'Upsize (Grand format)'
 
 # Bouton pour recalculer
 st.markdown("---")
@@ -233,7 +240,7 @@ if st.button("🔄 Recalculer les index", type="primary"):
                 edited_df.loc[segment_mask, 'Index_P_Litre'] = (edited_df.loc[segment_mask, 'P_Litre_Ar'] / base_p_litre * 100).round(1)
     
     # Calculer les index vs Frequency global
-    frequency_data = edited_df[edited_df['Role_OBPPC'] == 'Frequency (Cœur de gamme)']
+    frequency_data = edited_df[edited_df['Role_OBPPC'].str.contains('Frequency', na=False)]
     if len(frequency_data) > 0:
         base_freq_pvf = frequency_data['PVF_Ar'].mean()
         base_freq_p_litre = frequency_data['P_Litre_Ar'].mean()
@@ -281,4 +288,3 @@ if st.button("🔄 Recalculer les index", type="primary"):
     )
 else:
     st.info("👆 Modifiez les prix dans le tableau ci-dessus, puis cliquez sur 'Recalculer les index' pour voir les résultats avec les 11 colonnes.")
-    st.info("📏 Règles automatiques : Volume > 0.99L = FC → Upsize (Grand format) | Volume < 1L = IC | Occasion Upscale = Upscale (Premium)")
