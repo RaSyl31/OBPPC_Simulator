@@ -340,7 +340,7 @@ with main_container:
                 'Statut': edited_df.apply(lambda row: check_index_status(row['Index_P_Litre'], row['Role_OBPPC']), axis=1)
             })
             
-            # Afficher le tableau final avec la même hauteur que le tableau éditable
+            # Afficher le tableau final juste après le bouton
             st.subheader("📋 Tableau avec les Index Calculés")
             
             # Utiliser la même hauteur que le tableau éditable (400px)
