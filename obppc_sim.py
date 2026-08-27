@@ -19,10 +19,10 @@ def load_initial_data():
                   'COCA', 'WOCO', 'FANTA', 'CAPRICE', 'TONIC',
                   'Cristal', 'RANOVISY', 'VISY GASY', 'Eau vive', 'Cristalline', 'OLYMPIKO', 'NATUR EAU',
                   'Beaufort', 'Gold', 'THB', 'Queen', 'Fresh'],
-        'Occasion': ['Energie', 'Energie', 'Energie', 'Energie', 'Energie', 'Energie',
-                    'Rafraîchissement', 'Rafraîchissement', 'Rafraîchissement', 'Rafraîchissement', 'Rafraîchissement',
-                    'Hydratation', 'Hydratation', 'Hydratation', 'Hydratation', 'Hydratation', 'Hydratation', 'Hydratation',
-                    'Sociale', 'Sociale', 'Sociale', 'Sociale', 'Sociale'],
+        'Occasion': ['IC', 'IC', 'FC', 'FC', 'FC', 'IC',
+                    'FC', 'IC', 'FC', 'IC', 'Upscale',
+                    'IC', 'IC', 'IC', 'Upscale', 'IC', 'IC', 'IC',
+                    'FC', 'IC', 'FC', 'IC', 'FC'],
         'Role_OBPPC': ['Upscale (Premium)', 'Upscale (Premium)', 'Entry (Entrée de gamme)', 'Entry (Entrée de gamme)', 'Entry (Entrée de gamme)', 'Upscale (Premium)',
                       'Frequency (Cœur de gamme)', 'Entry (Entrée de gamme)', 'Frequency (Cœur de gamme)', 'Entry (Entrée de gamme)', 'Upscale (Premium)',
                       'Entry (Entrée de gamme)', 'Entry (Entrée de gamme)', 'Entry (Entrée de gamme)', 'Upscale (Premium)', 'Entry (Entrée de gamme)', 'Entry (Entrée de gamme)', 'Entry (Entrée de gamme)',
@@ -110,9 +110,10 @@ edited_df = st.data_editor(
             "Marque",
             disabled=True
         ),
-        "Occasion": st.column_config.TextColumn(
+        "Occasion": st.column_config.SelectboxColumn(
             "Occasion",
-            disabled=True
+            options=['IC', 'FC', 'Upscale'],
+            required=True
         ),
         "Role_OBPPC": st.column_config.SelectboxColumn(
             "Rôle OBPPC",
