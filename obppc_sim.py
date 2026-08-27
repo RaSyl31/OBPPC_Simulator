@@ -252,7 +252,7 @@ with main_container:
                 width="small"
             ),
             "PVF_Ar": st.column_config.NumberColumn(
-                "Prix de Vente Facial (PVF) en Ar",
+                "PVF (Ar)",
                 min_value=0,
                 step=100,
                 format="%d",
@@ -340,18 +340,14 @@ with main_container:
                 'Statut': edited_df.apply(lambda row: check_index_status(row['Index_P_Litre'], row['Role_OBPPC']), axis=1)
             })
             
-            # Afficher le tableau final avec une taille compacte
+            # Afficher le tableau final avec la même hauteur que le tableau éditable
             st.subheader("📋 Tableau avec les Index Calculés")
             
-            # Ajuster la hauteur automatiquement selon le nombre de lignes
-            num_rows = len(display_df)
-            height = min(num_rows * 40 + 50, 600)  # 40px par ligne + 50px pour l'en-tête
-            
-            # Utiliser st.dataframe avec une taille compacte
+            # Utiliser la même hauteur que le tableau éditable (400px)
             st.dataframe(
                 display_df, 
                 use_container_width=True, 
-                height=height
+                height=400
             )
             
             # Export CSV
