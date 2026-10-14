@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 
 # -----------------------------------------------------------------------------
 # Config
@@ -8,11 +7,11 @@ import numpy as np
 st.set_page_config(
     page_title="Simulateur OBPPC",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 # -----------------------------------------------------------------------------
-# CSS — dark dashboard (sans dépendre des Styler pandas)
+# CSS
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
@@ -50,83 +49,81 @@ st.markdown("""
     }
     .stApp { background: var(--bg); }
 
-    /* ---------- TOPBAR ---------- */
-    .topbar {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 0 0 0.9rem 0; margin-bottom: 1rem;
-        border-bottom: 1px solid var(--border);
+    /* ---------- SIDEBAR ---------- */
+    section[data-testid="stSidebar"] {
+        background: var(--panel) !important;
+        border-right: 1px solid var(--border);
     }
-    .topbar-title { display: flex; align-items: center; gap: 0.7rem; }
-    .topbar-mark {
+    section[data-testid="stSidebar"] > div {
+        padding-top: 1.25rem;
+    }
+    section[data-testid="stSidebar"] .block-container {
+        padding-top: 0.5rem !important;
+        padding-left: 1.1rem !important;
+        padding-right: 1.1rem !important;
+    }
+
+    .sidebar-title {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 1.1rem;
+    }
+    .sidebar-title .mark {
         width: 26px; height: 26px; border-radius: 6px;
         background: linear-gradient(135deg, var(--accent), var(--accent-2));
         box-shadow: 0 0 20px -5px rgba(139,92,246,0.7);
         display: flex; align-items: center; justify-content: center;
-        font-size: 0.72rem; font-weight: 700; color: #fff;
+        font-size: 0.7rem; font-weight: 700; color: #fff;
     }
-    .topbar h1 { margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--text-hi); }
-    .topbar-sub { margin: 0.15rem 0 0 0; font-size: 0.72rem; color: var(--text-faint); }
-    .topbar-meta { display: flex; align-items: center; gap: 0.5rem; }
-    .topbar-meta .pill {
-        display: inline-flex; align-items: center; gap: 0.4rem;
-        padding: 0.3rem 0.6rem; background: var(--panel);
-        border: 1px solid var(--border); border-radius: 6px;
-        font-size: 0.68rem; font-weight: 500; color: var(--text-dim);
+    .sidebar-title h2 {
+        margin: 0; font-size: 0.88rem; font-weight: 600;
+        color: var(--text-hi); letter-spacing: -0.01em;
     }
-    .topbar-meta .pill .dot {
-        width: 5px; height: 5px; border-radius: 50%;
-        background: var(--green); box-shadow: 0 0 8px var(--green);
+    .sidebar-title p {
+        margin: 0.1rem 0 0 0; font-size: 0.66rem; color: var(--text-faint);
     }
 
-    /* ---------- KPI TILES ---------- */
-    .kpi-tile {
-        background: var(--panel); border: 1px solid var(--border);
-        border-radius: 8px; padding: 0.85rem 1rem;
-        display: flex; flex-direction: column; justify-content: space-between;
-        height: 100%; min-height: 92px;
+    .sb-section {
+        font-size: 0.66rem;
+        font-weight: 600;
+        color: var(--text-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 1rem 0 0.5rem 0;
     }
-    .kpi-tile-label {
-        font-size: 0.66rem; font-weight: 500; color: var(--text-faint);
-        text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.4rem;
-    }
-    .kpi-tile-value {
-        font-size: 1.55rem; font-weight: 700; color: var(--text-hi);
-        line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums;
-    }
-    .kpi-tile-value .unit {
-        font-size: 0.78rem; color: var(--text-dim); font-weight: 500;
-        margin-left: 0.2rem; letter-spacing: 0;
-    }
-    .kpi-tile-sub { font-size: 0.68rem; color: var(--text-dim); margin-top: 0.3rem; }
-    .kpi-tile-bar {
-        margin-top: 0.6rem; height: 3px; background: var(--border);
-        border-radius: 2px; overflow: hidden; position: relative;
-    }
-    .kpi-tile-bar::after {
-        content: ""; position: absolute; inset: 0;
-        width: var(--w, 0%);
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
-        border-radius: 2px;
-    }
+    .sb-section:first-of-type { margin-top: 0.3rem; }
 
-    /* ---------- FILTER LABEL ---------- */
     .filter-label {
         font-size: 0.66rem; font-weight: 500; color: var(--text-dim);
         text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.4rem;
     }
+
+    .sb-stat {
+        background: var(--bg);
+        border: 1px solid var(--border-hi);
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.72rem;
+        color: var(--text-dim);
+        font-variant-numeric: tabular-nums;
+    }
+    .sb-stat .n { color: var(--text-hi); font-weight: 600; }
 
     /* ---------- MULTISELECT ---------- */
     div[data-testid="stMultiSelect"] [data-baseweb="select"] > div {
         background-color: var(--bg) !important;
         border: 1px solid var(--border-hi) !important;
         border-radius: 6px !important;
-        min-height: 38px; height: auto !important;
-        padding: 0.28rem 0.5rem !important;
+        min-height: 36px; height: auto !important;
+        padding: 0.25rem 0.45rem !important;
         align-items: flex-start !important;
-        flex-wrap: wrap !important; row-gap: 0.28rem !important;
+        flex-wrap: wrap !important; row-gap: 0.25rem !important;
     }
     div[data-testid="stMultiSelect"] [data-baseweb="select"] > div > div {
-        flex-wrap: wrap !important; gap: 0.22rem !important;
+        flex-wrap: wrap !important; gap: 0.2rem !important;
     }
     div[data-testid="stMultiSelect"] input {
         background: transparent !important; color: var(--text) !important;
@@ -212,17 +209,10 @@ st.markdown("""
         background: #7c3aed; border-color: #7c3aed;
     }
 
-    /* ---------- DATAFRAMES / EDITOR ---------- */
-    /* On retire toute couleur custom : on laisse le thème gérer */
+    /* ---------- DATAFRAMES ---------- */
     [data-testid="stDataFrame"], [data-testid="stDataEditor"] {
         border: 1px solid var(--border) !important;
         border-radius: 8px !important; overflow: hidden;
-    }
-    /* Cellules de l'éditeur : on force le fond sombre même si le thème est clair
-       (fonctionne pour l'en-tête et le toolbar, pas pour le canvas interne) */
-    [data-testid="stDataFrame"] *,
-    [data-testid="stDataEditor"] * {
-        border-color: var(--border) !important;
     }
 
     [data-testid="stDownloadButton"] > button {
@@ -416,7 +406,6 @@ ROLE_ORDER = ['Upscale', 'Entry', 'Frequency', 'Upsize']
 
 
 def status_dot(status):
-    """Retourne un indicateur visuel au lieu d'un fond coloré."""
     if status == 'Conforme':
         return '🟢 Conforme'
     if status == 'Non conforme':
@@ -475,59 +464,41 @@ def build_pyramid_svg(role_counts):
 
 
 # -----------------------------------------------------------------------------
-# Top bar
+# SIDEBAR — Titre + Filtres
 # -----------------------------------------------------------------------------
-st.markdown("""
-<div class="topbar">
-    <div class="topbar-title">
-        <div class="topbar-mark">OB</div>
+with st.sidebar:
+    st.markdown("""
+    <div class="sidebar-title">
+        <div class="mark">OB</div>
         <div>
-            <h1>Simulateur OBPPC</h1>
-            <p class="topbar-sub">Occasion · Brand · Package · Price · Channel</p>
+            <h2>Simulateur OBPPC</h2>
+            <p>Occasion · Brand · Package · Price · Channel</p>
         </div>
     </div>
-    <div class="topbar-meta">
-        <span class="pill"><span class="dot"></span>Pricing Analytics</span>
-        <span class="pill">Cohérence portefeuille</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-
-# -----------------------------------------------------------------------------
-# Filtres
-# -----------------------------------------------------------------------------
-col_seg, col_br, col_stat = st.columns([1.4, 2.6, 1.1], gap="medium")
-
-with col_seg:
-    st.markdown('<div class="filter-label">Segments</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-section">Segments</div>', unsafe_allow_html=True)
     segments = st.multiselect(
         "Segments", options=ALL_SEGMENTS, default=ALL_SEGMENTS,
         placeholder="Tous les segments", label_visibility="collapsed",
     )
 
-with col_br:
+    st.markdown('<div class="sb-section">Marques</div>', unsafe_allow_html=True)
     available_brands = (
         sorted(df_initial[df_initial['Segment'].isin(segments)]['Marque'].unique())
         if segments else []
     )
-    st.markdown('<div class="filter-label">Marques</div>', unsafe_allow_html=True)
     brands = st.multiselect(
         "Marques", options=available_brands, default=available_brands,
         placeholder="Toutes les marques", label_visibility="collapsed",
     )
 
-with col_stat:
-    st.markdown('<div class="filter-label">Périmètre</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-section">Périmètre</div>', unsafe_allow_html=True)
     st.markdown(f"""
-    <div style="background:var(--panel); border:1px solid var(--border);
-                border-radius:6px; padding:0.5rem 0.8rem;">
-        <div style="font-size:0.72rem; color:var(--text-dim);
-                    font-variant-numeric:tabular-nums;">
-            <span style="color:var(--text-hi); font-weight:600;">{len(segments)}</span> segments
-            &nbsp;·&nbsp;
-            <span style="color:var(--text-hi); font-weight:600;">{len(brands)}</span> marques
-        </div>
+    <div class="sb-stat">
+        <span class="n">{len(segments)}</span> segments
+        &nbsp;·&nbsp;
+        <span class="n">{len(brands)}</span> marques
     </div>
     """, unsafe_allow_html=True)
 
@@ -547,59 +518,6 @@ df_filtered['Role_Simple'] = df_filtered['Role_OBPPC'].apply(normalize_role)
 
 
 # -----------------------------------------------------------------------------
-# KPI tiles (portefeuille)
-# -----------------------------------------------------------------------------
-n_sku = len(df_filtered)
-n_seg = df_filtered['Segment'].nunique() if n_sku else 0
-n_brand = df_filtered['Marque'].nunique() if n_sku else 0
-prix_moy_l = df_filtered['P_Litre_Ar'].mean() if n_sku else 0
-
-k1, k2, k3, k4 = st.columns(4, gap="small")
-with k1:
-    st.markdown(f"""
-    <div class="kpi-tile">
-        <div>
-            <div class="kpi-tile-label">Références</div>
-            <div class="kpi-tile-value">{n_sku}</div>
-            <div class="kpi-tile-sub">SKU dans le périmètre</div>
-        </div>
-        <div class="kpi-tile-bar" style="--w:100%"></div>
-    </div>""", unsafe_allow_html=True)
-with k2:
-    pct_seg = int(n_seg / max(len(ALL_SEGMENTS), 1) * 100)
-    st.markdown(f"""
-    <div class="kpi-tile">
-        <div>
-            <div class="kpi-tile-label">Segments</div>
-            <div class="kpi-tile-value">{n_seg}<span class="unit">/ {len(ALL_SEGMENTS)}</span></div>
-            <div class="kpi-tile-sub">Catégories actives</div>
-        </div>
-        <div class="kpi-tile-bar" style="--w:{pct_seg}%"></div>
-    </div>""", unsafe_allow_html=True)
-with k3:
-    pct_brand = int(n_brand / max(len(ALL_BRANDS), 1) * 100)
-    st.markdown(f"""
-    <div class="kpi-tile">
-        <div>
-            <div class="kpi-tile-label">Marques</div>
-            <div class="kpi-tile-value">{n_brand}<span class="unit">/ {len(ALL_BRANDS)}</span></div>
-            <div class="kpi-tile-sub">Marques actives</div>
-        </div>
-        <div class="kpi-tile-bar" style="--w:{pct_brand}%"></div>
-    </div>""", unsafe_allow_html=True)
-with k4:
-    st.markdown(f"""
-    <div class="kpi-tile">
-        <div>
-            <div class="kpi-tile-label">Prix moyen / L</div>
-            <div class="kpi-tile-value">{prix_moy_l:,.0f}<span class="unit">Ar</span></div>
-            <div class="kpi-tile-sub">Moyenne du périmètre</div>
-        </div>
-        <div class="kpi-tile-bar" style="--w:65%"></div>
-    </div>""", unsafe_allow_html=True)
-
-
-# -----------------------------------------------------------------------------
 # Onglets
 # -----------------------------------------------------------------------------
 tab1, tab2, tab3, tab4 = st.tabs([
@@ -608,7 +526,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 
 
 # =============================================================================
-# TAB 1 — SIMULATEUR (sans Styler → rendu propre en dark)
+# TAB 1 — SIMULATEUR
 # =============================================================================
 with tab1:
     st.markdown('<div class="section-head"><h3>Portefeuille — Édition</h3>'
@@ -618,7 +536,6 @@ with tab1:
     if df_filtered.empty:
         st.info("Aucune donnée. Sélectionnez au moins un segment et une marque.")
     else:
-        # Hauteur dynamique : 36px par ligne + marge, plafonnée à 480
         editor_height = min(480, 42 + 36 * len(df_filtered))
 
         edited_df = st.data_editor(
@@ -668,7 +585,6 @@ with tab1:
             e['Statut'] = e.apply(
                 lambda r: check_index_status(r['Index_P_Litre'], r['Role_OBPPC']), axis=1)
 
-            # On prépare un DataFrame propre SANS Styler
             display_df = pd.DataFrame({
                 'Marque': e['Marque'],
                 'Occasion': e['Occasion'],
@@ -682,54 +598,6 @@ with tab1:
                 'Statut': e['Statut'].apply(status_dot),
             })
 
-            total = len(display_df)
-            conformes = (e['Statut'] == 'Conforme').sum()
-            non_conf = total - conformes
-            taux = (conformes / total * 100) if total else 0
-
-            r1, r2, r3, r4 = st.columns(4, gap="small")
-            with r1:
-                st.markdown(f"""
-                <div class="kpi-tile">
-                    <div>
-                        <div class="kpi-tile-label">Références</div>
-                        <div class="kpi-tile-value">{total}</div>
-                        <div class="kpi-tile-sub">SKU analysés</div>
-                    </div>
-                    <div class="kpi-tile-bar" style="--w:100%"></div>
-                </div>""", unsafe_allow_html=True)
-            with r2:
-                st.markdown(f"""
-                <div class="kpi-tile">
-                    <div>
-                        <div class="kpi-tile-label">Conformes</div>
-                        <div class="kpi-tile-value">{conformes}<span class="unit">/ {total}</span></div>
-                        <div class="kpi-tile-sub">Respectent la cible</div>
-                    </div>
-                    <div class="kpi-tile-bar" style="--w:{int(taux)}%"></div>
-                </div>""", unsafe_allow_html=True)
-            with r3:
-                st.markdown(f"""
-                <div class="kpi-tile">
-                    <div>
-                        <div class="kpi-tile-label">Non conformes</div>
-                        <div class="kpi-tile-value">{non_conf}</div>
-                        <div class="kpi-tile-sub">À réviser</div>
-                    </div>
-                    <div class="kpi-tile-bar" style="--w:{100-int(taux)}%"></div>
-                </div>""", unsafe_allow_html=True)
-            with r4:
-                st.markdown(f"""
-                <div class="kpi-tile">
-                    <div>
-                        <div class="kpi-tile-label">Taux conformité</div>
-                        <div class="kpi-tile-value">{taux:.0f}<span class="unit">%</span></div>
-                        <div class="kpi-tile-sub">Cohérence portefeuille</div>
-                    </div>
-                    <div class="kpi-tile-bar" style="--w:{int(taux)}%"></div>
-                </div>""", unsafe_allow_html=True)
-
-            # Tableau propre, pas de Styler → suit le thème sombre
             st.dataframe(
                 display_df,
                 use_container_width=True,
@@ -804,7 +672,7 @@ with tab2:
 
 
 # =============================================================================
-# TAB 3 — GRILLE TARIFAIRE (sans background_gradient)
+# TAB 3 — GRILLE TARIFAIRE
 # =============================================================================
 with tab3:
     st.markdown('<div class="section-head"><h3>Grille tarifaire</h3>'
@@ -829,7 +697,6 @@ with tab3:
         pivot = pivot[sorted(pivot.columns, key=parse_vol)]
         pivot = pivot.round(0)
 
-        # Format propre, sans Styler
         fmt_cols = {c: st.column_config.NumberColumn(c, format="%d") for c in pivot.columns}
         st.dataframe(
             pivot.reset_index(),
@@ -870,7 +737,7 @@ with tab3:
 
 
 # =============================================================================
-# TAB 4 — DIAGNOSTIC (sans background_gradient)
+# TAB 4 — DIAGNOSTIC
 # =============================================================================
 with tab4:
     st.markdown('<div class="section-head"><h3>Diagnostic de conformité</h3>'
@@ -896,7 +763,6 @@ with tab4:
             lambda r: check_index_status(r['Index'], r['Role_OBPPC']), axis=1)
         diag['Cible'] = diag['Role_OBPPC'].apply(target_label)
 
-        # Conformité par segment
         st.markdown('<div class="section-head"><h3>Conformité par segment</h3></div>',
                     unsafe_allow_html=True)
 
@@ -931,7 +797,6 @@ with tab4:
 
         st.markdown('<hr>', unsafe_allow_html=True)
 
-        # Positions à réviser
         st.markdown('<div class="section-head"><h3>Positions à réviser</h3>'
                     '<span class="hint">Triées par écart à la cible</span></div>',
                     unsafe_allow_html=True)
