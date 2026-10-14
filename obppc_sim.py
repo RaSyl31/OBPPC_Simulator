@@ -1,57 +1,77 @@
 import streamlit as st
 import pandas as pd
 
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
 st.set_page_config(
-    page_title="OBPPC",
+    page_title="Simulateur OBPPC",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# CSS minimal — uniquement ce qui améliore la lisibilité
+# =============================================================================
+# STYLES — lisibilité et cohérence dark
+# =============================================================================
 st.markdown("""
 <style>
-    /* Taille de police confortable et interligne aéré */
+    /* ---------- Base typographique ---------- */
     html, body, [class*="css"] {
         font-size: 15px;
         line-height: 1.6;
     }
-
-    /* Titres avec de l'air */
     h1 { font-size: 1.8rem !important; margin-bottom: 0.4rem !important; }
     h2 { font-size: 1.35rem !important; margin-top: 1.5rem !important; }
     h3 { font-size: 1.1rem !important; margin-top: 1.2rem !important; }
 
-    /* Les tableaux HTML lisibles */
+    /* ---------- Tableaux HTML : fond sombre forcé ---------- */
     .data-table {
         width: 100%;
         border-collapse: collapse;
         font-size: 14px;
         margin-top: 0.5rem;
+        background: #1a1d24 !important;
+        color: #f5f7fa !important;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .data-table thead,
+    .data-table tbody,
+    .data-table tr {
+        background: #1a1d24 !important;
     }
     .data-table th {
-        background: #242832;
-        color: #cbd5e1;
+        background: #242832 !important;
+        color: #cbd5e1 !important;
         padding: 12px 14px;
         text-align: left;
         font-size: 13px;
         font-weight: 600;
         border-bottom: 2px solid #343a4a;
+        letter-spacing: 0.02em;
     }
     .data-table td {
+        background: #1e222b !important;
+        color: #f5f7fa !important;
         padding: 11px 14px;
-        color: #f5f7fa;
         border-bottom: 1px solid #2a2e38;
         font-variant-numeric: tabular-nums;
     }
+    .data-table tr:nth-child(even) td {
+        background: #1a1d24 !important;
+    }
     .data-table tr:hover td {
-        background: #22262f;
+        background: #2a2f3a !important;
+    }
+    .data-table tr:last-child td {
+        border-bottom: none;
     }
     .data-table .num {
         text-align: right;
         font-weight: 500;
     }
 
-    /* Badge de statut */
+    /* ---------- Badges de statut ---------- */
     .tag {
         display: inline-block;
         padding: 3px 10px;
@@ -63,20 +83,23 @@ st.markdown("""
     .tag-ko   { background: #3a1a1a; color: #f87171; }
     .tag-warn { background: #3a2f14; color: #fbbf24; }
 
-    /* Cartes d'indicateurs */
-    .info-box {
+    /* ---------- Cartes d'information ---------- */
+    .info-card {
         background: #242832;
         border-radius: 10px;
         padding: 16px 20px;
-        margin-bottom: 12px;
         border-left: 4px solid #a78bfa;
+        margin-bottom: 12px;
     }
-    .info-box .label {
+    .info-card .label {
         color: #94a3b8;
         font-size: 13px;
         margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
     }
-    .info-box .value {
+    .info-card .value {
         color: #f5f7fa;
         font-size: 22px;
         font-weight: 700;
@@ -85,12 +108,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# -----------------------------------------------------------------------------
-# Données
-# -----------------------------------------------------------------------------
+# =============================================================================
+# DONNÉES
+# =============================================================================
 @st.cache_data
 def load_data():
     rows = [
+        # Segment, Marque, Occasion, Rôle, Format, Volume (L), PVF (Ar)
         ('Energie', 'Red Bull', 'IC', 'Upscale', 'CAN 25', 0.25, 9900),
         ('Energie', 'Monster', 'IC', 'Upscale', 'CAN 50', 0.50, 9900),
         ('Energie', 'FOSA', 'IC', 'Upscale', 'CAN 50', 0.50, 5000),
@@ -168,7 +192,8 @@ df = load_data()
 
 OCCASIONS = ['IC', 'FC']
 ROLES = ['Entry', 'Frequency', 'Upsize', 'Upscale']
-ROLE_TARGETS = {'Entry': '101–110', 'Frequency': '100', 'Upsize': '90–99', 'Upscale': '≥111'}
+ROLE_TARGETS = {'Entry': '101–110', 'Frequency': '100',
+                'Upsize': '90–99', 'Upscale': '≥111'}
 ROLE_INFO = {
     'Entry':     "Prix d'accès à la marque, petit format",
     'Frequency': "Format de référence, prix pivot",
@@ -185,9 +210,9 @@ def status(idx, role):
     return '—'
 
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # SIDEBAR
-# -----------------------------------------------------------------------------
+# =============================================================================
 with st.sidebar:
     st.markdown("## ⚙️ Paramètres")
 
@@ -199,7 +224,10 @@ with st.sidebar:
         help="Filtrer par type de boisson",
     )
 
-    available_brands = sorted(df[df['Segment'].isin(segments)]['Marque'].unique()) if segments else []
+    available_brands = (
+        sorted(df[df['Segment'].isin(segments)]['Marque'].unique())
+        if segments else []
+    )
     brands = st.multiselect(
         "Marque",
         available_brands,
@@ -225,7 +253,7 @@ with st.sidebar:
 
     if st.button("🔄 Réinitialiser les modifications", use_container_width=True):
         for k in list(st.session_state.keys()):
-            if k.startswith("prix_"):
+            if k.startswith("price_editor"):
                 del st.session_state[k]
         st.rerun()
 
@@ -238,12 +266,12 @@ with st.sidebar:
     - **Upsize** — {ROLE_TARGETS['Upsize']}
     - **Upscale** — {ROLE_TARGETS['Upscale']}
     """)
-    st.caption("Index 100 = produit de référence (Frequency)")
+    st.caption("Index 100 = produit de référence (Frequency du même segment × occasion)")
 
 
-# -----------------------------------------------------------------------------
-# Filtrer
-# -----------------------------------------------------------------------------
+# =============================================================================
+# FILTRAGE
+# =============================================================================
 d = df[(df['Segment'].isin(segments)) & (df['Marque'].isin(brands))].copy()
 
 if d.empty:
@@ -253,11 +281,11 @@ if d.empty:
 d['PVF_Ajusté'] = (d['PVF_Ar'] * coef).round(0).astype(int)
 d['Prix_Litre_Ajusté'] = (d['Prix_Litre'] * coef).round(0).astype(int)
 
-# Référence : moyenne des Frequency par segment × occasion
 ref = (d[d['Rôle'] == 'Frequency']
        .groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].mean())
 d['Ref'] = d.set_index(['Segment', 'Occasion']).index.map(ref)
-d['Ref'] = d['Ref'].fillna(d.groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].transform('mean'))
+d['Ref'] = d['Ref'].fillna(
+    d.groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].transform('mean'))
 d['Index'] = (d['Prix_Litre_Ajusté'] / d['Ref'] * 100).round(0).astype(int)
 d['Statut'] = d.apply(lambda r: status(r['Index'], r['Rôle']), axis=1)
 
@@ -271,7 +299,6 @@ st.markdown(
     "et les prix au litre, par marque et par occasion."
 )
 
-# Bandeau de synthèse
 n_ok = int((d['Statut'] == 'OK').sum())
 n_ko = int((d['Statut'] == 'KO').sum())
 taux = n_ok / len(d) * 100 if len(d) else 0
@@ -287,17 +314,25 @@ with col4:
     st.metric("Taux de conformité", f"{taux:.0f}%")
 
 if taux >= 80:
-    st.success(f"**Cohérence élevée** — {n_ok} produits sur {len(d)} respectent leur cible tarifaire.")
+    st.success(
+        f"**Cohérence élevée** — {n_ok} produits sur {len(d)} respectent leur cible tarifaire."
+    )
 elif taux >= 50:
-    st.warning(f"**Cohérence partielle** — {n_ko} produits s'écartent de leur cible. Vérifiez l'onglet Diagnostic.")
+    st.warning(
+        f"**Cohérence partielle** — {n_ko} produits s'écartent de leur cible. "
+        f"Consultez l'onglet Diagnostic pour identifier les ajustements."
+    )
 else:
-    st.error(f"**Cohérence faible** — {n_ko} produits ne respectent pas leur rôle. Arbitrage prix à revoir.")
+    st.error(
+        f"**Cohérence faible** — {n_ko} produits ne respectent pas leur rôle. "
+        f"Arbitrage prix à revoir en priorité."
+    )
 
 st.divider()
 
 
 # =============================================================================
-# NAVIGATION
+# ONGLETS
 # =============================================================================
 tab1, tab2, tab3 = st.tabs([
     "①  ✏️  Modifier les prix",
@@ -312,8 +347,8 @@ tab1, tab2, tab3 = st.tabs([
 with tab1:
     st.markdown("## ✏️ Modifier les prix")
     st.markdown(
-        "Ajustez le **prix de vente (PVF)** ou le **volume** d'un produit directement dans le tableau. "
-        "Toutes les analyses se recalculent automatiquement."
+        "Ajustez le **prix de vente (PVF)** ou le **volume** d'un produit directement "
+        "dans le tableau. Toutes les analyses se recalculent automatiquement."
     )
 
     editor_df = d[['Segment', 'Marque', 'Occasion', 'Rôle',
@@ -322,14 +357,18 @@ with tab1:
     edited = st.data_editor(
         editor_df,
         column_config={
-            "Segment": st.column_config.TextColumn("Segment", disabled=True, width="small"),
-            "Marque": st.column_config.TextColumn("Marque", disabled=True, width="small"),
-            "Occasion": st.column_config.TextColumn("Occasion", disabled=True, width="small"),
+            "Segment": st.column_config.TextColumn(
+                "Segment", disabled=True, width="small"),
+            "Marque": st.column_config.TextColumn(
+                "Marque", disabled=True, width="small"),
+            "Occasion": st.column_config.TextColumn(
+                "Occasion", disabled=True, width="small"),
             "Rôle": st.column_config.SelectboxColumn(
                 "Rôle tarifaire", options=ROLES, required=True, width="medium",
                 help="Entry / Frequency / Upsize / Upscale",
             ),
-            "Format": st.column_config.TextColumn("Format", disabled=True, width="medium"),
+            "Format": st.column_config.TextColumn(
+                "Format", disabled=True, width="medium"),
             "Volume_L": st.column_config.NumberColumn(
                 "Volume (L)", min_value=0.05, step=0.05, format="%.2f",
                 help="Volume du contenant en litres",
@@ -346,10 +385,12 @@ with tab1:
         key="price_editor",
     )
 
-    # Recalcul
+    # --- Recalcul complet
     d2 = edited.copy()
     d2['PVF_Ajusté'] = (d2['PVF_Ar'] * coef).round(0).astype(int)
-    d2['Prix_Litre_Ajusté'] = ((d2['PVF_Ar'] / d2['Volume_L']) * coef).round(0).astype(int)
+    d2['Prix_Litre_Ajusté'] = (
+        (d2['PVF_Ar'] / d2['Volume_L']) * coef
+    ).round(0).astype(int)
 
     ref2 = (d2[d2['Rôle'] == 'Frequency']
             .groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].mean())
@@ -360,31 +401,41 @@ with tab1:
     d2['Statut'] = d2.apply(lambda r: status(r['Index'], r['Rôle']), axis=1)
 
     st.markdown("### Résultats en direct")
-    st.caption(f"Canal : {channel} · Index 100 = moyenne des Frequency du même segment × occasion")
+    st.caption(
+        f"Canal : **{channel}** · Index 100 = moyenne des Frequency du même segment × occasion"
+    )
 
-    # Tableau de résultats propre
     view = d2[['Marque', 'Format', 'Occasion', 'Rôle',
                'Prix_Litre_Ajusté', 'Index', 'Statut']].copy()
     view.columns = ['Marque', 'Format', 'Occasion', 'Rôle',
                     'Prix / L (Ar)', 'Index', 'Statut']
-    view['Prix / L (Ar)'] = view['Prix / L (Ar)'].apply(lambda x: f"{x:,}".replace(',', ' '))
-    view['Statut'] = view['Statut'].map({
-        'OK': '<span class="tag tag-ok">Conforme</span>',
-        'KO': '<span class="tag tag-ko">À revoir</span>',
-        '—':  '<span class="tag tag-warn">—</span>',
-    })
 
-    html = ['<table class="data-table">']
-    html.append('<thead><tr>')
+    # --- Construction du tableau HTML avec fond sombre forcé
+    html = ['<table class="data-table"><thead><tr>']
     for c in view.columns:
-        html.append(f'<th{" class=num" if "Prix" in c or "Index" in c else ""}>{c}</th>')
+        cls = ' class="num"' if c in ('Prix / L (Ar)', 'Index') else ''
+        html.append(f'<th{cls}>{c}</th>')
     html.append('</tr></thead><tbody>')
+
     for _, row in view.iterrows():
         html.append('<tr>')
-        for i, c in enumerate(view.columns):
-            cls = ' class="num"' if c in ('Prix / L (Ar)', 'Index') else ''
-            html.append(f'<td{cls}>{row[c]}</td>')
+        for c in view.columns:
+            val = row[c]
+            cls = ''
+            if c in ('Prix / L (Ar)', 'Index'):
+                cls = ' class="num"'
+            if c == 'Prix / L (Ar)':
+                val = f"{int(val):,}".replace(',', ' ')
+            elif c == 'Statut':
+                if val == 'OK':
+                    val = '<span class="tag tag-ok">Conforme</span>'
+                elif val == 'KO':
+                    val = '<span class="tag tag-ko">À revoir</span>'
+                else:
+                    val = '<span class="tag tag-warn">—</span>'
+            html.append(f'<td{cls}>{val}</td>')
         html.append('</tr>')
+
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
 
@@ -395,16 +446,18 @@ with tab1:
 with tab2:
     st.markdown("## 📊 Vue d'ensemble du portefeuille")
 
+    # ---- Couverture des rôles ----
     st.markdown("### Couverture des rôles par marque")
     st.markdown(
-        "Ce tableau montre quels rôles tarifaires chaque marque occupe. "
+        "Ce tableau indique quels rôles tarifaires chaque marque occupe. "
         "Une marque bien structurée couvre **au minimum Entry + Frequency**."
     )
 
-    sub = d[d['Occasion'] == st.radio(
+    occ_filter = st.radio(
         "Occasion", OCCASIONS, horizontal=True, key="vue_occ",
-        help="IC = consommation immédiate · FC = consommation future"
-    )]
+        help="IC = consommation immédiate · FC = consommation future",
+    )
+    sub = d[d['Occasion'] == occ_filter]
 
     if sub.empty:
         st.info("Aucun produit sur cette occasion.")
@@ -426,15 +479,18 @@ with tab2:
                     html.append('<td style="color:#4a5264;">—</td>')
                 else:
                     covered += 1
-                    formats = ', '.join(rsub['Format'].tolist())
+                    formats = '<br>'.join(rsub['Format'].tolist())
                     html.append(f'<td>{formats}</td>')
-            cov_color = '#4ade80' if covered >= 3 else '#fbbf24' if covered == 2 else '#f87171'
-            html.append(f'<td><b style="color:{cov_color}">{covered}/4</b></td>')
+            cov_color = ('#4ade80' if covered >= 3
+                         else '#fbbf24' if covered == 2
+                         else '#f87171')
+            html.append(f'<td><b style="color:{cov_color};">{covered}/4</b></td>')
             html.append('</tr>')
 
         html.append('</tbody></table>')
         st.markdown(''.join(html), unsafe_allow_html=True)
 
+    # ---- Tous les produits ----
     st.markdown("### Tous les produits du périmètre")
     st.markdown(
         "Vue tabulaire complète avec le prix au litre, l'index de positionnement "
@@ -442,30 +498,40 @@ with tab2:
     )
 
     view2 = d[['Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
-               'Volume_L', 'PVF_Ajusté', 'Prix_Litre_Ajusté', 'Index', 'Statut']].copy()
+               'Volume_L', 'PVF_Ajusté', 'Prix_Litre_Ajusté',
+               'Index', 'Statut']].copy()
     view2.columns = ['Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
-                     'Volume (L)', 'Prix (Ar)', 'Prix / L (Ar)', 'Index', 'Statut']
-    view2['Statut'] = view2['Statut'].map({
-        'OK': '<span class="tag tag-ok">Conforme</span>',
-        'KO': '<span class="tag tag-ko">À revoir</span>',
-        '—':  '<span class="tag tag-warn">—</span>',
-    })
+                     'Volume (L)', 'Prix (Ar)', 'Prix / L (Ar)',
+                     'Index', 'Statut']
 
     html = ['<table class="data-table"><thead><tr>']
     for c in view2.columns:
-        html.append(f'<th>{c}</th>')
+        cls = ' class="num"' if c in ('Volume (L)', 'Prix (Ar)',
+                                       'Prix / L (Ar)', 'Index') else ''
+        html.append(f'<th{cls}>{c}</th>')
     html.append('</tr></thead><tbody>')
+
     for _, row in view2.iterrows():
         html.append('<tr>')
         for c in view2.columns:
             val = row[c]
-            cls = ' class="num"' if c in ('Volume (L)', 'Prix (Ar)', 'Prix / L (Ar)', 'Index') else ''
+            cls = ''
+            if c in ('Volume (L)', 'Prix (Ar)', 'Prix / L (Ar)', 'Index'):
+                cls = ' class="num"'
             if c == 'Volume (L)':
                 val = f"{val:.2f}"
             elif c in ('Prix (Ar)', 'Prix / L (Ar)'):
                 val = f"{int(val):,}".replace(',', ' ')
+            elif c == 'Statut':
+                if val == 'OK':
+                    val = '<span class="tag tag-ok">Conforme</span>'
+                elif val == 'KO':
+                    val = '<span class="tag tag-ko">À revoir</span>'
+                else:
+                    val = '<span class="tag tag-warn">—</span>'
             html.append(f'<td{cls}>{val}</td>')
         html.append('</tr>')
+
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
 
@@ -499,8 +565,9 @@ with tab3:
         st.markdown(f"**{len(ko)} produits à réviser** — triés par écart décroissant :")
 
         html = ['<table class="data-table"><thead><tr>'
-                '<th>Marque</th><th>Format</th><th>Rôle actuel</th>'
-                '<th>Prix / L</th><th>Index</th><th>Cible</th><th>Écart</th>'
+                '<th>Marque</th><th>Format</th><th>Occasion</th>'
+                '<th>Rôle actuel</th><th>Prix / L</th><th>Index</th>'
+                '<th>Cible</th><th>Écart</th>'
                 '</tr></thead><tbody>']
 
         for _, row in ko.iterrows():
@@ -508,15 +575,21 @@ with tab3:
             html.append('<tr>')
             html.append(f'<td><b>{row["Marque"]}</b></td>')
             html.append(f'<td>{row["Format"]}</td>')
+            html.append(f'<td>{row["Occasion"]}</td>')
             html.append(f'<td>{row["Rôle"]}</td>')
-            html.append(f'<td class="num">{int(row["Prix_Litre_Ajusté"]):,} Ar</td>'.replace(',', ' '))
+            pl = f"{int(row['Prix_Litre_Ajusté']):,}".replace(',', ' ')
+            html.append(f'<td class="num">{pl} Ar</td>')
             html.append(f'<td class="num">{row["Index"]}</td>')
             html.append(f'<td>{cible}</td>')
-            html.append(f'<td class="num"><b style="color:#f87171">+{int(row["Écart"])}</b></td>')
+            html.append(
+                f'<td class="num"><b style="color:#f87171;">+{int(row["Écart"])}</b></td>'
+            )
             html.append('</tr>')
+
         html.append('</tbody></table>')
         st.markdown(''.join(html), unsafe_allow_html=True)
 
+        # ---- Recommandations ----
         st.markdown("### Recommandations")
 
         entry_ko = ko[ko['Rôle'] == 'Entry']
@@ -526,7 +599,8 @@ with tab3:
         if len(freq_ko):
             st.warning(
                 f"**{len(freq_ko)} produits Frequency** ne sont pas à l'index 100. "
-                "Le produit de référence doit être ajusté en priorité, car tous les autres index dépendent de lui."
+                "Le produit de référence doit être ajusté en priorité : "
+                "tous les autres index dépendent de lui."
             )
         if len(entry_ko):
             st.info(
@@ -535,6 +609,19 @@ with tab3:
             )
         if len(up_ko):
             st.info(
-                f"**{len(up_ko)} produits Upsize/Upscale** sont à revoir. "
+                f"**{len(up_ko)} produits Upsize / Upscale** sont à revoir. "
                 "Vérifiez la cohérence entre volume et prix au litre."
             )
+
+    # ---- Export ----
+    st.markdown("### Export")
+    csv = d[['Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
+             'Volume_L', 'PVF_Ajusté', 'Prix_Litre_Ajusté',
+             'Index', 'Statut']].to_csv(index=False)
+
+    st.download_button(
+        "📥 Télécharger l'analyse (CSV)",
+        data=csv,
+        file_name=f"analyse_obppc_{channel.split()[0].lower()}.csv",
+        mime="text/csv",
+    )
