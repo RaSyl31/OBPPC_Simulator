@@ -56,7 +56,7 @@ st.markdown("""
     }
 
     /* ============================================================
-       HEADER UNIFIÉ : titre + filtres dans la même carte
+       HEADER UNIFIÉ : titre + filtres
        ============================================================ */
     .app-shell {
         position: relative;
@@ -130,10 +130,6 @@ st.markdown("""
         50%      { opacity: 0.55; transform: scale(0.85); }
     }
 
-    /* Zone des filtres dans la carte */
-    .shell-filters {
-        position: relative;
-    }
     .filter-label {
         font-size: 0.68rem;
         font-weight: 700;
@@ -143,7 +139,6 @@ st.markdown("""
         margin-bottom: 0.5rem;
     }
 
-    /* Encart de compteur à droite des filtres */
     .filter-stat {
         display: flex;
         flex-direction: column;
@@ -202,16 +197,10 @@ st.markdown("""
     }
 
     /* ============================================================
-       MULTISELECT — Fix complet (fond blanc + tags rouges + clipping)
+       MULTISELECT
        ============================================================ */
-
-    /* -- Conteneur extérieur : on laisse grandir en hauteur -- */
-    div[data-testid="stMultiSelect"] {
-        width: 100%;
-    }
-    div[data-testid="stMultiSelect"] > div {
-        width: 100%;
-    }
+    div[data-testid="stMultiSelect"] { width: 100%; }
+    div[data-testid="stMultiSelect"] > div { width: 100%; }
 
     div[data-testid="stMultiSelect"] [data-baseweb="select"],
     div[data-testid="stMultiSelect"] [data-baseweb="select"] > div,
@@ -226,13 +215,11 @@ st.markdown("""
     div[data-testid="stMultiSelect"] [data-baseweb="select"] > div {
         border: 1px solid rgba(99,102,241,0.3) !important;
         border-radius: 10px !important;
-        /* plus de height fixe : on laisse le contenu s'étendre */
         min-height: 46px;
         height: auto !important;
         padding: 0.4rem 0.55rem !important;
         box-shadow: none !important;
         transition: border-color 0.15s ease, box-shadow 0.15s ease;
-        /* alignement propre quand ça wrap */
         align-items: flex-start !important;
         flex-wrap: wrap !important;
         row-gap: 0.35rem !important;
@@ -245,7 +232,6 @@ st.markdown("""
         box-shadow: 0 0 0 3px rgba(99,102,241,0.22) !important;
     }
 
-    /* -- Conteneur des tags : autorise le wrap -- */
     div[data-testid="stMultiSelect"] [data-baseweb="select"] > div > div {
         flex-wrap: wrap !important;
         align-items: center !important;
@@ -253,7 +239,6 @@ st.markdown("""
         min-height: 26px;
     }
 
-    /* -- Input texte interne -- */
     div[data-testid="stMultiSelect"] input {
         background-color: transparent !important;
         color: #e2e8f0 !important;
@@ -263,13 +248,12 @@ st.markdown("""
         color: #64748b !important;
     }
 
-    /* -- Icône chevron / clear -- */
     div[data-testid="stMultiSelect"] svg {
         fill: #94a3b8 !important;
         color: #94a3b8 !important;
     }
 
-    /* -- TAGS : fix du rouge ET du clipping -- */
+    /* -- TAGS -- */
     div[data-baseweb="tag"] {
         background: #6366f1 !important;
         background-color: #6366f1 !important;
@@ -279,7 +263,6 @@ st.markdown("""
         border-radius: 6px !important;
         font-weight: 500 !important;
         font-size: 0.78rem !important;
-        /* Pas de height fixe : on garde min-height + padding vertical */
         min-height: 26px !important;
         height: auto !important;
         padding: 0.28rem 0.6rem !important;
@@ -304,7 +287,7 @@ st.markdown("""
         fill: #ffffff !important;
     }
 
-    /* -- Dropdown (menu popover) -- */
+    /* -- Dropdown -- */
     div[data-baseweb="popover"],
     div[data-baseweb="popover"] > div,
     div[data-baseweb="popover"] [role="listbox"],
@@ -333,10 +316,7 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* -- Label du widget masqué (on gère nos propres labels) -- */
-    div[data-testid="stMultiSelect"] label {
-        display: none !important;
-    }
+    div[data-testid="stMultiSelect"] label { display: none !important; }
 
     /* ---------- KPI cards ---------- */
     .kpi-grid {
@@ -393,7 +373,7 @@ st.markdown("""
         margin-top: 0.4rem;
     }
 
-    /* ---------- Boutons principaux ---------- */
+    /* ---------- Boutons ---------- */
     .stButton > button {
         border-radius: 8px;
         font-weight: 600;
@@ -454,7 +434,6 @@ st.markdown("""
         color: #67e8f9;
     }
 
-    /* ---------- Alerts ---------- */
     .stAlert {
         background-color: rgba(99,102,241,0.08) !important;
         border: 1px solid rgba(99,102,241,0.3) !important;
@@ -593,17 +572,9 @@ def target_label(role):
 
 
 # -----------------------------------------------------------------------------
-# HEADER UNIFIÉ — Titre + Filtres dans une seule carte
+# HEADER UNIFIÉ — Titre + Filtres
 # -----------------------------------------------------------------------------
-# On ouvre la carte (div) puis on insère le titre (HTML) puis les widgets
-# Streamlit à l'intérieur. Comme Streamlit ne permet pas d'imbriquer du HTML
-# autour de widgets natifs, on utilise un container Streamlit stylisé via
-# st.container(border=False) + un marqueur HTML pour l'en-tête, et on injecte
-# le CSS de la carte sur un wrapper propre.
-# -----------------------------------------------------------------------------
-
 with st.container():
-    # -- En-tête (titre + badge) en HTML pur --
     st.markdown("""
     <div class="app-shell" style="padding-bottom:1rem; margin-bottom:0.75rem;">
         <div class="shell-head" style="border-bottom:none; padding-bottom:0; margin-bottom:0;">
@@ -616,7 +587,6 @@ with st.container():
     </div>
     """, unsafe_allow_html=True)
 
-    # -- Barre de filtres (dans une carte distincte visuellement collée) --
     col_seg, col_br, col_stat = st.columns([1.4, 2.6, 1.1], gap="medium")
 
     with col_seg:
@@ -672,7 +642,7 @@ else:
 
 
 # -----------------------------------------------------------------------------
-# Tableau éditable
+# Tableau éditable — HAUTEUR AUGMENTÉE
 # -----------------------------------------------------------------------------
 st.markdown('<div class="section-title">Portefeuille — Édition</div>', unsafe_allow_html=True)
 st.markdown(
@@ -724,7 +694,8 @@ else:
         use_container_width=True,
         num_rows="dynamic",
         key="data_editor",
-        height=420,
+        height=650,          # ← 420 avant → 650 maintenant
+        row_height=38,       # ← lignes un peu plus aérées
     )
 
     col_btn, _ = st.columns([1, 4])
@@ -861,7 +832,8 @@ else:
             ])
         )
 
-        st.dataframe(styled, use_container_width=True, height=430)
+        # Tableau résultats — hauteur augmentée aussi
+        st.dataframe(styled, use_container_width=True, height=600)
 
         csv = display_df.to_csv(index=False)
         st.download_button(
