@@ -11,27 +11,139 @@ st.set_page_config(
 )
 
 # =============================================================================
-# CSS MINIMAL — typographie uniquement, la palette est gérée par config.toml
+# CSS — force le dark bleu partout (fallback si config.toml absent)
 # =============================================================================
 st.markdown("""
 <style>
+    /* ---------- Base ---------- */
     html, body, [class*="css"] {
         font-size: 15px;
         line-height: 1.55;
-        color: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-    h1, h2, h3, h4, h5, h6, p, span, div, label {
-        color: #ffffff;
-    }
-    h1 { font-size: 1.75rem !important; margin-bottom: 0.3rem !important; }
-    h2 { font-size: 1.3rem !important; margin-top: 1.4rem !important; }
-    h3 { font-size: 1.05rem !important; margin-top: 1.1rem !important; }
 
-    /* Caption légèrement atténué mais lisible */
+    /* ---------- Fond global bleu nuit ---------- */
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stHeader"] {
+        background-color: #0a1929 !important;
+        color: #ffffff !important;
+    }
+
+    /* ---------- Sidebar ---------- */
+    section[data-testid="stSidebar"] {
+        background-color: #0e2338 !important;
+        border-right: 1px solid #1e4976;
+    }
+    section[data-testid="stSidebar"] * {
+        color: #ffffff !important;
+    }
+
+    /* ---------- Texte partout ---------- */
+    h1, h2, h3, h4, h5, h6 {
+        color: #ffffff !important;
+    }
+    p, span, div, label, li {
+        color: #ffffff;
+    }
     [data-testid="stCaptionContainer"] p,
     .stCaption {
         color: #a8c0dd !important;
     }
+
+    /* ---------- Inputs / Select / Multiselect ---------- */
+    [data-baseweb="select"] > div,
+    [data-baseweb="input"] > div {
+        background-color: #132f4c !important;
+        border: 1px solid #1e4976 !important;
+        color: #ffffff !important;
+    }
+    [data-baseweb="tag"] {
+        background-color: #4a9eff !important;
+        color: #ffffff !important;
+    }
+    [data-baseweb="tag"] span,
+    [data-baseweb="tag"] svg {
+        color: #ffffff !important;
+        fill: #ffffff !important;
+    }
+    [data-baseweb="popover"],
+    [data-baseweb="menu"] {
+        background-color: #132f4c !important;
+        border: 1px solid #1e4976 !important;
+    }
+    [data-baseweb="menu"] li {
+        color: #ffffff !important;
+    }
+    [data-baseweb="menu"] li:hover,
+    [data-baseweb="menu"] [aria-selected="true"] {
+        background-color: #1e4976 !important;
+        color: #ffffff !important;
+    }
+    input {
+        color: #ffffff !important;
+    }
+
+    /* ---------- Radio / Checkbox ---------- */
+    .stRadio label,
+    .stCheckbox label,
+    .stRadio > div > label > div {
+        color: #ffffff !important;
+    }
+
+    /* ---------- Boutons ---------- */
+    .stButton > button,
+    [data-testid="stDownloadButton"] > button {
+        background-color: #132f4c !important;
+        color: #ffffff !important;
+        border: 1px solid #1e4976 !important;
+        border-radius: 6px;
+    }
+    .stButton > button:hover,
+    [data-testid="stDownloadButton"] > button:hover {
+        background-color: #1e4976 !important;
+        border-color: #4a9eff !important;
+    }
+
+    /* ---------- Metrics ---------- */
+    [data-testid="stMetricValue"],
+    [data-testid="stMetricLabel"] {
+        color: #ffffff !important;
+    }
+
+    /* ---------- Tabs ---------- */
+    .stTabs [data-baseweb="tab-list"] {
+        background-color: transparent !important;
+        border-bottom: 1px solid #1e4976;
+    }
+    .stTabs [data-baseweb="tab"] {
+        color: #a8c0dd !important;
+        background-color: transparent !important;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #ffffff !important;
+        border-bottom: 2px solid #4a9eff !important;
+    }
+
+    /* ---------- DataFrames / Data Editor (cadres) ---------- */
+    [data-testid="stDataFrame"],
+    [data-testid="stDataEditor"] {
+        background-color: #132f4c !important;
+        border: 1px solid #1e4976 !important;
+        border-radius: 8px;
+    }
+
+    /* ---------- Alerts ---------- */
+    .stAlert {
+        background-color: #132f4c !important;
+        border: 1px solid #1e4976 !important;
+        color: #ffffff !important;
+    }
+    .stAlert p { color: #ffffff !important; }
+
+    /* ---------- Markdown / Dividers ---------- */
+    hr { border-color: #1e4976 !important; }
+    strong, b { color: #ffffff !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -135,50 +247,31 @@ def status(idx, role):
     return '—'
 
 
-# =============================================================================
-# STYLERS compatibles toutes versions pandas
-# =============================================================================
-def style_status_col(series):
-    """Retourne une liste de styles CSS pour la colonne Statut."""
-    styles = []
-    for val in series:
-        if val == 'Conforme':
-            styles.append('color: #4ade80; font-weight: 700;')
-        elif val == 'À revoir':
-            styles.append('color: #ff6b6b; font-weight: 700;')
+def style_status(series):
+    """Colore la colonne Statut (compatible pandas 1.x / 2.x / 3.x)."""
+    out = []
+    for v in series:
+        if v == 'Conforme':
+            out.append('color: #4ade80; font-weight: 700;')
+        elif v == 'À revoir':
+            out.append('color: #ff6b6b; font-weight: 700;')
         else:
-            styles.append('color: #a8c0dd;')
-    return styles
+            out.append('color: #a8c0dd;')
+    return out
 
 
-def style_couverture_col(series):
-    styles = []
-    for val in series:
-        if val in ('4/4', '3/4'):
-            styles.append('color: #4ade80; font-weight: 700;')
-        elif val == '2/4':
-            styles.append('color: #fbbf24; font-weight: 700;')
-        elif val == '1/4':
-            styles.append('color: #ff6b6b; font-weight: 700;')
+def style_couverture(series):
+    out = []
+    for v in series:
+        if v in ('4/4', '3/4'):
+            out.append('color: #4ade80; font-weight: 700;')
+        elif v == '2/4':
+            out.append('color: #fbbf24; font-weight: 700;')
+        elif v == '1/4':
+            out.append('color: #ff6b6b; font-weight: 700;')
         else:
-            styles.append('')
-    return styles
-
-
-def style_ecart_col(series):
-    styles = []
-    for val in series:
-        try:
-            v = int(str(val).replace('+', ''))
-            if v >= 20:
-                styles.append('color: #ff6b6b; font-weight: 700;')
-            elif v >= 10:
-                styles.append('color: #fbbf24; font-weight: 700;')
-            else:
-                styles.append('color: #ffffff;')
-        except Exception:
-            styles.append('')
-    return styles
+            out.append('')
+    return out
 
 
 # =============================================================================
@@ -355,19 +448,10 @@ with tab1:
     result.columns = ['Marque', 'Format', 'Occasion', 'Rôle',
                       'Prix / L (Ar)', 'Index', 'Statut']
 
-    # Utilisation de Styler.apply (compatible pandas 1.x et 2.x/3.x)
     styled_result = (
         result.style
-        .apply(style_status_col, subset=['Statut'])
-        .format({
-            'Prix / L (Ar)': '{:,.0f}',
-            'Index': '{:d}',
-        })
-        .set_properties(**{
-            'font-family': 'Inter, sans-serif',
-            'font-size': '14px',
-            'color': '#ffffff',
-        })
+        .apply(style_status, subset=['Statut'])
+        .format({'Prix / L (Ar)': '{:,.0f}', 'Index': '{:d}'})
     )
 
     st.dataframe(
@@ -388,16 +472,13 @@ with tab1:
 with tab2:
     st.markdown("## 📊 Vue d'ensemble du portefeuille")
 
-    # ---- Couverture des rôles ----
     st.markdown("### Couverture des rôles par marque")
     st.markdown(
         "Ce tableau indique quels rôles tarifaires chaque marque occupe. "
         "Une marque bien structurée couvre **au minimum Entry + Frequency**."
     )
 
-    occ_filter = st.radio(
-        "Occasion", OCCASIONS, horizontal=True, key="vue_occ",
-    )
+    occ_filter = st.radio("Occasion", OCCASIONS, horizontal=True, key="vue_occ")
     sub = d[d['Occasion'] == occ_filter]
 
     if sub.empty:
@@ -422,12 +503,7 @@ with tab2:
 
         styled_cov = (
             cov_df.style
-            .apply(style_couverture_col, subset=['Couverture'])
-            .set_properties(**{
-                'font-family': 'Inter, sans-serif',
-                'font-size': '13px',
-                'color': '#ffffff',
-            })
+            .apply(style_couverture, subset=['Couverture'])
         )
 
         st.dataframe(
@@ -437,7 +513,6 @@ with tab2:
             hide_index=True,
         )
 
-    # ---- Tous les produits ----
     st.markdown("### Tous les produits du périmètre")
     st.markdown(
         "Vue tabulaire complète avec le prix au litre, l'index de positionnement "
@@ -453,17 +528,12 @@ with tab2:
 
     styled_view2 = (
         view2.style
-        .apply(style_status_col, subset=['Statut'])
+        .apply(style_status, subset=['Statut'])
         .format({
             'Volume (L)': '{:.2f}',
             'Prix (Ar)': '{:,.0f}',
             'Prix / L (Ar)': '{:,.0f}',
             'Index': '{:d}',
-        })
-        .set_properties(**{
-            'font-family': 'Inter, sans-serif',
-            'font-size': '13px',
-            'color': '#ffffff',
         })
     )
 
@@ -514,18 +584,28 @@ with tab3:
         diag.columns = ['Marque', 'Format', 'Occasion', 'Rôle',
                         'Prix / L (Ar)', 'Index', 'Écart']
 
+        def style_ecart(series):
+            out = []
+            for v in series:
+                try:
+                    n = int(v)
+                    if n >= 20:
+                        out.append('color: #ff6b6b; font-weight: 700;')
+                    elif n >= 10:
+                        out.append('color: #fbbf24; font-weight: 700;')
+                    else:
+                        out.append('color: #ffffff;')
+                except Exception:
+                    out.append('')
+            return out
+
         styled_diag = (
             diag.style
-            .apply(style_ecart_col, subset=['Écart'])
+            .apply(style_ecart, subset=['Écart'])
             .format({
                 'Prix / L (Ar)': '{:,.0f}',
                 'Index': '{:d}',
                 'Écart': '+{:d}',
-            })
-            .set_properties(**{
-                'font-family': 'Inter, sans-serif',
-                'font-size': '13px',
-                'color': '#ffffff',
             })
         )
 
@@ -541,9 +621,7 @@ with tab3:
             },
         )
 
-        # ---- Recommandations ----
         st.markdown("### Recommandations")
-
         entry_ko = ko[ko['Rôle'] == 'Entry']
         freq_ko = ko[ko['Rôle'] == 'Frequency']
         up_ko = ko[ko['Rôle'].isin(['Upsize', 'Upscale'])]
@@ -551,21 +629,19 @@ with tab3:
         if len(freq_ko):
             st.warning(
                 f"**{len(freq_ko)} produits Frequency** ne sont pas à l'index 100. "
-                "Le produit de référence doit être ajusté en priorité : "
-                "tous les autres index dépendent de lui."
+                "Le produit de référence doit être ajusté en priorité."
             )
         if len(entry_ko):
             st.info(
                 f"**{len(entry_ko)} produits Entry** sont en dehors de la cible 101–110. "
-                "Vérifiez le positionnement du format d'accès (petit format)."
+                "Vérifiez le positionnement du format d'accès."
             )
         if len(up_ko):
             st.info(
                 f"**{len(up_ko)} produits Upsize / Upscale** sont à revoir. "
-                "Vérifiez la cohérence entre volume et prix au litre."
+                "Vérifiez la cohérence volume / prix au litre."
             )
 
-    # ---- Export ----
     st.markdown("### Export")
     csv = d[['Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
              'Volume_L', 'PVF_Ajusté', 'Prix_Litre_Ajusté',
