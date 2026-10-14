@@ -219,23 +219,59 @@ def status(idx, role):
     return '—'
 
 
-def compute_target_prices(ref, vol, role, coef):
-    """Retourne (pl_min, pl_max, pvf_min, pvf_max) pour un produit."""
-    idx_min, idx_max = ROLE_INDEX_RANGE[role]
-    pl_min_adj = idx_min * ref / 100
-    pl_max_adj = idx_max * ref / 100
-    pl_min = pl_min_adj / coef
-    pl_max = pl_max_adj / coef
-    pvf_min = pl_min * vol
-    pvf_max = pl_max * vol
-    return round(pl_min), round(pl_max), round(pvf_min), round(pvf_max)
+def compute_target(row, coef):
+    """
+    Calcule les cibles de prix en respectant la contrainte :
+    le prix proposé ne doit JAMAIS être inférieur au prix actuel.
 
+    Retourne un dict :
+      - action : 'augmenter' | 'au-dessus' | 'conforme'
+      - pvf_min, pvf_max : intervalle proposé (>= prix actuel)
+      - msg : message d'affichage
+    """
+    current_pvf = row['PVF_Ar']
+    idx = row['Index']
+    role = row['Rôle']
+    ref = row['Ref']
+    vol = row['Volume_L']
 
-def format_target_range(row):
-    """Format compact 'PVF_min – PVF_max Ar' ou '—' si conforme."""
     if row['Statut'] == 'Conforme':
-        return '— conforme —'
-    return f"{int(row['PVF_cible_min']):,} – {int(row['PVF_cible_max']):,} Ar".replace(',', ' ')
+        return {
+            'action': 'conforme',
+            'pvf_min': current_pvf,
+            'pvf_max': current_pvf,
+            'msg': '— conforme —',
+        }
+
+    idx_min, idx_max = ROLE_INDEX_RANGE[role]
+
+    # Cibles calculées depuis l'index
+    pl_min_cible = (idx_min * ref / 100) / coef
+    pl_max_cible = (idx_max * ref / 100) / coef
+    pvf_min_cible = pl_min_cible * vol
+    pvf_max_cible = pl_max_cible * vol
+
+    # Contrainte : ne jamais descendre en dessous du prix actuel
+    pvf_min = max(pvf_min_cible, current_pvf)
+    pvf_max = max(pvf_max_cible, pvf_min)
+
+    # Déterminer l'action
+    if idx < idx_min:
+        # Produit trop bas → on propose d'augmenter
+        action = 'augmenter'
+        msg = f"{int(pvf_min):,} – {int(pvf_max):,} Ar".replace(',', ' ')
+    else:
+        # idx > idx_max : produit trop haut → cible en dessous du prix actuel
+        # On ne propose PAS de baisse → "au-dessus de la cible"
+        action = 'au-dessus'
+        msg = '⚠️ Prix déjà au-dessus de la cible'
+
+    return {
+        'action': action,
+        'pvf_min': pvf_min,
+        'pvf_max': pvf_max,
+        'msg': msg,
+    }
 
 
 def style_status(series):
@@ -264,12 +300,15 @@ def style_couverture(series):
     return out
 
 
-def style_target_col(series):
-    """Vert clair sur la colonne des prix cibles si non conforme, gris si conforme."""
+def style_proposition(series):
+    """Vert si proposition d'augmentation, ambre si au-dessus de la cible, gris si conforme."""
     out = []
     for v in series:
-        if 'conforme' in str(v).lower():
+        s = str(v)
+        if 'conforme' in s.lower():
             out.append('color: #a8c0dd; font-style: italic;')
+        elif 'au-dessus' in s.lower():
+            out.append('color: #fbbf24; font-weight: 600;')
         else:
             out.append('color: #4ade80; font-weight: 700;')
     return out
@@ -358,7 +397,7 @@ d['Statut'] = d.apply(lambda r: status(r['Index'], r['Rôle']), axis=1)
 st.markdown("# Simulateur OBPPC")
 st.markdown(
     "**Analyse de cohérence** entre les rôles tarifaires et les prix au litre, "
-    "avec **proposition d'intervalle de prix** pour chaque produit non conforme."
+    "avec **proposition d'intervalle de prix à la hausse** pour chaque produit sous-évalué."
 )
 
 n_ok = int((d['Statut'] == 'Conforme').sum())
@@ -392,14 +431,14 @@ tab1, tab2, tab3 = st.tabs([
 
 
 # =============================================================================
-# TAB 1 — MODIFIER LES PRIX (avec intervalle cible)
+# TAB 1 — MODIFIER LES PRIX (avec proposition à la hausse)
 # =============================================================================
 with tab1:
     st.markdown("## ✏️ Modifier les prix")
     st.markdown(
         "Ajustez le **prix de vente (PVF)** ou le **volume** d'un produit directement "
-        "dans le tableau. Toutes les analyses se recalculent automatiquement. "
-        "La colonne **💡 Prix cible** indique l'intervalle à viser pour les produits non conformes."
+        "dans le tableau. Toutes les analyses se recalent automatiquement. "
+        "La colonne **💡 Proposition** indique l'intervalle à viser pour les produits sous-évalués."
     )
 
     editor_df = d[['Segment', 'Marque', 'Occasion', 'Rôle',
@@ -442,37 +481,26 @@ with tab1:
     d2['Index'] = (d2['Prix_Litre_Ajusté'] / d2['Ref'] * 100).round(0).astype(int)
     d2['Statut'] = d2.apply(lambda r: status(r['Index'], r['Rôle']), axis=1)
 
-    # --- Calcul des PVF cibles
-    def get_pvf_targets(row):
-        pl_min, pl_max, pvf_min, pvf_max = compute_target_prices(
-            row['Ref'], row['Volume_L'], row['Rôle'], coef
-        )
-        return pd.Series({
-            'PVF_cible_min': pvf_min,
-            'PVF_cible_max': pvf_max,
-            'Prix_L_cible_min': pl_min,
-            'Prix_L_cible_max': pl_max,
-        })
-
-    targets = d2.apply(get_pvf_targets, axis=1)
-    d2 = pd.concat([d2, targets], axis=1)
-
-    # --- Colonne compacte : intervalle PVF
-    d2['Prix_cible'] = d2.apply(format_target_range, axis=1)
+    # --- Calcul des propositions
+    proposals = d2.apply(lambda r: compute_target(r, coef), axis=1)
+    d2['Action'] = proposals.apply(lambda x: x['action'])
+    d2['PVF_min'] = proposals.apply(lambda x: x['pvf_min'])
+    d2['PVF_max'] = proposals.apply(lambda x: x['pvf_max'])
+    d2['Proposition'] = proposals.apply(lambda x: x['msg'])
 
     st.markdown("### Résultats en direct")
     st.caption(f"Canal : **{channel}** · Index 100 = moyenne des Frequency du même segment × occasion")
 
     result = d2[['Marque', 'Format', 'Occasion', 'Rôle',
-                 'Prix_Litre_Ajusté', 'Index', 'Statut', 'Prix_cible']].copy()
+                 'Prix_Litre_Ajusté', 'Index', 'Statut', 'Proposition']].copy()
     result.columns = ['Marque', 'Format', 'Occasion', 'Rôle',
                       'Prix / L (Ar)', 'Index', 'Statut',
-                      '💡 Prix cible (Ar)']
+                      '💡 Proposition']
 
     styled_result = (
         result.style
         .apply(style_status, subset=['Statut'])
-        .apply(style_target_col, subset=['💡 Prix cible (Ar)'])
+        .apply(style_proposition, subset=['💡 Proposition'])
         .format({'Prix / L (Ar)': '{:,.0f}', 'Index': '{:d}'})
     )
 
@@ -484,23 +512,25 @@ with tab1:
         column_config={
             'Prix / L (Ar)': st.column_config.NumberColumn(format="%d"),
             'Index': st.column_config.NumberColumn(format="%d"),
-            '💡 Prix cible (Ar)': st.column_config.TextColumn(
-                "💡 Prix cible (Ar)",
-                help="Intervalle de prix de vente à appliquer pour rentrer dans la cible du rôle. "
-                     "Uniquement pour les produits non conformes.",
-                width="medium",
+            '💡 Proposition': st.column_config.TextColumn(
+                "💡 Proposition",
+                help="Intervalle de prix à appliquer pour rentrer dans la cible (jamais "
+                     "en dessous du prix actuel). 'Prix déjà au-dessus de la cible' "
+                     "signifie qu'aucun ajustement à la hausse n'est possible.",
+                width="large",
             ),
         },
     )
 
-    # --- Compteur de non-conformes avec suggestion
-    nb_ko = int((d2['Statut'] == 'À revoir').sum())
-    if nb_ko > 0:
-        st.info(
-            f"💡 **{nb_ko} produit(s)** non conforme(s) — voir la colonne "
-            "*💡 Prix cible (Ar)* pour l'intervalle exact à appliquer. "
-            "Détails par rôle dans l'onglet **③ Diagnostic**."
-        )
+    # --- Résumé
+    n_augment = int((d2['Action'] == 'augmenter').sum())
+    n_above = int((d2['Action'] == 'au-dessus').sum())
+    n_conf = int((d2['Action'] == 'conforme').sum())
+
+    if n_augment or n_above:
+        msg = f"💡 **{n_augment} produit(s)** sous-évalué(s) à augmenter · "
+        msg += f"**{n_above} produit(s)** au-dessus de la cible (pas d'ajustement à la hausse)"
+        st.info(msg + ". Voir les détails dans l'onglet **③ Diagnostic**.")
     else:
         st.success("✅ Tous les produits sont conformes à leur rôle tarifaire.")
 
@@ -555,36 +585,25 @@ with tab2:
     st.markdown("### Tous les produits du périmètre")
     st.markdown(
         "Vue tabulaire complète avec le prix au litre, l'index de positionnement, "
-        "le statut de conformité et le prix cible suggéré."
+        "le statut de conformité et la proposition de prix."
     )
 
-    # Ajout des cibles dans la vue d'ensemble aussi
+    # Ajout des propositions
     view2 = d.copy()
-
-    def add_targets(row):
-        pl_min, pl_max, pvf_min, pvf_max = compute_target_prices(
-            row['Ref'], row['Volume_L'], row['Rôle'], coef
-        )
-        return pd.Series({
-            'PVF_cible_min': pvf_min,
-            'PVF_cible_max': pvf_max,
-        })
-
-    v_targets = view2.apply(add_targets, axis=1)
-    view2 = pd.concat([view2, v_targets], axis=1)
-    view2['Prix_cible'] = view2.apply(format_target_range, axis=1)
+    props = view2.apply(lambda r: compute_target(r, coef), axis=1)
+    view2['Proposition'] = props.apply(lambda x: x['msg'])
 
     view2_final = view2[['Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
                           'Volume_L', 'PVF_Ajusté', 'Prix_Litre_Ajusté',
-                          'Index', 'Statut', 'Prix_cible']].copy()
+                          'Index', 'Statut', 'Proposition']].copy()
     view2_final.columns = ['Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
                             'Volume (L)', 'Prix (Ar)', 'Prix / L (Ar)',
-                            'Index', 'Statut', '💡 Prix cible (Ar)']
+                            'Index', 'Statut', '💡 Proposition']
 
     styled_view2 = (
         view2_final.style
         .apply(style_status, subset=['Statut'])
-        .apply(style_target_col, subset=['💡 Prix cible (Ar)'])
+        .apply(style_proposition, subset=['💡 Proposition'])
         .format({
             'Volume (L)': '{:.2f}',
             'Prix (Ar)': '{:,.0f}',
@@ -603,174 +622,182 @@ with tab2:
             'Prix (Ar)': st.column_config.NumberColumn(format="%d"),
             'Prix / L (Ar)': st.column_config.NumberColumn(format="%d"),
             'Index': st.column_config.NumberColumn(format="%d"),
-            '💡 Prix cible (Ar)': st.column_config.TextColumn(
-                "💡 Prix cible (Ar)",
-                help="Intervalle de prix à appliquer (uniquement pour les non-conformes)",
+            '💡 Proposition': st.column_config.TextColumn(
+                "💡 Proposition",
+                help="Proposition de prix à la hausse (jamais en dessous du prix actuel)",
             ),
         },
     )
 
 
 # =============================================================================
-# TAB 3 — DIAGNOSTIC avec propositions de prix détaillées
+# TAB 3 — DIAGNOSTIC avec propositions détaillées
 # =============================================================================
 with tab3:
     st.markdown("## 🎯 Diagnostic OBPPC")
     st.markdown(
-        "Liste des produits **non conformes** avec l'intervalle de prix cible "
-        "pour les remettre en conformité."
+        "Liste des produits **non conformes** avec l'intervalle de prix à la hausse "
+        "pour les remettre en conformité. "
+        "⚠️ Aucune proposition de baisse n'est faite — uniquement des ajustements à la hausse."
     )
 
+    # On ne garde que les non conformes à augmenter (sous-évalués)
     ko = d[d['Statut'] == 'À revoir'].copy()
 
     if ko.empty:
         st.success("✅ Tous les produits respectent leur cible tarifaire.")
     else:
-        # --- Calcul des cibles
-        def compute_targets(row):
-            pl_min, pl_max, pvf_min, pvf_max = compute_target_prices(
-                row['Ref'], row['Volume_L'], row['Rôle'], coef
-            )
-            return pd.Series({
-                'Prix_L_min':  pl_min,
-                'Prix_L_max':  pl_max,
-                'PVF_min':     pvf_min,
-                'PVF_max':     pvf_max,
-            })
+        proposals = ko.apply(lambda r: compute_target(r, coef), axis=1)
+        ko['Action'] = proposals.apply(lambda x: x['action'])
+        ko['PVF_min'] = proposals.apply(lambda x: x['pvf_min'])
+        ko['PVF_max'] = proposals.apply(lambda x: x['pvf_max'])
+        ko['Proposition'] = proposals.apply(lambda x: x['msg'])
 
-        targets = ko.apply(compute_targets, axis=1)
-        ko = pd.concat([ko, targets], axis=1)
+        # Séparation : produits à augmenter vs au-dessus de la cible
+        to_increase = ko[ko['Action'] == 'augmenter'].copy()
+        above_target = ko[ko['Action'] == 'au-dessus'].copy()
 
-        # --- Écart en points d'index
-        def ecart_index(row):
-            i = row['Index']
-            imin, imax = ROLE_INDEX_RANGE[row['Rôle']]
-            if i < imin:
-                return imin - i
-            if i > imax:
-                return i - imax
-            return 0
+        # ---- Produits à augmenter ----
+        if not to_increase.empty:
+            # Écart en points d'index
+            def ecart_index(row):
+                i = row['Index']
+                imin, imax = ROLE_INDEX_RANGE[row['Rôle']]
+                if i < imin:
+                    return imin - i
+                return 0
 
-        ko['Écart'] = ko.apply(ecart_index, axis=1)
-        ko = ko.sort_values('Écart', ascending=False)
+            to_increase['Écart'] = to_increase.apply(ecart_index, axis=1)
+            to_increase = to_increase.sort_values('Écart', ascending=False)
 
-        # --- Tendance
-        def tendance(row):
-            i = row['Index']
-            imin, imax = ROLE_INDEX_RANGE[row['Rôle']]
-            if i < imin:
-                return '⬆️ Augmenter'
-            if i > imax:
-                return '⬇️ Baisser'
-            return '—'
-
-        ko['Tendance'] = ko.apply(tendance, axis=1)
-
-        st.markdown(f"**{len(ko)} produits à réviser** — triés par écart décroissant :")
-
-        # --- Tableau final
-        diag = ko[[
-            'Marque', 'Format', 'Occasion', 'Rôle',
-            'Prix_Litre_Ajusté', 'Index', 'Tendance',
-            'Prix_L_min', 'Prix_L_max',
-            'PVF_min', 'PVF_max',
-        ]].copy()
-        diag.columns = [
-            'Marque', 'Format', 'Occasion', 'Rôle',
-            'Prix actuel / L', 'Index actuel', 'Action',
-            'Prix cible / L min', 'Prix cible / L max',
-            'PVF min', 'PVF max',
-        ]
-
-        def style_index(series):
-            out = []
-            for v in series:
-                try:
-                    n = int(v)
-                    if 95 <= n <= 105:
-                        out.append('color: #fbbf24; font-weight: 700;')
-                    else:
-                        out.append('color: #ff6b6b; font-weight: 700;')
-                except Exception:
-                    out.append('')
-            return out
-
-        def style_target_range(series):
-            return ['color: #4ade80; font-weight: 600;'] * len(series)
-
-        def style_action(series):
-            out = []
-            for v in series:
-                if 'Augmenter' in str(v):
-                    out.append('color: #4ade80; font-weight: 700;')
-                elif 'Baisser' in str(v):
-                    out.append('color: #fbbf24; font-weight: 700;')
-                else:
-                    out.append('color: #a8c0dd;')
-            return out
-
-        styled_diag = (
-            diag.style
-            .apply(style_index, subset=['Index actuel'])
-            .apply(style_target_range, subset=['Prix cible / L min', 'Prix cible / L max'])
-            .apply(style_action, subset=['Action'])
-            .format({
-                'Prix actuel / L':     '{:,.0f}',
-                'Index actuel':        '{:d}',
-                'Prix cible / L min':  '{:,.0f}',
-                'Prix cible / L max':  '{:,.0f}',
-                'PVF min':             '{:,.0f}',
-                'PVF max':             '{:,.0f}',
-            })
-        )
-
-        st.dataframe(
-            styled_diag,
-            use_container_width=True,
-            height=min(600, 80 + 40 * len(diag)),
-            hide_index=True,
-            column_config={
-                'Prix actuel / L':    st.column_config.NumberColumn(format="%d Ar"),
-                'Index actuel':       st.column_config.NumberColumn(format="%d"),
-                'Prix cible / L min': st.column_config.NumberColumn(format="%d Ar"),
-                'Prix cible / L max': st.column_config.NumberColumn(format="%d Ar"),
-                'PVF min':            st.column_config.NumberColumn(format="%d Ar"),
-                'PVF max':            st.column_config.NumberColumn(format="%d Ar"),
-            },
-        )
-
-        st.caption(
-            "**Lecture** — La colonne *Action* indique s'il faut **augmenter** ou **baisser** le prix. "
-            "Les colonnes *Prix cible / L* et *PVF* donnent l'intervalle exact à appliquer "
-            "pour rentrer dans la cible du rôle."
-        )
-
-        # ---- Recommandations ----
-        st.markdown("### Recommandations")
-
-        entry_ko = ko[ko['Rôle'] == 'Entry']
-        freq_ko = ko[ko['Rôle'] == 'Frequency']
-        up_ko = ko[ko['Rôle'].isin(['Upsize', 'Upscale'])]
-
-        if len(freq_ko):
-            st.warning(
-                f"**{len(freq_ko)} produits Frequency** ne sont pas à l'index 100. "
-                "Le produit de référence doit être ajusté en priorité."
-            )
-        if len(entry_ko):
-            st.info(
-                f"**{len(entry_ko)} produits Entry** sont en dehors de la cible 101–110. "
-                "Vérifiez le positionnement du format d'accès."
-            )
-        if len(up_ko):
-            st.info(
-                f"**{len(up_ko)} produits Upsize / Upscale** sont à revoir. "
-                "Vérifiez la cohérence volume / prix au litre."
+            st.markdown(f"### ⬆️ {len(to_increase)} produits à augmenter")
+            st.caption(
+                "Ces produits sont **sous-évalués** par rapport à leur rôle. "
+                "L'intervalle proposé est toujours supérieur au prix actuel."
             )
 
-        # ---- Export du diagnostic ----
+            diag = to_increase[[
+                'Marque', 'Format', 'Occasion', 'Rôle',
+                'PVF_Ar', 'Prix_Litre_Ajusté', 'Index',
+                'PVF_min', 'PVF_max',
+            ]].copy()
+            diag.columns = [
+                'Marque', 'Format', 'Occasion', 'Rôle',
+                'PVF actuel', 'Prix / L actuel', 'Index actuel',
+                'PVF cible min', 'PVF cible max',
+            ]
+
+            def style_index_low(series):
+                return ['color: #ff6b6b; font-weight: 700;'] * len(series)
+
+            def style_target_up(series):
+                return ['color: #4ade80; font-weight: 700;'] * len(series)
+
+            styled_diag = (
+                diag.style
+                .apply(style_index_low, subset=['Index actuel'])
+                .apply(style_target_up, subset=['PVF cible min', 'PVF cible max'])
+                .format({
+                    'PVF actuel':       '{:,.0f}',
+                    'Prix / L actuel':  '{:,.0f}',
+                    'Index actuel':     '{:d}',
+                    'PVF cible min':    '{:,.0f}',
+                    'PVF cible max':    '{:,.0f}',
+                })
+            )
+
+            st.dataframe(
+                styled_diag,
+                use_container_width=True,
+                height=min(600, 80 + 40 * len(diag)),
+                hide_index=True,
+                column_config={
+                    'PVF actuel':       st.column_config.NumberColumn(format="%d Ar"),
+                    'Prix / L actuel':  st.column_config.NumberColumn(format="%d Ar"),
+                    'Index actuel':     st.column_config.NumberColumn(format="%d"),
+                    'PVF cible min':    st.column_config.NumberColumn(format="%d Ar"),
+                    'PVF cible max':    st.column_config.NumberColumn(format="%d Ar"),
+                },
+            )
+
+            # Recommandations
+            st.markdown("##### Recommandations")
+            entry_ko = to_increase[to_increase['Rôle'] == 'Entry']
+            freq_ko = to_increase[to_increase['Rôle'] == 'Frequency']
+            up_ko = to_increase[to_increase['Rôle'].isin(['Upsize', 'Upscale'])]
+
+            if len(freq_ko):
+                st.warning(
+                    f"**{len(freq_ko)} produits Frequency** sous-évalués. "
+                    "Le produit de référence doit être ajusté en priorité."
+                )
+            if len(entry_ko):
+                st.info(
+                    f"**{len(entry_ko)} produits Entry** à repositionner à la hausse."
+                )
+            if len(up_ko):
+                st.info(
+                    f"**{len(up_ko)} produits Upsize / Upscale** à augmenter."
+                )
+
+        # ---- Produits au-dessus de la cible ----
+        if not above_target.empty:
+            st.markdown("---")
+            st.markdown(f"### ⚠️ {len(above_target)} produits au-dessus de la cible")
+            st.caption(
+                "Ces produits ont un index **supérieur** à la cible de leur rôle. "
+                "**Aucune proposition de baisse n'est faite** — ils nécessitent un "
+                "arbitrage manuel (changement de rôle, repositionnement, ou acceptation en l'état)."
+            )
+
+            diag_above = above_target[[
+                'Marque', 'Format', 'Occasion', 'Rôle',
+                'PVF_Ar', 'Prix_Litre_Ajusté', 'Index',
+            ]].copy()
+            diag_above.columns = [
+                'Marque', 'Format', 'Occasion', 'Rôle',
+                'PVF actuel', 'Prix / L actuel', 'Index actuel',
+            ]
+
+            def style_index_high(series):
+                return ['color: #fbbf24; font-weight: 700;'] * len(series)
+
+            styled_above = (
+                diag_above.style
+                .apply(style_index_high, subset=['Index actuel'])
+                .format({
+                    'PVF actuel':       '{:,.0f}',
+                    'Prix / L actuel':  '{:,.0f}',
+                    'Index actuel':     '{:d}',
+                })
+            )
+
+            st.dataframe(
+                styled_above,
+                use_container_width=True,
+                height=min(500, 80 + 40 * len(diag_above)),
+                hide_index=True,
+                column_config={
+                    'PVF actuel':       st.column_config.NumberColumn(format="%d Ar"),
+                    'Prix / L actuel':  st.column_config.NumberColumn(format="%d Ar"),
+                    'Index actuel':     st.column_config.NumberColumn(format="%d"),
+                },
+            )
+
+        # ---- Export du diagnostic complet ----
+        st.markdown("---")
         st.markdown("### Export du diagnostic")
-        csv_diag = diag.to_csv(index=False).encode('utf-8-sig')
+        export_diag = ko[[
+            'Marque', 'Format', 'Occasion', 'Rôle',
+            'PVF_Ar', 'Prix_Litre_Ajusté', 'Index',
+            'Action', 'PVF_min', 'PVF_max',
+        ]].copy()
+        export_diag.columns = [
+            'Marque', 'Format', 'Occasion', 'Rôle',
+            'PVF actuel (Ar)', 'Prix/L actuel (Ar)', 'Index actuel',
+            'Action', 'PVF cible min (Ar)', 'PVF cible max (Ar)',
+        ]
+        csv_diag = export_diag.to_csv(index=False).encode('utf-8-sig')
         st.download_button(
             "📥 Télécharger le diagnostic (CSV)",
             data=csv_diag,
@@ -779,6 +806,7 @@ with tab3:
         )
 
     # ---- Export global ----
+    st.markdown("---")
     st.markdown("### Export global")
     csv = d[['Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
              'Volume_L', 'PVF_Ajusté', 'Prix_Litre_Ajusté',
