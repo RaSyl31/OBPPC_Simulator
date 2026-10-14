@@ -50,36 +50,45 @@ st.markdown("""
     }
 
     .main .block-container {
-        padding-top: 1.75rem;
+        padding-top: 1.25rem;
         padding-bottom: 3rem;
-        max-width: 1500px;
+        max-width: 1600px;
     }
 
-    /* ---------- Header ---------- */
-    .app-header {
+    /* ============================================================
+       HEADER UNIFIÉ : titre + filtres dans la même carte
+       ============================================================ */
+    .app-shell {
         position: relative;
         background: linear-gradient(135deg, rgba(30,41,59,0.85), rgba(15,23,42,0.9));
         border: 1px solid rgba(99,102,241,0.28);
         border-radius: 16px;
-        padding: 1.6rem 2rem;
-        margin-bottom: 1.5rem;
+        padding: 1.5rem 1.75rem 1.35rem 1.75rem;
+        margin-bottom: 1.75rem;
         overflow: hidden;
         box-shadow:
             0 0 0 1px rgba(99,102,241,0.06),
             0 30px 60px -25px rgba(99,102,241,0.45);
+    }
+    .app-shell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(900px 220px at 0% 0%, rgba(99,102,241,0.30), transparent 60%);
+        pointer-events: none;
+    }
+
+    .shell-head {
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
+        padding-bottom: 1.15rem;
+        border-bottom: 1px dashed rgba(148,163,184,0.18);
+        margin-bottom: 1.15rem;
     }
-    .app-header::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(700px 160px at 0% 0%, rgba(99,102,241,0.35), transparent 60%);
-        pointer-events: none;
-    }
-    .app-header h1 {
+    .shell-head h1 {
         margin: 0;
         font-size: 1.55rem;
         font-weight: 700;
@@ -89,13 +98,13 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
-    .app-header .subtitle {
+    .shell-head .subtitle {
         margin: 0.35rem 0 0 0;
         color: var(--text-dim);
         font-size: 0.85rem;
         font-weight: 400;
     }
-    .app-header .badge {
+    .shell-badge {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
@@ -110,7 +119,7 @@ st.markdown("""
         border: 1px solid rgba(99,102,241,0.35);
         white-space: nowrap;
     }
-    .app-header .badge .dot {
+    .shell-badge .dot {
         width: 6px; height: 6px; border-radius: 50%;
         background: #22d3ee;
         box-shadow: 0 0 10px #22d3ee, 0 0 20px rgba(34,211,238,0.5);
@@ -119,6 +128,51 @@ st.markdown("""
     @keyframes pulse {
         0%, 100% { opacity: 1; transform: scale(1); }
         50%      { opacity: 0.55; transform: scale(0.85); }
+    }
+
+    /* Zone des filtres dans la carte */
+    .shell-filters {
+        position: relative;
+    }
+    .filter-label {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #a5b4fc;
+        text-transform: uppercase;
+        letter-spacing: 0.13em;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Encart de compteur à droite des filtres */
+    .filter-stat {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+        min-height: 70px;
+        padding: 0.75rem 1rem;
+        background: rgba(99,102,241,0.08);
+        border: 1px solid rgba(99,102,241,0.25);
+        border-radius: 10px;
+    }
+    .filter-stat-label {
+        font-size: 0.66rem;
+        font-weight: 700;
+        color: #a5b4fc;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 0.45rem;
+    }
+    .filter-stat-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        font-variant-numeric: tabular-nums;
+    }
+    .filter-stat-value .dim {
+        color: #64748b;
+        font-weight: 500;
+        font-size: 0.85rem;
     }
 
     /* ---------- Section titles ---------- */
@@ -148,59 +202,17 @@ st.markdown("""
     }
 
     /* ============================================================
-       BARRE DE FILTRES (en haut du contenu principal)
-       ============================================================ */
-    .filter-bar {
-        background: linear-gradient(160deg, rgba(26,34,52,0.75), rgba(15,23,42,0.75));
-        border: 1px solid rgba(99,102,241,0.22);
-        border-radius: 14px;
-        padding: 1.15rem 1.25rem 0.75rem 1.25rem;
-        margin-bottom: 1.25rem;
-        box-shadow: 0 20px 40px -30px rgba(0,0,0,0.9);
-    }
-    .filter-bar-label {
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: #a5b4fc;
-        text-transform: uppercase;
-        letter-spacing: 0.13em;
-        margin-bottom: 0.5rem;
-    }
-    .filter-stat {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        height: 100%;
-        padding: 0.5rem 0.9rem;
-        background: rgba(99,102,241,0.08);
-        border: 1px solid rgba(99,102,241,0.25);
-        border-radius: 10px;
-    }
-    .filter-stat-label {
-        font-size: 0.68rem;
-        font-weight: 700;
-        color: #a5b4fc;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        margin-bottom: 0.35rem;
-    }
-    .filter-stat-value {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #e2e8f0;
-        font-variant-numeric: tabular-nums;
-    }
-    .filter-stat-value .dim {
-        color: #64748b;
-        font-weight: 500;
-        font-size: 0.85rem;
-    }
-
-    /* ============================================================
-       MULTISELECT — Fix : fond blanc + tag rouge
+       MULTISELECT — Fix complet (fond blanc + tags rouges + clipping)
        ============================================================ */
 
-    /* -- Conteneur extérieur -- */
+    /* -- Conteneur extérieur : on laisse grandir en hauteur -- */
+    div[data-testid="stMultiSelect"] {
+        width: 100%;
+    }
+    div[data-testid="stMultiSelect"] > div {
+        width: 100%;
+    }
+
     div[data-testid="stMultiSelect"] [data-baseweb="select"],
     div[data-testid="stMultiSelect"] [data-baseweb="select"] > div,
     div[data-testid="stMultiSelect"] [data-baseweb="input"],
@@ -214,9 +226,16 @@ st.markdown("""
     div[data-testid="stMultiSelect"] [data-baseweb="select"] > div {
         border: 1px solid rgba(99,102,241,0.3) !important;
         border-radius: 10px !important;
-        min-height: 44px;
+        /* plus de height fixe : on laisse le contenu s'étendre */
+        min-height: 46px;
+        height: auto !important;
+        padding: 0.4rem 0.55rem !important;
         box-shadow: none !important;
         transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        /* alignement propre quand ça wrap */
+        align-items: flex-start !important;
+        flex-wrap: wrap !important;
+        row-gap: 0.35rem !important;
     }
     div[data-testid="stMultiSelect"] [data-baseweb="select"] > div:hover {
         border-color: rgba(99,102,241,0.6) !important;
@@ -226,10 +245,19 @@ st.markdown("""
         box-shadow: 0 0 0 3px rgba(99,102,241,0.22) !important;
     }
 
+    /* -- Conteneur des tags : autorise le wrap -- */
+    div[data-testid="stMultiSelect"] [data-baseweb="select"] > div > div {
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 0.3rem !important;
+        min-height: 26px;
+    }
+
     /* -- Input texte interne -- */
     div[data-testid="stMultiSelect"] input {
         background-color: transparent !important;
         color: #e2e8f0 !important;
+        min-height: 26px;
     }
     div[data-testid="stMultiSelect"] input::placeholder {
         color: #64748b !important;
@@ -241,7 +269,7 @@ st.markdown("""
         color: #94a3b8 !important;
     }
 
-    /* -- TAGS (fix du rouge) -- */
+    /* -- TAGS : fix du rouge ET du clipping -- */
     div[data-baseweb="tag"] {
         background: #6366f1 !important;
         background-color: #6366f1 !important;
@@ -251,10 +279,15 @@ st.markdown("""
         border-radius: 6px !important;
         font-weight: 500 !important;
         font-size: 0.78rem !important;
+        /* Pas de height fixe : on garde min-height + padding vertical */
         min-height: 26px !important;
-        height: 26px !important;
-        padding: 0 0.55rem !important;
+        height: auto !important;
+        padding: 0.28rem 0.6rem !important;
         box-shadow: 0 2px 8px -3px rgba(99,102,241,0.7) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        line-height: 1.15 !important;
+        max-width: 100%;
     }
     div[data-baseweb="tag"] * {
         background: transparent !important;
@@ -264,6 +297,8 @@ st.markdown("""
     div[data-baseweb="tag"] svg {
         fill: #e0e7ff !important;
         color: #e0e7ff !important;
+        width: 12px !important;
+        height: 12px !important;
     }
     div[data-baseweb="tag"] svg:hover {
         fill: #ffffff !important;
@@ -298,15 +333,9 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* -- Label au-dessus du multiselect -- */
-    div[data-testid="stMultiSelect"] label,
-    div[data-testid="stMultiSelect"] label p {
-        font-size: 0.7rem !important;
-        font-weight: 700 !important;
-        color: #a5b4fc !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.13em !important;
-        margin-bottom: 0.4rem !important;
+    /* -- Label du widget masqué (on gère nos propres labels) -- */
+    div[data-testid="stMultiSelect"] label {
+        display: none !important;
     }
 
     /* ---------- KPI cards ---------- */
@@ -564,60 +593,71 @@ def target_label(role):
 
 
 # -----------------------------------------------------------------------------
-# Header
+# HEADER UNIFIÉ — Titre + Filtres dans une seule carte
 # -----------------------------------------------------------------------------
-st.markdown("""
-<div class="app-header">
-    <div>
-        <h1>Simulateur OBPPC</h1>
-        <p class="subtitle">Occasion · Brand · Package · Price · Channel — analyse de cohérence pricing</p>
-    </div>
-    <div class="badge"><span class="dot"></span>Pricing Analytics</div>
-</div>
-""", unsafe_allow_html=True)
-
-
+# On ouvre la carte (div) puis on insère le titre (HTML) puis les widgets
+# Streamlit à l'intérieur. Comme Streamlit ne permet pas d'imbriquer du HTML
+# autour de widgets natifs, on utilise un container Streamlit stylisé via
+# st.container(border=False) + un marqueur HTML pour l'en-tête, et on injecte
+# le CSS de la carte sur un wrapper propre.
 # -----------------------------------------------------------------------------
-# BARRE DE FILTRES — en haut du contenu principal
-# -----------------------------------------------------------------------------
-st.markdown('<div class="section-title">Filtres</div>', unsafe_allow_html=True)
 
-col_seg, col_br, col_stat = st.columns([1.2, 2, 1.3], gap="medium")
-
-with col_seg:
-    segments = st.multiselect(
-        "Segments",
-        options=ALL_SEGMENTS,
-        default=ALL_SEGMENTS,
-        placeholder="Tous les segments",
-    )
-
-with col_br:
-    if segments:
-        available_brands = sorted(
-            df_initial[df_initial['Segment'].isin(segments)]['Marque'].unique()
-        )
-    else:
-        available_brands = []
-
-    brands = st.multiselect(
-        "Marques",
-        options=available_brands,
-        default=available_brands,
-        placeholder="Toutes les marques",
-    )
-
-with col_stat:
-    st.markdown(f"""
-    <div class="filter-stat">
-        <div class="filter-stat-label">Sélection active</div>
-        <div class="filter-stat-value">
-            {len(segments)} segment{'s' if len(segments) != 1 else ''}
-            <span class="dim">·</span>
-            {len(brands)} marque{'s' if len(brands) != 1 else ''}
+with st.container():
+    # -- En-tête (titre + badge) en HTML pur --
+    st.markdown("""
+    <div class="app-shell" style="padding-bottom:1rem; margin-bottom:0.75rem;">
+        <div class="shell-head" style="border-bottom:none; padding-bottom:0; margin-bottom:0;">
+            <div>
+                <h1>Simulateur OBPPC</h1>
+                <p class="subtitle">Occasion · Brand · Package · Price · Channel — analyse de cohérence pricing</p>
+            </div>
+            <div class="shell-badge"><span class="dot"></span>Pricing Analytics</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # -- Barre de filtres (dans une carte distincte visuellement collée) --
+    col_seg, col_br, col_stat = st.columns([1.4, 2.6, 1.1], gap="medium")
+
+    with col_seg:
+        st.markdown('<div class="filter-label">Segments</div>', unsafe_allow_html=True)
+        segments = st.multiselect(
+            "Segments",
+            options=ALL_SEGMENTS,
+            default=ALL_SEGMENTS,
+            placeholder="Tous les segments",
+            label_visibility="collapsed",
+        )
+
+    with col_br:
+        if segments:
+            available_brands = sorted(
+                df_initial[df_initial['Segment'].isin(segments)]['Marque'].unique()
+            )
+        else:
+            available_brands = []
+
+        st.markdown('<div class="filter-label">Marques</div>', unsafe_allow_html=True)
+        brands = st.multiselect(
+            "Marques",
+            options=available_brands,
+            default=available_brands,
+            placeholder="Toutes les marques",
+            label_visibility="collapsed",
+        )
+
+    with col_stat:
+        st.markdown('<div class="filter-label">&nbsp;</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="filter-stat">
+            <div class="filter-stat-label">Sélection active</div>
+            <div class="filter-stat-value">
+                {len(segments)} segment{'s' if len(segments) != 1 else ''}
+                <span class="dim">·</span>
+                {len(brands)} marque{'s' if len(brands) != 1 else ''}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 
 # -----------------------------------------------------------------------------
