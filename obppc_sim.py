@@ -7,7 +7,7 @@ import pandas as pd
 st.set_page_config(
     page_title="Simulateur OBPPC",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # -----------------------------------------------------------------------------
@@ -30,7 +30,6 @@ st.markdown("""
         --accent-2:     #06b6d4;
         --accent-3:     #8b5cf6;
         --success:      #10b981;
-        --warn:         #f59e0b;
         --danger:       #ef4444;
     }
 
@@ -63,7 +62,7 @@ st.markdown("""
         border: 1px solid rgba(99,102,241,0.28);
         border-radius: 16px;
         padding: 1.6rem 2rem;
-        margin-bottom: 1.9rem;
+        margin-bottom: 1.5rem;
         overflow: hidden;
         box-shadow:
             0 0 0 1px rgba(99,102,241,0.06),
@@ -130,7 +129,7 @@ st.markdown("""
         font-size: 1.02rem;
         font-weight: 600;
         color: var(--text);
-        margin: 1.75rem 0 0.5rem 0;
+        margin: 1.5rem 0 0.75rem 0;
         letter-spacing: -0.01em;
     }
     .section-title::before {
@@ -146,6 +145,168 @@ st.markdown("""
         color: var(--text-faint);
         margin-bottom: 1rem;
         padding-left: 0.9rem;
+    }
+
+    /* ============================================================
+       BARRE DE FILTRES (en haut du contenu principal)
+       ============================================================ */
+    .filter-bar {
+        background: linear-gradient(160deg, rgba(26,34,52,0.75), rgba(15,23,42,0.75));
+        border: 1px solid rgba(99,102,241,0.22);
+        border-radius: 14px;
+        padding: 1.15rem 1.25rem 0.75rem 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 20px 40px -30px rgba(0,0,0,0.9);
+    }
+    .filter-bar-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #a5b4fc;
+        text-transform: uppercase;
+        letter-spacing: 0.13em;
+        margin-bottom: 0.5rem;
+    }
+    .filter-stat {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+        padding: 0.5rem 0.9rem;
+        background: rgba(99,102,241,0.08);
+        border: 1px solid rgba(99,102,241,0.25);
+        border-radius: 10px;
+    }
+    .filter-stat-label {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #a5b4fc;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 0.35rem;
+    }
+    .filter-stat-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        font-variant-numeric: tabular-nums;
+    }
+    .filter-stat-value .dim {
+        color: #64748b;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+
+    /* ============================================================
+       MULTISELECT — Fix : fond blanc + tag rouge
+       ============================================================ */
+
+    /* -- Conteneur extérieur -- */
+    div[data-testid="stMultiSelect"] [data-baseweb="select"],
+    div[data-testid="stMultiSelect"] [data-baseweb="select"] > div,
+    div[data-testid="stMultiSelect"] [data-baseweb="input"],
+    div[data-testid="stMultiSelect"] [data-baseweb="input"] > div {
+        background-color: #131826 !important;
+        background-image: none !important;
+        border-color: rgba(99,102,241,0.3) !important;
+        color: #e2e8f0 !important;
+    }
+
+    div[data-testid="stMultiSelect"] [data-baseweb="select"] > div {
+        border: 1px solid rgba(99,102,241,0.3) !important;
+        border-radius: 10px !important;
+        min-height: 44px;
+        box-shadow: none !important;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    div[data-testid="stMultiSelect"] [data-baseweb="select"] > div:hover {
+        border-color: rgba(99,102,241,0.6) !important;
+    }
+    div[data-testid="stMultiSelect"] [data-baseweb="select"] > div:focus-within {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 3px rgba(99,102,241,0.22) !important;
+    }
+
+    /* -- Input texte interne -- */
+    div[data-testid="stMultiSelect"] input {
+        background-color: transparent !important;
+        color: #e2e8f0 !important;
+    }
+    div[data-testid="stMultiSelect"] input::placeholder {
+        color: #64748b !important;
+    }
+
+    /* -- Icône chevron / clear -- */
+    div[data-testid="stMultiSelect"] svg {
+        fill: #94a3b8 !important;
+        color: #94a3b8 !important;
+    }
+
+    /* -- TAGS (fix du rouge) -- */
+    div[data-baseweb="tag"] {
+        background: #6366f1 !important;
+        background-color: #6366f1 !important;
+        background-image: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+        border: 1px solid rgba(165,180,252,0.35) !important;
+        color: #ffffff !important;
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+        font-size: 0.78rem !important;
+        min-height: 26px !important;
+        height: 26px !important;
+        padding: 0 0.55rem !important;
+        box-shadow: 0 2px 8px -3px rgba(99,102,241,0.7) !important;
+    }
+    div[data-baseweb="tag"] * {
+        background: transparent !important;
+        background-color: transparent !important;
+        color: #ffffff !important;
+    }
+    div[data-baseweb="tag"] svg {
+        fill: #e0e7ff !important;
+        color: #e0e7ff !important;
+    }
+    div[data-baseweb="tag"] svg:hover {
+        fill: #ffffff !important;
+    }
+
+    /* -- Dropdown (menu popover) -- */
+    div[data-baseweb="popover"],
+    div[data-baseweb="popover"] > div,
+    div[data-baseweb="popover"] [role="listbox"],
+    div[data-baseweb="menu"] {
+        background-color: #131826 !important;
+        border: 1px solid rgba(99,102,241,0.3) !important;
+        border-radius: 10px !important;
+        color: #e2e8f0 !important;
+        box-shadow:
+            0 20px 50px -15px rgba(0,0,0,0.9),
+            0 0 40px -20px rgba(99,102,241,0.5) !important;
+    }
+    div[data-baseweb="menu"] li,
+    div[data-baseweb="menu"] [role="option"] {
+        background-color: transparent !important;
+        color: #e2e8f0 !important;
+        font-size: 0.85rem !important;
+    }
+    div[data-baseweb="menu"] li:hover,
+    div[data-baseweb="menu"] [role="option"]:hover {
+        background-color: rgba(99,102,241,0.18) !important;
+        color: #ffffff !important;
+    }
+    div[data-baseweb="menu"] [aria-selected="true"] {
+        background-color: rgba(99,102,241,0.25) !important;
+        color: #ffffff !important;
+    }
+
+    /* -- Label au-dessus du multiselect -- */
+    div[data-testid="stMultiSelect"] label,
+    div[data-testid="stMultiSelect"] label p {
+        font-size: 0.7rem !important;
+        font-weight: 700 !important;
+        color: #a5b4fc !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.13em !important;
+        margin-bottom: 0.4rem !important;
     }
 
     /* ---------- KPI cards ---------- */
@@ -201,160 +362,6 @@ st.markdown("""
         font-size: 0.72rem;
         color: var(--text-faint);
         margin-top: 0.4rem;
-    }
-
-    /* ============================================================
-       SIDEBAR
-       ============================================================ */
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0d1322 0%, #0a0e1a 100%);
-        border-right: 1px solid var(--border);
-    }
-    section[data-testid="stSidebar"] .block-container {
-        padding-top: 1.5rem;
-        padding-left: 1.25rem;
-        padding-right: 1.25rem;
-    }
-
-    /* Titre de bloc sidebar */
-    .filter-block {
-        margin-bottom: 1.35rem;
-    }
-    .filter-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.55rem;
-    }
-    .filter-head-label {
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: #a5b4fc;
-        text-transform: uppercase;
-        letter-spacing: 0.13em;
-    }
-    .filter-head-count {
-        font-size: 0.68rem;
-        font-weight: 600;
-        color: #c7d2fe;
-        background: rgba(99,102,241,0.15);
-        border: 1px solid rgba(99,102,241,0.3);
-        padding: 0.15rem 0.5rem;
-        border-radius: 999px;
-        font-variant-numeric: tabular-nums;
-    }
-
-    /* ---------- Multiselect : conteneur ---------- */
-    [data-testid="stSidebar"] [data-baseweb="select"] > div {
-        background-color: #131826 !important;
-        border: 1px solid rgba(99,102,241,0.3) !important;
-        border-radius: 10px !important;
-        min-height: 42px;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-    [data-testid="stSidebar"] [data-baseweb="select"] > div:hover {
-        border-color: rgba(99,102,241,0.55) !important;
-    }
-    [data-testid="stSidebar"] [data-baseweb="select"] > div:focus-within {
-        border-color: #6366f1 !important;
-        box-shadow: 0 0 0 3px rgba(99,102,241,0.18) !important;
-    }
-
-    /* ---------- Multiselect : tags (fix du rouge) ---------- */
-    [data-testid="stSidebar"] [data-baseweb="tag"],
-    [data-baseweb="tag"] {
-        background: linear-gradient(135deg, rgba(99,102,241,0.9), rgba(139,92,246,0.9)) !important;
-        border: 1px solid rgba(165,180,252,0.4) !important;
-        color: #ffffff !important;
-        border-radius: 6px !important;
-        font-weight: 500 !important;
-        font-size: 0.78rem !important;
-        height: 26px !important;
-        padding: 0 0.55rem !important;
-        box-shadow: 0 2px 8px -3px rgba(99,102,241,0.7) !important;
-    }
-    [data-baseweb="tag"] span,
-    [data-baseweb="tag"] div {
-        color: #ffffff !important;
-        background: transparent !important;
-    }
-    [data-baseweb="tag"] svg {
-        fill: #e0e7ff !important;
-        color: #e0e7ff !important;
-    }
-    [data-baseweb="tag"] svg:hover {
-        fill: #ffffff !important;
-    }
-
-    /* ---------- Multiselect : dropdown ---------- */
-    [data-baseweb="popover"] [role="listbox"],
-    [data-baseweb="menu"] {
-        background-color: #131826 !important;
-        border: 1px solid rgba(99,102,241,0.3) !important;
-        border-radius: 10px !important;
-        box-shadow: 0 20px 50px -15px rgba(0,0,0,0.9), 0 0 40px -20px rgba(99,102,241,0.5) !important;
-    }
-    [data-baseweb="menu"] li,
-    [data-baseweb="menu"] [role="option"] {
-        color: #e2e8f0 !important;
-        background-color: transparent !important;
-        font-size: 0.85rem !important;
-    }
-    [data-baseweb="menu"] li:hover,
-    [data-baseweb="menu"] [role="option"]:hover {
-        background-color: rgba(99,102,241,0.18) !important;
-        color: #ffffff !important;
-    }
-    [data-baseweb="menu"] [aria-selected="true"] {
-        background-color: rgba(99,102,241,0.25) !important;
-        color: #ffffff !important;
-    }
-
-    /* ---------- Boutons "Tout / Aucun" ---------- */
-    .quick-actions {
-        display: flex;
-        gap: 0.4rem;
-    }
-    [data-testid="stSidebar"] .stButton > button {
-        font-size: 0.72rem !important;
-        padding: 0.3rem 0.7rem !important;
-        min-height: 28px;
-        height: 28px;
-        border-radius: 6px !important;
-        background: rgba(19,24,38,0.85) !important;
-        border: 1px solid rgba(99,102,241,0.25) !important;
-        color: #c7d2fe !important;
-        font-weight: 600 !important;
-        transition: all 0.15s ease;
-    }
-    [data-testid="stSidebar"] .stButton > button:hover {
-        border-color: rgba(99,102,241,0.6) !important;
-        background: rgba(99,102,241,0.15) !important;
-        color: #ffffff !important;
-    }
-
-    /* ---------- Grille tarifaire ---------- */
-    .sidebar-block-title {
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: #a5b4fc;
-        text-transform: uppercase;
-        letter-spacing: 0.13em;
-        margin: 1rem 0 0.55rem 0;
-    }
-    .rule-item {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.8rem;
-        color: var(--text-dim);
-        padding: 0.45rem 0;
-        border-bottom: 1px dashed rgba(148,163,184,0.15);
-    }
-    .rule-item:last-child { border-bottom: none; }
-    .rule-item span:last-child {
-        font-variant-numeric: tabular-nums;
-        color: #c7d2fe;
-        font-weight: 600;
     }
 
     /* ---------- Boutons principaux ---------- */
@@ -416,6 +423,14 @@ st.markdown("""
     [data-testid="stDownloadButton"] > button:hover {
         border-color: rgba(6,182,212,0.55);
         color: #67e8f9;
+    }
+
+    /* ---------- Alerts ---------- */
+    .stAlert {
+        background-color: rgba(99,102,241,0.08) !important;
+        border: 1px solid rgba(99,102,241,0.3) !important;
+        border-radius: 10px !important;
+        color: #c7d2fe !important;
     }
 
     hr { border-color: var(--border); margin: 1.4rem 0; }
@@ -563,56 +578,21 @@ st.markdown("""
 
 
 # -----------------------------------------------------------------------------
-# Session state pour les filtres (pour les boutons "Tout / Aucun")
+# BARRE DE FILTRES — en haut du contenu principal
 # -----------------------------------------------------------------------------
-if "segments_filter" not in st.session_state:
-    st.session_state.segments_filter = ALL_SEGMENTS.copy()
-if "brands_filter" not in st.session_state:
-    st.session_state.brands_filter = ALL_BRANDS.copy()
+st.markdown('<div class="section-title">Filtres</div>', unsafe_allow_html=True)
 
+col_seg, col_br, col_stat = st.columns([1.2, 2, 1.3], gap="medium")
 
-def set_segments(values):
-    st.session_state.segments_filter = list(values)
-
-
-def set_brands(values):
-    st.session_state.brands_filter = list(values)
-
-
-# -----------------------------------------------------------------------------
-# Sidebar — Filtres
-# -----------------------------------------------------------------------------
-with st.sidebar:
-
-    # ----- Bloc SEGMENTS -----
-    st.markdown(f"""
-        <div class="filter-head">
-            <span class="filter-head-label">Segments</span>
-            <span class="filter-head-count">{len(st.session_state.segments_filter)}/{len(ALL_SEGMENTS)}</span>
-        </div>
-    """, unsafe_allow_html=True)
-
+with col_seg:
     segments = st.multiselect(
         "Segments",
         options=ALL_SEGMENTS,
-        default=st.session_state.segments_filter,
-        key="segments_widget",
-        label_visibility="collapsed",
-        placeholder="Sélectionner des segments…",
+        default=ALL_SEGMENTS,
+        placeholder="Tous les segments",
     )
-    st.session_state.segments_filter = segments
 
-    c1, c2, _ = st.columns([1, 1, 2])
-    with c1:
-        st.button("Tout", key="seg_all", on_click=set_segments, args=(ALL_SEGMENTS,),
-                  use_container_width=True)
-    with c2:
-        st.button("Aucun", key="seg_none", on_click=set_segments, args=([],),
-                  use_container_width=True)
-
-    st.markdown("<div style='height:0.85rem'></div>", unsafe_allow_html=True)
-
-    # ----- Bloc MARQUES -----
+with col_br:
     if segments:
         available_brands = sorted(
             df_initial[df_initial['Segment'].isin(segments)]['Marque'].unique()
@@ -620,43 +600,23 @@ with st.sidebar:
     else:
         available_brands = []
 
-    # Filtrer les marques déjà sélectionnées pour ne garder que celles disponibles
-    valid_brands = [b for b in st.session_state.brands_filter if b in available_brands]
-
-    st.markdown(f"""
-        <div class="filter-head">
-            <span class="filter-head-label">Marques</span>
-            <span class="filter-head-count">{len(valid_brands)}/{len(available_brands)}</span>
-        </div>
-    """, unsafe_allow_html=True)
-
     brands = st.multiselect(
         "Marques",
         options=available_brands,
-        default=valid_brands,
-        key="brands_widget",
-        label_visibility="collapsed",
-        placeholder="Sélectionner des marques…",
+        default=available_brands,
+        placeholder="Toutes les marques",
     )
-    st.session_state.brands_filter = brands
 
-    c3, c4, _ = st.columns([1, 1, 2])
-    with c3:
-        st.button("Tout", key="br_all", on_click=set_brands, args=(available_brands,),
-                  use_container_width=True)
-    with c4:
-        st.button("Aucun", key="br_none", on_click=set_brands, args=([],),
-                  use_container_width=True)
-
-    st.markdown("---")
-
-    # ----- Bloc GRILLE TARIFAIRE -----
-    st.markdown('<div class="sidebar-block-title">Grille tarifaire OBPPC</div>', unsafe_allow_html=True)
-    st.markdown("""
-        <div class="rule-item"><span>Entry — accès marque</span><span>101 – 110</span></div>
-        <div class="rule-item"><span>Frequency — référence</span><span>100</span></div>
-        <div class="rule-item"><span>Upsize — économique</span><span>90 – 99</span></div>
-        <div class="rule-item"><span>Upscale — premium</span><span>≥ 111</span></div>
+with col_stat:
+    st.markdown(f"""
+    <div class="filter-stat">
+        <div class="filter-stat-label">Sélection active</div>
+        <div class="filter-stat-value">
+            {len(segments)} segment{'s' if len(segments) != 1 else ''}
+            <span class="dim">·</span>
+            {len(brands)} marque{'s' if len(brands) != 1 else ''}
+        </div>
+    </div>
     """, unsafe_allow_html=True)
 
 
@@ -668,7 +628,7 @@ if segments and brands:
         (df_initial['Segment'].isin(segments)) & (df_initial['Marque'].isin(brands))
     ].copy()
 else:
-    df_filtered = df_initial.iloc[0:0].copy()  # vide si aucun filtre actif
+    df_filtered = df_initial.iloc[0:0].copy()
 
 
 # -----------------------------------------------------------------------------
@@ -681,20 +641,16 @@ st.markdown(
 )
 
 if df_filtered.empty:
-    st.info("Aucune donnée à afficher. Sélectionnez au moins un segment et une marque dans la sidebar.")
+    st.info("Aucune donnée à afficher. Sélectionnez au moins un segment et une marque dans la barre de filtres.")
 else:
     edited_df = st.data_editor(
         df_filtered,
         column_config={
             "Segment": st.column_config.SelectboxColumn(
-                "Segment",
-                options=ALL_SEGMENTS,
-                required=True, width=110,
+                "Segment", options=ALL_SEGMENTS, required=True, width=110,
             ),
             "Marque": st.column_config.SelectboxColumn(
-                "Marque",
-                options=ALL_BRANDS,
-                required=True, width=150, pinned=True,
+                "Marque", options=ALL_BRANDS, required=True, width=150, pinned=True,
             ),
             "Occasion": st.column_config.SelectboxColumn(
                 "Occasion",
@@ -713,8 +669,7 @@ else:
                 required=True, width=210,
             ),
             "Description": st.column_config.TextColumn(
-                "Format / Description", width=230,
-                help="Format commercial du SKU",
+                "Format / Description", width=230, help="Format commercial du SKU",
             ),
             "Volume_L": st.column_config.NumberColumn(
                 "Volume (L)", min_value=0.1, step=0.01, format="%.2f L",
@@ -732,16 +687,10 @@ else:
         height=420,
     )
 
-    # -------------------------------------------------------------------------
-    # Bouton de recalcul
-    # -------------------------------------------------------------------------
     col_btn, _ = st.columns([1, 4])
     with col_btn:
         calculate_button = st.button("Recalculer les index", type="primary", use_container_width=True)
 
-    # -------------------------------------------------------------------------
-    # Résultats
-    # -------------------------------------------------------------------------
     if calculate_button:
         edited_df = edited_df.copy()
         edited_df['P_Litre_Ar'] = edited_df['PVF_Ar'] / edited_df['Volume_L']
@@ -825,7 +774,6 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-        # ----- Styler pandas : coloration par statut -----
         def style_rows(row):
             if row['Statut'] == 'Conforme':
                 base = 'background-color: rgba(16,185,129,0.10); color: #d1fae5;'
