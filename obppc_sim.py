@@ -40,7 +40,7 @@ st.markdown("""
 
     #MainMenu, footer, header {visibility: hidden;}
 
-    /* ---------- Background global avec halos ---------- */
+    /* ---------- Background global ---------- */
     .stApp {
         background:
             radial-gradient(1200px 700px at 12% -10%, rgba(99,102,241,0.12), transparent 60%),
@@ -203,21 +203,144 @@ st.markdown("""
         margin-top: 0.4rem;
     }
 
-    /* ---------- Sidebar ---------- */
+    /* ============================================================
+       SIDEBAR
+       ============================================================ */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0d1322 0%, #0a0e1a 100%);
         border-right: 1px solid var(--border);
     }
     section[data-testid="stSidebar"] .block-container {
         padding-top: 1.5rem;
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
     }
-    .sidebar-block-title {
+
+    /* Titre de bloc sidebar */
+    .filter-block {
+        margin-bottom: 1.35rem;
+    }
+    .filter-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.55rem;
+    }
+    .filter-head-label {
         font-size: 0.7rem;
-        font-weight: 600;
+        font-weight: 700;
         color: #a5b4fc;
         text-transform: uppercase;
-        letter-spacing: 0.12em;
-        margin: 0.9rem 0 0.55rem 0;
+        letter-spacing: 0.13em;
+    }
+    .filter-head-count {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: #c7d2fe;
+        background: rgba(99,102,241,0.15);
+        border: 1px solid rgba(99,102,241,0.3);
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* ---------- Multiselect : conteneur ---------- */
+    [data-testid="stSidebar"] [data-baseweb="select"] > div {
+        background-color: #131826 !important;
+        border: 1px solid rgba(99,102,241,0.3) !important;
+        border-radius: 10px !important;
+        min-height: 42px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    [data-testid="stSidebar"] [data-baseweb="select"] > div:hover {
+        border-color: rgba(99,102,241,0.55) !important;
+    }
+    [data-testid="stSidebar"] [data-baseweb="select"] > div:focus-within {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 3px rgba(99,102,241,0.18) !important;
+    }
+
+    /* ---------- Multiselect : tags (fix du rouge) ---------- */
+    [data-testid="stSidebar"] [data-baseweb="tag"],
+    [data-baseweb="tag"] {
+        background: linear-gradient(135deg, rgba(99,102,241,0.9), rgba(139,92,246,0.9)) !important;
+        border: 1px solid rgba(165,180,252,0.4) !important;
+        color: #ffffff !important;
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+        font-size: 0.78rem !important;
+        height: 26px !important;
+        padding: 0 0.55rem !important;
+        box-shadow: 0 2px 8px -3px rgba(99,102,241,0.7) !important;
+    }
+    [data-baseweb="tag"] span,
+    [data-baseweb="tag"] div {
+        color: #ffffff !important;
+        background: transparent !important;
+    }
+    [data-baseweb="tag"] svg {
+        fill: #e0e7ff !important;
+        color: #e0e7ff !important;
+    }
+    [data-baseweb="tag"] svg:hover {
+        fill: #ffffff !important;
+    }
+
+    /* ---------- Multiselect : dropdown ---------- */
+    [data-baseweb="popover"] [role="listbox"],
+    [data-baseweb="menu"] {
+        background-color: #131826 !important;
+        border: 1px solid rgba(99,102,241,0.3) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 20px 50px -15px rgba(0,0,0,0.9), 0 0 40px -20px rgba(99,102,241,0.5) !important;
+    }
+    [data-baseweb="menu"] li,
+    [data-baseweb="menu"] [role="option"] {
+        color: #e2e8f0 !important;
+        background-color: transparent !important;
+        font-size: 0.85rem !important;
+    }
+    [data-baseweb="menu"] li:hover,
+    [data-baseweb="menu"] [role="option"]:hover {
+        background-color: rgba(99,102,241,0.18) !important;
+        color: #ffffff !important;
+    }
+    [data-baseweb="menu"] [aria-selected="true"] {
+        background-color: rgba(99,102,241,0.25) !important;
+        color: #ffffff !important;
+    }
+
+    /* ---------- Boutons "Tout / Aucun" ---------- */
+    .quick-actions {
+        display: flex;
+        gap: 0.4rem;
+    }
+    [data-testid="stSidebar"] .stButton > button {
+        font-size: 0.72rem !important;
+        padding: 0.3rem 0.7rem !important;
+        min-height: 28px;
+        height: 28px;
+        border-radius: 6px !important;
+        background: rgba(19,24,38,0.85) !important;
+        border: 1px solid rgba(99,102,241,0.25) !important;
+        color: #c7d2fe !important;
+        font-weight: 600 !important;
+        transition: all 0.15s ease;
+    }
+    [data-testid="stSidebar"] .stButton > button:hover {
+        border-color: rgba(99,102,241,0.6) !important;
+        background: rgba(99,102,241,0.15) !important;
+        color: #ffffff !important;
+    }
+
+    /* ---------- Grille tarifaire ---------- */
+    .sidebar-block-title {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #a5b4fc;
+        text-transform: uppercase;
+        letter-spacing: 0.13em;
+        margin: 1rem 0 0.55rem 0;
     }
     .rule-item {
         display: flex;
@@ -234,14 +357,7 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* ---------- Inputs ---------- */
-    .stMultiSelect [data-baseweb="tag"] {
-        background: rgba(99,102,241,0.2) !important;
-        border: 1px solid rgba(99,102,241,0.4) !important;
-        color: #c7d2fe !important;
-    }
-
-    /* ---------- Buttons ---------- */
+    /* ---------- Boutons principaux ---------- */
     .stButton > button {
         border-radius: 8px;
         font-weight: 600;
@@ -268,12 +384,25 @@ st.markdown("""
         transform: translateY(-1px);
     }
 
-    /* ---------- Dataframes ---------- */
-    [data-testid="stDataFrame"], [data-testid="stDataEditor"] {
-        border: 1px solid var(--border-soft) !important;
-        border-radius: 12px !important;
+    /* ---------- Dataframes & Data editor ---------- */
+    [data-testid="stDataFrame"],
+    [data-testid="stDataEditor"] {
+        border: 1px solid rgba(99,102,241,0.25) !important;
+        border-radius: 14px !important;
         overflow: hidden;
-        box-shadow: 0 20px 40px -25px rgba(0,0,0,0.8);
+        box-shadow:
+            0 0 0 1px rgba(99,102,241,0.05),
+            0 30px 60px -30px rgba(0,0,0,0.9),
+            0 0 80px -40px rgba(99,102,241,0.4);
+        background: linear-gradient(160deg, rgba(19,24,38,0.9), rgba(10,14,26,0.9));
+    }
+    [data-testid="stDataFrame"]::before,
+    [data-testid="stDataEditor"]::before {
+        content: "";
+        display: block;
+        height: 2px;
+        background: linear-gradient(90deg, #6366f1, #06b6d4, #8b5cf6);
+        opacity: 0.9;
     }
 
     /* ---------- Download button ---------- */
@@ -390,6 +519,8 @@ def load_initial_data():
 
 
 df_initial = load_initial_data()
+ALL_SEGMENTS = list(df_initial['Segment'].unique())
+ALL_BRANDS = sorted(df_initial['Marque'].unique())
 
 
 # -----------------------------------------------------------------------------
@@ -432,31 +563,94 @@ st.markdown("""
 
 
 # -----------------------------------------------------------------------------
-# Sidebar
+# Session state pour les filtres (pour les boutons "Tout / Aucun")
+# -----------------------------------------------------------------------------
+if "segments_filter" not in st.session_state:
+    st.session_state.segments_filter = ALL_SEGMENTS.copy()
+if "brands_filter" not in st.session_state:
+    st.session_state.brands_filter = ALL_BRANDS.copy()
+
+
+def set_segments(values):
+    st.session_state.segments_filter = list(values)
+
+
+def set_brands(values):
+    st.session_state.brands_filter = list(values)
+
+
+# -----------------------------------------------------------------------------
+# Sidebar — Filtres
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown('<div class="sidebar-block-title">Segments</div>', unsafe_allow_html=True)
+
+    # ----- Bloc SEGMENTS -----
+    st.markdown(f"""
+        <div class="filter-head">
+            <span class="filter-head-label">Segments</span>
+            <span class="filter-head-count">{len(st.session_state.segments_filter)}/{len(ALL_SEGMENTS)}</span>
+        </div>
+    """, unsafe_allow_html=True)
+
     segments = st.multiselect(
         "Segments",
-        options=df_initial['Segment'].unique(),
-        default=df_initial['Segment'].unique(),
+        options=ALL_SEGMENTS,
+        default=st.session_state.segments_filter,
+        key="segments_widget",
         label_visibility="collapsed",
+        placeholder="Sélectionner des segments…",
     )
+    st.session_state.segments_filter = segments
 
+    c1, c2, _ = st.columns([1, 1, 2])
+    with c1:
+        st.button("Tout", key="seg_all", on_click=set_segments, args=(ALL_SEGMENTS,),
+                  use_container_width=True)
+    with c2:
+        st.button("Aucun", key="seg_none", on_click=set_segments, args=([],),
+                  use_container_width=True)
+
+    st.markdown("<div style='height:0.85rem'></div>", unsafe_allow_html=True)
+
+    # ----- Bloc MARQUES -----
     if segments:
-        available_brands = df_initial[df_initial['Segment'].isin(segments)]['Marque'].unique()
+        available_brands = sorted(
+            df_initial[df_initial['Segment'].isin(segments)]['Marque'].unique()
+        )
     else:
-        available_brands = df_initial['Marque'].unique()
+        available_brands = []
 
-    st.markdown('<div class="sidebar-block-title">Marques</div>', unsafe_allow_html=True)
+    # Filtrer les marques déjà sélectionnées pour ne garder que celles disponibles
+    valid_brands = [b for b in st.session_state.brands_filter if b in available_brands]
+
+    st.markdown(f"""
+        <div class="filter-head">
+            <span class="filter-head-label">Marques</span>
+            <span class="filter-head-count">{len(valid_brands)}/{len(available_brands)}</span>
+        </div>
+    """, unsafe_allow_html=True)
+
     brands = st.multiselect(
         "Marques",
         options=available_brands,
-        default=available_brands,
+        default=valid_brands,
+        key="brands_widget",
         label_visibility="collapsed",
+        placeholder="Sélectionner des marques…",
     )
+    st.session_state.brands_filter = brands
+
+    c3, c4, _ = st.columns([1, 1, 2])
+    with c3:
+        st.button("Tout", key="br_all", on_click=set_brands, args=(available_brands,),
+                  use_container_width=True)
+    with c4:
+        st.button("Aucun", key="br_none", on_click=set_brands, args=([],),
+                  use_container_width=True)
 
     st.markdown("---")
+
+    # ----- Bloc GRILLE TARIFAIRE -----
     st.markdown('<div class="sidebar-block-title">Grille tarifaire OBPPC</div>', unsafe_allow_html=True)
     st.markdown("""
         <div class="rule-item"><span>Entry — accès marque</span><span>101 – 110</span></div>
@@ -474,7 +668,7 @@ if segments and brands:
         (df_initial['Segment'].isin(segments)) & (df_initial['Marque'].isin(brands))
     ].copy()
 else:
-    df_filtered = df_initial.copy()
+    df_filtered = df_initial.iloc[0:0].copy()  # vide si aucun filtre actif
 
 
 # -----------------------------------------------------------------------------
@@ -486,152 +680,205 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-edited_df = st.data_editor(
-    df_filtered,
-    column_config={
-        "Segment": st.column_config.SelectboxColumn(
-            "Segment",
-            options=['Energie', 'Boisson Gazeuse', 'Eaux', 'Bière'],
-            required=True, width="small",
-        ),
-        "Marque": st.column_config.SelectboxColumn(
-            "Marque",
-            options=sorted(df_initial['Marque'].unique()),
-            required=True, width="small",
-        ),
-        "Occasion": st.column_config.SelectboxColumn(
-            "Occasion",
-            options=['IC (VER)', 'IC (PET)', 'FC (VER)', 'FC (PET)', 'Upscale', ''],
-            required=False, width="small",
-        ),
-        "Role_OBPPC": st.column_config.SelectboxColumn(
-            "Rôle OBPPC",
-            options=[
-                'Entry (Entrée de gamme)',
-                'Frequency (Cœur de gamme)',
-                'Upsize (Grand format)',
-                'Upscale (Premium)',
-                'Upscale (Super-Premium Niche)',
-            ],
-            required=True, width="medium",
-        ),
-        "Description": st.column_config.TextColumn("Format / Description", width="medium"),
-        "Volume_L": st.column_config.NumberColumn(
-            "Volume (L)", min_value=0.1, step=0.01, format="%.2f",
-            required=True, width="small",
-        ),
-        "PVF_Ar": st.column_config.NumberColumn(
-            "PVF (Ar)", min_value=0, step=100, format="%d",
-            required=True, width="medium",
-        ),
-    },
-    hide_index=True,
-    use_container_width=True,
-    num_rows="dynamic",
-    key="data_editor",
-    height=420,
-)
-
-
-# -----------------------------------------------------------------------------
-# Bouton
-# -----------------------------------------------------------------------------
-col_btn, _ = st.columns([1, 4])
-with col_btn:
-    calculate_button = st.button("Recalculer les index", type="primary", use_container_width=True)
-
-
-# -----------------------------------------------------------------------------
-# Résultats
-# -----------------------------------------------------------------------------
-if calculate_button:
-    edited_df['P_Litre_Ar'] = edited_df['PVF_Ar'] / edited_df['Volume_L']
-
-    edited_df['Index_PVF'] = 0.0
-    edited_df['Index_P_Litre'] = 0.0
-    edited_df['Index_PVF_Freq'] = 0.0
-    edited_df['Index_P_Litre_Freq'] = 0.0
-
-    for segment in edited_df['Segment'].unique():
-        mask = edited_df['Segment'] == segment
-        seg = edited_df[mask]
-        if len(seg) == 0:
-            continue
-        base_pvf = seg.iloc[0]['PVF_Ar']
-        base_pl = seg.iloc[0]['P_Litre_Ar']
-        if base_pvf > 0:
-            edited_df.loc[mask, 'Index_PVF'] = (edited_df.loc[mask, 'PVF_Ar'] / base_pvf * 100).round(0).astype(int)
-        if base_pl > 0:
-            edited_df.loc[mask, 'Index_P_Litre'] = (edited_df.loc[mask, 'P_Litre_Ar'] / base_pl * 100).round(0).astype(int)
-
-    freq = edited_df[edited_df['Role_OBPPC'].str.contains('Frequency', na=False)]
-    if len(freq) > 0:
-        base_pvf = freq['PVF_Ar'].mean()
-        base_pl = freq['P_Litre_Ar'].mean()
-    else:
-        base_pvf = edited_df['PVF_Ar'].mean()
-        base_pl = edited_df['P_Litre_Ar'].mean()
-
-    if base_pvf > 0:
-        edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_pvf * 100).round(0).astype(int)
-    if base_pl > 0:
-        edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_pl * 100).round(0).astype(int)
-
-    display_df = pd.DataFrame({
-        'Marque': edited_df['Marque'],
-        'Occasion': edited_df['Occasion'],
-        'Rôle OBPPC': edited_df['Role_OBPPC'],
-        'Format': edited_df['Description'],
-        'Volume (L)': edited_df['Volume_L'],
-        'PVF (Ar)': edited_df['PVF_Ar'].round(0).astype(int),
-        'Prix / L (Ar)': edited_df['P_Litre_Ar'].round(0).astype(int),
-        'Index PVF': edited_df['Index_PVF'].round(0).astype(int),
-        'Index P/L': edited_df['Index_P_Litre'].round(0).astype(int),
-        'Index PVF / Freq': edited_df['Index_PVF_Freq'].round(0).astype(int),
-        'Index P/L / Freq': edited_df['Index_P_Litre_Freq'].round(0).astype(int),
-        'Cible': edited_df['Role_OBPPC'].apply(target_label),
-        'Statut': edited_df.apply(
-            lambda r: check_index_status(r['Index_P_Litre'], r['Role_OBPPC']), axis=1
-        ),
-    })
-
-    total_sku = len(display_df)
-    conformes = (display_df['Statut'] == 'Conforme').sum()
-    taux = (conformes / total_sku * 100) if total_sku else 0
-    prix_moyen_l = edited_df['P_Litre_Ar'].mean() if total_sku else 0
-
-    st.markdown('<div class="section-title">Résultats</div>', unsafe_allow_html=True)
-    st.markdown(f"""
-    <div class="kpi-grid">
-        <div class="kpi-card">
-            <div class="kpi-label">Références analysées</div>
-            <div class="kpi-value">{total_sku}</div>
-            <div class="kpi-sub">SKU dans le périmètre filtré</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-label">Prix moyen / L</div>
-            <div class="kpi-value">{prix_moyen_l:,.0f}<span class="unit">Ar</span></div>
-            <div class="kpi-sub">Moyenne tous rôles OBPPC</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-label">Positions conformes</div>
-            <div class="kpi-value">{conformes}<span class="unit">/ {total_sku}</span></div>
-            <div class="kpi-sub">Respectent la cible OBPPC</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-label">Taux de conformité</div>
-            <div class="kpi-value">{taux:.0f}<span class="unit">%</span></div>
-            <div class="kpi-sub">Cohérence portefeuille</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.dataframe(display_df, use_container_width=True, height=420)
-
-    csv = display_df.to_csv(index=False)
-    st.download_button(
-        label="Télécharger les résultats (CSV)",
-        data=csv,
-        file_name="simulation_obppc.csv",
-        mime="text/csv",
+if df_filtered.empty:
+    st.info("Aucune donnée à afficher. Sélectionnez au moins un segment et une marque dans la sidebar.")
+else:
+    edited_df = st.data_editor(
+        df_filtered,
+        column_config={
+            "Segment": st.column_config.SelectboxColumn(
+                "Segment",
+                options=ALL_SEGMENTS,
+                required=True, width=110,
+            ),
+            "Marque": st.column_config.SelectboxColumn(
+                "Marque",
+                options=ALL_BRANDS,
+                required=True, width=150, pinned=True,
+            ),
+            "Occasion": st.column_config.SelectboxColumn(
+                "Occasion",
+                options=['IC (VER)', 'IC (PET)', 'FC (VER)', 'FC (PET)', 'Upscale', ''],
+                required=False, width=120,
+            ),
+            "Role_OBPPC": st.column_config.SelectboxColumn(
+                "Rôle OBPPC",
+                options=[
+                    'Entry (Entrée de gamme)',
+                    'Frequency (Cœur de gamme)',
+                    'Upsize (Grand format)',
+                    'Upscale (Premium)',
+                    'Upscale (Super-Premium Niche)',
+                ],
+                required=True, width=210,
+            ),
+            "Description": st.column_config.TextColumn(
+                "Format / Description", width=230,
+                help="Format commercial du SKU",
+            ),
+            "Volume_L": st.column_config.NumberColumn(
+                "Volume (L)", min_value=0.1, step=0.01, format="%.2f L",
+                required=True, width=110,
+            ),
+            "PVF_Ar": st.column_config.NumberColumn(
+                "PVF (Ar)", min_value=0, step=100, format="%d Ar",
+                required=True, width=130,
+            ),
+        },
+        hide_index=True,
+        use_container_width=True,
+        num_rows="dynamic",
+        key="data_editor",
+        height=420,
     )
+
+    # -------------------------------------------------------------------------
+    # Bouton de recalcul
+    # -------------------------------------------------------------------------
+    col_btn, _ = st.columns([1, 4])
+    with col_btn:
+        calculate_button = st.button("Recalculer les index", type="primary", use_container_width=True)
+
+    # -------------------------------------------------------------------------
+    # Résultats
+    # -------------------------------------------------------------------------
+    if calculate_button:
+        edited_df = edited_df.copy()
+        edited_df['P_Litre_Ar'] = edited_df['PVF_Ar'] / edited_df['Volume_L']
+
+        edited_df['Index_PVF'] = 0.0
+        edited_df['Index_P_Litre'] = 0.0
+        edited_df['Index_PVF_Freq'] = 0.0
+        edited_df['Index_P_Litre_Freq'] = 0.0
+
+        for segment in edited_df['Segment'].unique():
+            mask = edited_df['Segment'] == segment
+            seg = edited_df[mask]
+            if len(seg) == 0:
+                continue
+            base_pvf = seg.iloc[0]['PVF_Ar']
+            base_pl = seg.iloc[0]['P_Litre_Ar']
+            if base_pvf > 0:
+                edited_df.loc[mask, 'Index_PVF'] = (edited_df.loc[mask, 'PVF_Ar'] / base_pvf * 100).round(0).astype(int)
+            if base_pl > 0:
+                edited_df.loc[mask, 'Index_P_Litre'] = (edited_df.loc[mask, 'P_Litre_Ar'] / base_pl * 100).round(0).astype(int)
+
+        freq = edited_df[edited_df['Role_OBPPC'].str.contains('Frequency', na=False)]
+        if len(freq) > 0:
+            base_pvf = freq['PVF_Ar'].mean()
+            base_pl = freq['P_Litre_Ar'].mean()
+        else:
+            base_pvf = edited_df['PVF_Ar'].mean()
+            base_pl = edited_df['P_Litre_Ar'].mean()
+
+        if base_pvf > 0:
+            edited_df['Index_PVF_Freq'] = (edited_df['PVF_Ar'] / base_pvf * 100).round(0).astype(int)
+        if base_pl > 0:
+            edited_df['Index_P_Litre_Freq'] = (edited_df['P_Litre_Ar'] / base_pl * 100).round(0).astype(int)
+
+        display_df = pd.DataFrame({
+            'Marque': edited_df['Marque'],
+            'Occasion': edited_df['Occasion'],
+            'Rôle OBPPC': edited_df['Role_OBPPC'],
+            'Format': edited_df['Description'],
+            'Volume (L)': edited_df['Volume_L'],
+            'PVF (Ar)': edited_df['PVF_Ar'].round(0).astype(int),
+            'Prix / L (Ar)': edited_df['P_Litre_Ar'].round(0).astype(int),
+            'Index PVF': edited_df['Index_PVF'].round(0).astype(int),
+            'Index P/L': edited_df['Index_P_Litre'].round(0).astype(int),
+            'Index PVF / Freq': edited_df['Index_PVF_Freq'].round(0).astype(int),
+            'Index P/L / Freq': edited_df['Index_P_Litre_Freq'].round(0).astype(int),
+            'Cible': edited_df['Role_OBPPC'].apply(target_label),
+            'Statut': edited_df.apply(
+                lambda r: check_index_status(r['Index_P_Litre'], r['Role_OBPPC']), axis=1
+            ),
+        })
+
+        total_sku = len(display_df)
+        conformes = (display_df['Statut'] == 'Conforme').sum()
+        taux = (conformes / total_sku * 100) if total_sku else 0
+        prix_moyen_l = edited_df['P_Litre_Ar'].mean() if total_sku else 0
+
+        st.markdown('<div class="section-title">Résultats</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Références analysées</div>
+                <div class="kpi-value">{total_sku}</div>
+                <div class="kpi-sub">SKU dans le périmètre filtré</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Prix moyen / L</div>
+                <div class="kpi-value">{prix_moyen_l:,.0f}<span class="unit">Ar</span></div>
+                <div class="kpi-sub">Moyenne tous rôles OBPPC</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Positions conformes</div>
+                <div class="kpi-value">{conformes}<span class="unit">/ {total_sku}</span></div>
+                <div class="kpi-sub">Respectent la cible OBPPC</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Taux de conformité</div>
+                <div class="kpi-value">{taux:.0f}<span class="unit">%</span></div>
+                <div class="kpi-sub">Cohérence portefeuille</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ----- Styler pandas : coloration par statut -----
+        def style_rows(row):
+            if row['Statut'] == 'Conforme':
+                base = 'background-color: rgba(16,185,129,0.10); color: #d1fae5;'
+            elif row['Statut'] == 'Non conforme':
+                base = 'background-color: rgba(239,68,68,0.10); color: #fee2e2;'
+            else:
+                base = 'color: #94a3b8;'
+            return [base] * len(row)
+
+        styled = (
+            display_df.style
+            .apply(style_rows, axis=1)
+            .format({
+                'Volume (L)': '{:.2f}',
+                'PVF (Ar)': '{:,.0f}',
+                'Prix / L (Ar)': '{:,.0f}',
+                'Index PVF': '{:d}',
+                'Index P/L': '{:d}',
+                'Index PVF / Freq': '{:d}',
+                'Index P/L / Freq': '{:d}',
+            })
+            .set_properties(**{
+                'font-family': 'Inter, sans-serif',
+                'font-size': '13px',
+                'border-color': 'rgba(99,102,241,0.15)',
+            })
+            .set_table_styles([
+                {'selector': 'th', 'props': [
+                    ('background-color', '#131826'),
+                    ('color', '#a5b4fc'),
+                    ('font-weight', '600'),
+                    ('font-size', '12px'),
+                    ('text-transform', 'uppercase'),
+                    ('letter-spacing', '0.05em'),
+                    ('border-bottom', '1px solid rgba(99,102,241,0.25)'),
+                    ('padding', '10px 12px'),
+                ]},
+                {'selector': 'td', 'props': [
+                    ('padding', '8px 12px'),
+                    ('border-bottom', '1px solid rgba(148,163,184,0.08)'),
+                ]},
+                {'selector': 'tr:hover td', 'props': [
+                    ('background-color', 'rgba(99,102,241,0.08)'),
+                ]},
+            ])
+        )
+
+        st.dataframe(styled, use_container_width=True, height=430)
+
+        csv = display_df.to_csv(index=False)
+        st.download_button(
+            label="Télécharger les résultats (CSV)",
+            data=csv,
+            file_name="simulation_obppc.csv",
+            mime="text/csv",
+        )
