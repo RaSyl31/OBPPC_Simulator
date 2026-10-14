@@ -11,22 +11,27 @@ st.set_page_config(
 )
 
 # =============================================================================
-# CSS MINIMAL — uniquement pour la typographie et les badges
+# CSS MINIMAL — typographie uniquement, la palette est gérée par config.toml
 # =============================================================================
 st.markdown("""
 <style>
     html, body, [class*="css"] {
         font-size: 15px;
         line-height: 1.55;
+        color: #ffffff;
+    }
+    h1, h2, h3, h4, h5, h6, p, span, div, label {
+        color: #ffffff;
     }
     h1 { font-size: 1.75rem !important; margin-bottom: 0.3rem !important; }
     h2 { font-size: 1.3rem !important; margin-top: 1.4rem !important; }
     h3 { font-size: 1.05rem !important; margin-top: 1.1rem !important; }
 
-    /* Pastilles de statut inline (rendues par Streamlit) */
-    .status-ok   { color: #4ade80; font-weight: 600; }
-    .status-ko   { color: #f87171; font-weight: 600; }
-    .status-none { color: #94a3b8; font-weight: 500; }
+    /* Caption légèrement atténué mais lisible */
+    [data-testid="stCaptionContainer"] p,
+    .stCaption {
+        color: #a8c0dd !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -130,13 +135,50 @@ def status(idx, role):
     return '—'
 
 
-def style_status_cell(val):
-    """Styler pandas : colore UNIQUEMENT le texte, jamais le fond."""
-    if val == 'Conforme':
-        return 'color: #4ade80; font-weight: 600;'
-    if val == 'À revoir':
-        return 'color: #f87171; font-weight: 600;'
-    return 'color: #94a3b8;'
+# =============================================================================
+# STYLERS compatibles toutes versions pandas
+# =============================================================================
+def style_status_col(series):
+    """Retourne une liste de styles CSS pour la colonne Statut."""
+    styles = []
+    for val in series:
+        if val == 'Conforme':
+            styles.append('color: #4ade80; font-weight: 700;')
+        elif val == 'À revoir':
+            styles.append('color: #ff6b6b; font-weight: 700;')
+        else:
+            styles.append('color: #a8c0dd;')
+    return styles
+
+
+def style_couverture_col(series):
+    styles = []
+    for val in series:
+        if val in ('4/4', '3/4'):
+            styles.append('color: #4ade80; font-weight: 700;')
+        elif val == '2/4':
+            styles.append('color: #fbbf24; font-weight: 700;')
+        elif val == '1/4':
+            styles.append('color: #ff6b6b; font-weight: 700;')
+        else:
+            styles.append('')
+    return styles
+
+
+def style_ecart_col(series):
+    styles = []
+    for val in series:
+        try:
+            v = int(str(val).replace('+', ''))
+            if v >= 20:
+                styles.append('color: #ff6b6b; font-weight: 700;')
+            elif v >= 10:
+                styles.append('color: #fbbf24; font-weight: 700;')
+            else:
+                styles.append('color: #ffffff;')
+        except Exception:
+            styles.append('')
+    return styles
 
 
 # =============================================================================
@@ -313,9 +355,10 @@ with tab1:
     result.columns = ['Marque', 'Format', 'Occasion', 'Rôle',
                       'Prix / L (Ar)', 'Index', 'Statut']
 
+    # Utilisation de Styler.apply (compatible pandas 1.x et 2.x/3.x)
     styled_result = (
         result.style
-        .applymap(style_status_cell, subset=['Statut'])
+        .apply(style_status_col, subset=['Statut'])
         .format({
             'Prix / L (Ar)': '{:,.0f}',
             'Index': '{:d}',
@@ -323,6 +366,7 @@ with tab1:
         .set_properties(**{
             'font-family': 'Inter, sans-serif',
             'font-size': '14px',
+            'color': '#ffffff',
         })
     )
 
@@ -359,7 +403,6 @@ with tab2:
     if sub.empty:
         st.info("Aucun produit sur cette occasion.")
     else:
-        # Construire une matrice marque × rôle avec les formats concaténés
         rows_cov = []
         for brand in sorted(sub['Marque'].unique()):
             bsub = sub[sub['Marque'] == brand]
@@ -377,21 +420,13 @@ with tab2:
 
         cov_df = pd.DataFrame(rows_cov)
 
-        def color_cov(val):
-            if val == '4/4' or val == '3/4':
-                return 'color: #4ade80; font-weight: 700;'
-            if val == '2/4':
-                return 'color: #fbbf24; font-weight: 700;'
-            if val == '1/4':
-                return 'color: #f87171; font-weight: 700;'
-            return ''
-
         styled_cov = (
             cov_df.style
-            .applymap(color_cov, subset=['Couverture'])
+            .apply(style_couverture_col, subset=['Couverture'])
             .set_properties(**{
                 'font-family': 'Inter, sans-serif',
                 'font-size': '13px',
+                'color': '#ffffff',
             })
         )
 
@@ -418,7 +453,7 @@ with tab2:
 
     styled_view2 = (
         view2.style
-        .applymap(style_status_cell, subset=['Statut'])
+        .apply(style_status_col, subset=['Statut'])
         .format({
             'Volume (L)': '{:.2f}',
             'Prix (Ar)': '{:,.0f}',
@@ -428,6 +463,7 @@ with tab2:
         .set_properties(**{
             'font-family': 'Inter, sans-serif',
             'font-size': '13px',
+            'color': '#ffffff',
         })
     )
 
@@ -478,20 +514,9 @@ with tab3:
         diag.columns = ['Marque', 'Format', 'Occasion', 'Rôle',
                         'Prix / L (Ar)', 'Index', 'Écart']
 
-        def color_ecart(val):
-            try:
-                v = int(val)
-                if v >= 20:
-                    return 'color: #f87171; font-weight: 700;'
-                if v >= 10:
-                    return 'color: #fbbf24; font-weight: 700;'
-                return 'color: #94a3b8;'
-            except Exception:
-                return ''
-
         styled_diag = (
             diag.style
-            .applymap(color_ecart, subset=['Écart'])
+            .apply(style_ecart_col, subset=['Écart'])
             .format({
                 'Prix / L (Ar)': '{:,.0f}',
                 'Index': '{:d}',
@@ -500,6 +525,7 @@ with tab3:
             .set_properties(**{
                 'font-family': 'Inter, sans-serif',
                 'font-size': '13px',
+                'color': '#ffffff',
             })
         )
 
