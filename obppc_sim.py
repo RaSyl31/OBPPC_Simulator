@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="OBPPC", layout="wide", initial_sidebar_state="expanded")
 
 # -----------------------------------------------------------------------------
-# CSS — thème dark soft, polices lisibles
+# CSS — thème dark soft + garde-fous pour les canvas
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
@@ -16,10 +16,141 @@ st.markdown("""
         font-size: 14px;
         color: #e3e8ef;
     }
-    .main .block-container { padding-top: 1.25rem; max-width: 100%; }
-    h1, h2, h3, h4 { color: #f1f5f9; font-weight: 600; letter-spacing: -0.01em; }
 
-    /* ---------- Tableau générique ---------- */
+    /* ---------- Global background ---------- */
+    .stApp, [data-testid="stAppViewContainer"] {
+        background-color: #181c24 !important;
+    }
+    [data-testid="stHeader"] {
+        background-color: #181c24 !important;
+    }
+    .main .block-container {
+        padding-top: 1.25rem;
+        max-width: 100%;
+        background-color: #181c24;
+    }
+
+    /* ---------- Sidebar ---------- */
+    section[data-testid="stSidebar"] {
+        background-color: #1a1f29 !important;
+        border-right: 1px solid #2c3340;
+    }
+    section[data-testid="stSidebar"] * {
+        color: #e3e8ef;
+    }
+
+    /* ---------- Typography ---------- */
+    h1, h2, h3, h4, h5, h6 { color: #f1f5f9; font-weight: 600; letter-spacing: -0.01em; }
+    p, span, label, div { color: #e3e8ef; }
+    .stCaption, [data-testid="stCaptionContainer"] { color: #94a3b8 !important; }
+
+    /* ---------- Inputs, Select, Radio ---------- */
+    [data-baseweb="select"] > div,
+    [data-baseweb="input"] > div,
+    .stTextInput input,
+    .stNumberInput input {
+        background-color: #222732 !important;
+        border-color: #2c3340 !important;
+        color: #e3e8ef !important;
+    }
+    [data-baseweb="tag"] {
+        background-color: #7c8cff !important;
+        color: #ffffff !important;
+    }
+    [data-baseweb="popover"], [data-baseweb="menu"] {
+        background-color: #222732 !important;
+        border-color: #2c3340 !important;
+    }
+    [data-baseweb="menu"] li {
+        color: #e3e8ef !important;
+    }
+    [data-baseweb="menu"] li:hover {
+        background-color: #2c3340 !important;
+    }
+
+    /* Radio / checkbox */
+    .stRadio label, .stCheckbox label { color: #e3e8ef !important; }
+
+    /* ---------- Buttons ---------- */
+    .stButton > button {
+        background-color: #222732 !important;
+        color: #e3e8ef !important;
+        border: 1px solid #2c3340 !important;
+        border-radius: 6px;
+    }
+    .stButton > button:hover {
+        background-color: #2c3340 !important;
+        border-color: #7c8cff !important;
+    }
+    .stButton > button[kind="primary"] {
+        background-color: #7c8cff !important;
+        border-color: #7c8cff !important;
+        color: #ffffff !important;
+    }
+
+    /* ---------- Data editor / dataframe : garde-fous ---------- */
+    [data-testid="stDataFrame"],
+    [data-testid="stDataEditor"] {
+        background-color: #1c212b !important;
+        border: 1px solid #2c3340 !important;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    /* Toolbar du data_editor (boutons +/- lignes, search) */
+    [data-testid="stDataEditor"] [data-testid="stElementToolbar"],
+    [data-testid="stDataFrame"] [data-testid="stElementToolbar"] {
+        background-color: #1c212b !important;
+    }
+    [data-testid="stDataEditor"] button,
+    [data-testid="stDataFrame"] button {
+        background-color: transparent !important;
+        color: #cbd5e1 !important;
+        border-color: #2c3340 !important;
+    }
+    [data-testid="stDataEditor"] button:hover,
+    [data-testid="stDataFrame"] button:hover {
+        background-color: #2c3340 !important;
+    }
+    /* Barre d'édition en bas */
+    [data-testid="stDataEditor"] > div > div:last-child {
+        background-color: #1c212b !important;
+        border-top: 1px solid #2c3340 !important;
+    }
+
+    /* ---------- Tabs ---------- */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2px;
+        background-color: transparent;
+        border-bottom: 1px solid #2c3340;
+    }
+    .stTabs [data-baseweb="tab"] {
+        background-color: transparent !important;
+        color: #94a3b8 !important;
+        border-radius: 6px 6px 0 0;
+        padding: 0.55rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #e3e8ef !important;
+        background-color: #1c212b !important;
+    }
+    .stTabs [data-baseweb="tab-highlight"] { background-color: #7c8cff !important; }
+
+    /* ---------- Metrics ---------- */
+    [data-testid="stMetricValue"] { color: #f1f5f9 !important; }
+    [data-testid="stMetricLabel"] { color: #94a3b8 !important; }
+
+    /* ---------- Alerts ---------- */
+    .stAlert {
+        background-color: #222732 !important;
+        border: 1px solid #2c3340 !important;
+        color: #e3e8ef !important;
+    }
+
+    /* ============================================================
+       Tableaux HTML custom (matrice, couverture)
+       ============================================================ */
     .obppc-table {
         width: 100%;
         border-collapse: separate;
@@ -40,10 +171,7 @@ st.markdown("""
         text-align: center;
         border-bottom: 1px solid #2c3340;
     }
-    .obppc-table th.row-head {
-        text-align: left;
-        min-width: 130px;
-    }
+    .obppc-table th.row-head { text-align: left; min-width: 130px; }
     .obppc-table td {
         padding: 10px 12px;
         text-align: center;
@@ -62,7 +190,6 @@ st.markdown("""
     .obppc-table tr:last-child td { border-bottom: none; }
     .obppc-table td.empty { color: #48505f; font-style: italic; }
 
-    /* ---------- Liste d'articles dans une cellule ---------- */
     .art-list {
         display: flex;
         flex-direction: column;
@@ -88,30 +215,15 @@ st.markdown("""
         font-weight: 400;
     }
 
-    /* ---------- Matrice (cellules compactes) ---------- */
-    .matrix-cell {
-        font-weight: 600;
-        font-size: 0.85rem;
-        color: #f1f5f9;
-    }
-    .matrix-idx {
-        font-size: 0.68rem;
-        color: #94a3b8;
-        margin-left: 4px;
-        font-weight: 400;
-    }
-    .warn-mark { color: #f0883e; margin-left: 3px; font-weight: 700; }
-    .ok-mark   { color: #4ade80; margin-left: 3px; font-weight: 700; }
+    .matrix-cell { font-weight: 600; font-size: 0.85rem; color: #f1f5f9; }
+    .matrix-idx  { font-size: 0.68rem; color: #94a3b8; margin-left: 4px; font-weight: 400; }
+    .warn-mark   { color: #f0883e; margin-left: 3px; font-weight: 700; }
 
-    /* ---------- Légende ---------- */
     .legend { display: flex; gap: 1rem; margin: 0.75rem 0 1rem 0; flex-wrap: wrap; }
-    .legend-item {
-        display: flex; align-items: center; gap: 0.4rem;
-        font-size: 0.75rem; color: #cbd5e1;
-    }
+    .legend-item { display: flex; align-items: center; gap: 0.4rem;
+                   font-size: 0.75rem; color: #cbd5e1; }
     .legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
 
-    /* ---------- Couverture ---------- */
     .cov-pill {
         display: inline-block;
         padding: 2px 8px;
@@ -119,8 +231,6 @@ st.markdown("""
         font-size: 0.72rem;
         font-weight: 600;
     }
-
-    /* ---------- Badge count ---------- */
     .count-badge {
         display: inline-block;
         min-width: 18px;
@@ -273,7 +383,7 @@ with st.sidebar:
     st.markdown("---")
     if st.button("Réinitialiser les prix", use_container_width=True):
         for k in list(st.session_state.keys()):
-            if k.startswith("price_editor") or k == "editor_reset":
+            if k.startswith("price_editor"):
                 del st.session_state[k]
         st.rerun()
 
@@ -430,11 +540,11 @@ with tab1:
 
 
 # =============================================================================
-# TAB 2 — COUVERTURE (LISTE DES ARTICLES)
+# TAB 2 — COUVERTURE
 # =============================================================================
 with tab2:
     st.markdown("#### Couverture des rôles par marque")
-    st.caption("Chaque cellule liste les articles (formats) qui occupent ce rôle sur l'occasion sélectionnée.")
+    st.caption("Chaque cellule liste les articles qui occupent ce rôle sur l'occasion sélectionnée.")
 
     occ_choice = st.radio(
         "Occasion", ['IC (Immédiate)', 'FC (Future)', 'Hors occasion'],
@@ -465,7 +575,6 @@ with tab2:
                 else:
                     covered_roles += 1
                     color = ROLE_COLORS[role]
-                    # Construire la liste des articles
                     items = []
                     for _, art in rsub.iterrows():
                         items.append(
@@ -481,7 +590,6 @@ with tab2:
                         '</div></td>'
                     )
 
-            # Couverture
             cov_color = '#4ade80' if covered_roles >= 3 else '#fbbf24' if covered_roles == 2 else '#f87171'
             html.append(
                 f'<td><span class="cov-pill" style="background:{cov_color}22; '
@@ -492,7 +600,6 @@ with tab2:
         html.append('</tbody></table>')
         st.markdown(''.join(html), unsafe_allow_html=True)
 
-        # Lacunes
         st.markdown("##### Lacunes détectées")
         any_gap = False
         for brand in brands_in:
@@ -506,7 +613,7 @@ with tab2:
 
 
 # =============================================================================
-# TAB 3 — ÉCHELLE DE PRIX
+# TAB 3 — ÉCHELLE
 # =============================================================================
 with tab3:
     st.markdown("#### Échelle de prix par marque")
@@ -538,7 +645,8 @@ with tab3:
             font=dict(color='#cbd5e1', family='Inter'),
             yaxis=dict(title='Prix / L (Ar)', gridcolor='#2c3340', zeroline=False),
             xaxis=dict(title='', gridcolor='#2c3340'),
-            legend=dict(orientation='h', y=1.1, bgcolor='rgba(0,0,0,0)'),
+            legend=dict(orientation='h', y=1.1, bgcolor='rgba(0,0,0,0)',
+                        font=dict(color='#cbd5e1')),
         )
         st.plotly_chart(fig, use_container_width=True)
 
