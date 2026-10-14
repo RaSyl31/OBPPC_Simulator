@@ -11,99 +11,22 @@ st.set_page_config(
 )
 
 # =============================================================================
-# STYLES — lisibilité et cohérence dark
+# CSS MINIMAL — uniquement pour la typographie et les badges
 # =============================================================================
 st.markdown("""
 <style>
-    /* ---------- Base typographique ---------- */
     html, body, [class*="css"] {
         font-size: 15px;
-        line-height: 1.6;
+        line-height: 1.55;
     }
-    h1 { font-size: 1.8rem !important; margin-bottom: 0.4rem !important; }
-    h2 { font-size: 1.35rem !important; margin-top: 1.5rem !important; }
-    h3 { font-size: 1.1rem !important; margin-top: 1.2rem !important; }
+    h1 { font-size: 1.75rem !important; margin-bottom: 0.3rem !important; }
+    h2 { font-size: 1.3rem !important; margin-top: 1.4rem !important; }
+    h3 { font-size: 1.05rem !important; margin-top: 1.1rem !important; }
 
-    /* ---------- Tableaux HTML : fond sombre forcé ---------- */
-    .data-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-        margin-top: 0.5rem;
-        background: #1a1d24 !important;
-        color: #f5f7fa !important;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-    .data-table thead,
-    .data-table tbody,
-    .data-table tr {
-        background: #1a1d24 !important;
-    }
-    .data-table th {
-        background: #242832 !important;
-        color: #cbd5e1 !important;
-        padding: 12px 14px;
-        text-align: left;
-        font-size: 13px;
-        font-weight: 600;
-        border-bottom: 2px solid #343a4a;
-        letter-spacing: 0.02em;
-    }
-    .data-table td {
-        background: #1e222b !important;
-        color: #f5f7fa !important;
-        padding: 11px 14px;
-        border-bottom: 1px solid #2a2e38;
-        font-variant-numeric: tabular-nums;
-    }
-    .data-table tr:nth-child(even) td {
-        background: #1a1d24 !important;
-    }
-    .data-table tr:hover td {
-        background: #2a2f3a !important;
-    }
-    .data-table tr:last-child td {
-        border-bottom: none;
-    }
-    .data-table .num {
-        text-align: right;
-        font-weight: 500;
-    }
-
-    /* ---------- Badges de statut ---------- */
-    .tag {
-        display: inline-block;
-        padding: 3px 10px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-    .tag-ok   { background: #14351f; color: #4ade80; }
-    .tag-ko   { background: #3a1a1a; color: #f87171; }
-    .tag-warn { background: #3a2f14; color: #fbbf24; }
-
-    /* ---------- Cartes d'information ---------- */
-    .info-card {
-        background: #242832;
-        border-radius: 10px;
-        padding: 16px 20px;
-        border-left: 4px solid #a78bfa;
-        margin-bottom: 12px;
-    }
-    .info-card .label {
-        color: #94a3b8;
-        font-size: 13px;
-        margin-bottom: 4px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-weight: 600;
-    }
-    .info-card .value {
-        color: #f5f7fa;
-        font-size: 22px;
-        font-weight: 700;
-    }
+    /* Pastilles de statut inline (rendues par Streamlit) */
+    .status-ok   { color: #4ade80; font-weight: 600; }
+    .status-ko   { color: #f87171; font-weight: 600; }
+    .status-none { color: #94a3b8; font-weight: 500; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -114,7 +37,6 @@ st.markdown("""
 @st.cache_data
 def load_data():
     rows = [
-        # Segment, Marque, Occasion, Rôle, Format, Volume (L), PVF (Ar)
         ('Energie', 'Red Bull', 'IC', 'Upscale', 'CAN 25', 0.25, 9900),
         ('Energie', 'Monster', 'IC', 'Upscale', 'CAN 50', 0.50, 9900),
         ('Energie', 'FOSA', 'IC', 'Upscale', 'CAN 50', 0.50, 5000),
@@ -192,22 +114,29 @@ df = load_data()
 
 OCCASIONS = ['IC', 'FC']
 ROLES = ['Entry', 'Frequency', 'Upsize', 'Upscale']
-ROLE_TARGETS = {'Entry': '101–110', 'Frequency': '100',
-                'Upsize': '90–99', 'Upscale': '≥111'}
-ROLE_INFO = {
-    'Entry':     "Prix d'accès à la marque, petit format",
-    'Frequency': "Format de référence, prix pivot",
-    'Upsize':    "Grand format, prix au litre plus bas",
-    'Upscale':   "Format premium, prix au litre plus élevé",
+ROLE_TARGETS = {
+    'Entry':     '101–110',
+    'Frequency': '100',
+    'Upsize':    '90–99',
+    'Upscale':   '≥111',
 }
 
 
 def status(idx, role):
-    if role == 'Entry':     return 'OK' if 101 <= idx <= 110 else 'KO'
-    if role == 'Frequency': return 'OK' if idx == 100 else 'KO'
-    if role == 'Upsize':    return 'OK' if 90 <= idx <= 99 else 'KO'
-    if role == 'Upscale':   return 'OK' if idx >= 111 else 'KO'
+    if role == 'Entry':     return 'Conforme' if 101 <= idx <= 110 else 'À revoir'
+    if role == 'Frequency': return 'Conforme' if idx == 100 else 'À revoir'
+    if role == 'Upsize':    return 'Conforme' if 90 <= idx <= 99 else 'À revoir'
+    if role == 'Upscale':   return 'Conforme' if idx >= 111 else 'À revoir'
     return '—'
+
+
+def style_status_cell(val):
+    """Styler pandas : colore UNIQUEMENT le texte, jamais le fond."""
+    if val == 'Conforme':
+        return 'color: #4ade80; font-weight: 600;'
+    if val == 'À revoir':
+        return 'color: #f87171; font-weight: 600;'
+    return 'color: #94a3b8;'
 
 
 # =============================================================================
@@ -221,7 +150,6 @@ with st.sidebar:
         "Segment",
         sorted(df['Segment'].unique()),
         default=sorted(df['Segment'].unique()),
-        help="Filtrer par type de boisson",
     )
 
     available_brands = (
@@ -232,7 +160,6 @@ with st.sidebar:
         "Marque",
         available_brands,
         default=available_brands,
-        help="Filtrer par marque",
     )
 
     st.divider()
@@ -241,7 +168,6 @@ with st.sidebar:
     channel = st.radio(
         "Canal",
         ["GMS (prix de référence)", "Horeca (+35%)", "Traditionnel (+15%)"],
-        help="Applique un coefficient aux prix selon le canal",
     )
     coef = {
         "GMS (prix de référence)": 1.00,
@@ -266,11 +192,11 @@ with st.sidebar:
     - **Upsize** — {ROLE_TARGETS['Upsize']}
     - **Upscale** — {ROLE_TARGETS['Upscale']}
     """)
-    st.caption("Index 100 = produit de référence (Frequency du même segment × occasion)")
+    st.caption("Index 100 = produit de référence (moyenne des Frequency du même segment × occasion)")
 
 
 # =============================================================================
-# FILTRAGE
+# FILTRAGE + CALCUL
 # =============================================================================
 d = df[(df['Segment'].isin(segments)) & (df['Marque'].isin(brands))].copy()
 
@@ -291,7 +217,7 @@ d['Statut'] = d.apply(lambda r: status(r['Index'], r['Rôle']), axis=1)
 
 
 # =============================================================================
-# EN-TÊTE
+# EN-TÊTE + MÉTRIQUES
 # =============================================================================
 st.markdown("# Simulateur OBPPC")
 st.markdown(
@@ -299,34 +225,22 @@ st.markdown(
     "et les prix au litre, par marque et par occasion."
 )
 
-n_ok = int((d['Statut'] == 'OK').sum())
-n_ko = int((d['Statut'] == 'KO').sum())
+n_ok = int((d['Statut'] == 'Conforme').sum())
+n_ko = int((d['Statut'] == 'À revoir').sum())
 taux = n_ok / len(d) * 100 if len(d) else 0
 
 col1, col2, col3, col4 = st.columns(4)
-with col1:
-    st.metric("Produits analysés", len(d))
-with col2:
-    st.metric("✅ Conformes", n_ok)
-with col3:
-    st.metric("❌ Non conformes", n_ko)
-with col4:
-    st.metric("Taux de conformité", f"{taux:.0f}%")
+col1.metric("Produits analysés", len(d))
+col2.metric("✅ Conformes", n_ok)
+col3.metric("❌ Non conformes", n_ko)
+col4.metric("Taux de conformité", f"{taux:.0f}%")
 
 if taux >= 80:
-    st.success(
-        f"**Cohérence élevée** — {n_ok} produits sur {len(d)} respectent leur cible tarifaire."
-    )
+    st.success(f"**Cohérence élevée** — {n_ok} produits sur {len(d)} respectent leur cible tarifaire.")
 elif taux >= 50:
-    st.warning(
-        f"**Cohérence partielle** — {n_ko} produits s'écartent de leur cible. "
-        f"Consultez l'onglet Diagnostic pour identifier les ajustements."
-    )
+    st.warning(f"**Cohérence partielle** — {n_ko} produits s'écartent de leur cible. Voir l'onglet Diagnostic.")
 else:
-    st.error(
-        f"**Cohérence faible** — {n_ko} produits ne respectent pas leur rôle. "
-        f"Arbitrage prix à revoir en priorité."
-    )
+    st.error(f"**Cohérence faible** — {n_ko} produits ne respectent pas leur rôle. Arbitrage prix à revoir.")
 
 st.divider()
 
@@ -357,25 +271,18 @@ with tab1:
     edited = st.data_editor(
         editor_df,
         column_config={
-            "Segment": st.column_config.TextColumn(
-                "Segment", disabled=True, width="small"),
-            "Marque": st.column_config.TextColumn(
-                "Marque", disabled=True, width="small"),
-            "Occasion": st.column_config.TextColumn(
-                "Occasion", disabled=True, width="small"),
+            "Segment": st.column_config.TextColumn("Segment", disabled=True, width="small"),
+            "Marque": st.column_config.TextColumn("Marque", disabled=True, width="small"),
+            "Occasion": st.column_config.TextColumn("Occasion", disabled=True, width="small"),
             "Rôle": st.column_config.SelectboxColumn(
                 "Rôle tarifaire", options=ROLES, required=True, width="medium",
-                help="Entry / Frequency / Upsize / Upscale",
             ),
-            "Format": st.column_config.TextColumn(
-                "Format", disabled=True, width="medium"),
+            "Format": st.column_config.TextColumn("Format", disabled=True, width="medium"),
             "Volume_L": st.column_config.NumberColumn(
                 "Volume (L)", min_value=0.05, step=0.05, format="%.2f",
-                help="Volume du contenant en litres",
             ),
             "PVF_Ar": st.column_config.NumberColumn(
                 "Prix de vente (Ar)", min_value=0, step=100, format="%d",
-                help="Prix de vente final en Ariary",
             ),
         },
         hide_index=True,
@@ -385,12 +292,10 @@ with tab1:
         key="price_editor",
     )
 
-    # --- Recalcul complet
+    # --- Recalcul
     d2 = edited.copy()
     d2['PVF_Ajusté'] = (d2['PVF_Ar'] * coef).round(0).astype(int)
-    d2['Prix_Litre_Ajusté'] = (
-        (d2['PVF_Ar'] / d2['Volume_L']) * coef
-    ).round(0).astype(int)
+    d2['Prix_Litre_Ajusté'] = ((d2['PVF_Ar'] / d2['Volume_L']) * coef).round(0).astype(int)
 
     ref2 = (d2[d2['Rôle'] == 'Frequency']
             .groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].mean())
@@ -401,43 +306,36 @@ with tab1:
     d2['Statut'] = d2.apply(lambda r: status(r['Index'], r['Rôle']), axis=1)
 
     st.markdown("### Résultats en direct")
-    st.caption(
-        f"Canal : **{channel}** · Index 100 = moyenne des Frequency du même segment × occasion"
+    st.caption(f"Canal : **{channel}** · Index 100 = moyenne des Frequency du même segment × occasion")
+
+    result = d2[['Marque', 'Format', 'Occasion', 'Rôle',
+                 'Prix_Litre_Ajusté', 'Index', 'Statut']].copy()
+    result.columns = ['Marque', 'Format', 'Occasion', 'Rôle',
+                      'Prix / L (Ar)', 'Index', 'Statut']
+
+    styled_result = (
+        result.style
+        .applymap(style_status_cell, subset=['Statut'])
+        .format({
+            'Prix / L (Ar)': '{:,.0f}',
+            'Index': '{:d}',
+        })
+        .set_properties(**{
+            'font-family': 'Inter, sans-serif',
+            'font-size': '14px',
+        })
     )
 
-    view = d2[['Marque', 'Format', 'Occasion', 'Rôle',
-               'Prix_Litre_Ajusté', 'Index', 'Statut']].copy()
-    view.columns = ['Marque', 'Format', 'Occasion', 'Rôle',
-                    'Prix / L (Ar)', 'Index', 'Statut']
-
-    # --- Construction du tableau HTML avec fond sombre forcé
-    html = ['<table class="data-table"><thead><tr>']
-    for c in view.columns:
-        cls = ' class="num"' if c in ('Prix / L (Ar)', 'Index') else ''
-        html.append(f'<th{cls}>{c}</th>')
-    html.append('</tr></thead><tbody>')
-
-    for _, row in view.iterrows():
-        html.append('<tr>')
-        for c in view.columns:
-            val = row[c]
-            cls = ''
-            if c in ('Prix / L (Ar)', 'Index'):
-                cls = ' class="num"'
-            if c == 'Prix / L (Ar)':
-                val = f"{int(val):,}".replace(',', ' ')
-            elif c == 'Statut':
-                if val == 'OK':
-                    val = '<span class="tag tag-ok">Conforme</span>'
-                elif val == 'KO':
-                    val = '<span class="tag tag-ko">À revoir</span>'
-                else:
-                    val = '<span class="tag tag-warn">—</span>'
-            html.append(f'<td{cls}>{val}</td>')
-        html.append('</tr>')
-
-    html.append('</tbody></table>')
-    st.markdown(''.join(html), unsafe_allow_html=True)
+    st.dataframe(
+        styled_result,
+        use_container_width=True,
+        height=min(500, 80 + 35 * len(result)),
+        hide_index=True,
+        column_config={
+            'Prix / L (Ar)': st.column_config.NumberColumn(format="%d"),
+            'Index': st.column_config.NumberColumn(format="%d"),
+        },
+    )
 
 
 # =============================================================================
@@ -455,40 +353,54 @@ with tab2:
 
     occ_filter = st.radio(
         "Occasion", OCCASIONS, horizontal=True, key="vue_occ",
-        help="IC = consommation immédiate · FC = consommation future",
     )
     sub = d[d['Occasion'] == occ_filter]
 
     if sub.empty:
         st.info("Aucun produit sur cette occasion.")
     else:
-        brands_in = sorted(sub['Marque'].unique())
-
-        html = ['<table class="data-table"><thead><tr>'
-                '<th>Marque</th><th>Entry</th><th>Frequency</th>'
-                '<th>Upsize</th><th>Upscale</th><th>Couverture</th>'
-                '</tr></thead><tbody>']
-
-        for brand in brands_in:
+        # Construire une matrice marque × rôle avec les formats concaténés
+        rows_cov = []
+        for brand in sorted(sub['Marque'].unique()):
             bsub = sub[sub['Marque'] == brand]
-            html.append(f'<tr><td><b>{brand}</b></td>')
+            row = {'Marque': brand}
             covered = 0
             for role in ROLES:
                 rsub = bsub[bsub['Rôle'] == role]
                 if rsub.empty:
-                    html.append('<td style="color:#4a5264;">—</td>')
+                    row[role] = '—'
                 else:
                     covered += 1
-                    formats = '<br>'.join(rsub['Format'].tolist())
-                    html.append(f'<td>{formats}</td>')
-            cov_color = ('#4ade80' if covered >= 3
-                         else '#fbbf24' if covered == 2
-                         else '#f87171')
-            html.append(f'<td><b style="color:{cov_color};">{covered}/4</b></td>')
-            html.append('</tr>')
+                    row[role] = ' · '.join(rsub['Format'].tolist())
+            row['Couverture'] = f"{covered}/4"
+            rows_cov.append(row)
 
-        html.append('</tbody></table>')
-        st.markdown(''.join(html), unsafe_allow_html=True)
+        cov_df = pd.DataFrame(rows_cov)
+
+        def color_cov(val):
+            if val == '4/4' or val == '3/4':
+                return 'color: #4ade80; font-weight: 700;'
+            if val == '2/4':
+                return 'color: #fbbf24; font-weight: 700;'
+            if val == '1/4':
+                return 'color: #f87171; font-weight: 700;'
+            return ''
+
+        styled_cov = (
+            cov_df.style
+            .applymap(color_cov, subset=['Couverture'])
+            .set_properties(**{
+                'font-family': 'Inter, sans-serif',
+                'font-size': '13px',
+            })
+        )
+
+        st.dataframe(
+            styled_cov,
+            use_container_width=True,
+            height=min(600, 80 + 38 * len(cov_df)),
+            hide_index=True,
+        )
 
     # ---- Tous les produits ----
     st.markdown("### Tous les produits du périmètre")
@@ -504,36 +416,33 @@ with tab2:
                      'Volume (L)', 'Prix (Ar)', 'Prix / L (Ar)',
                      'Index', 'Statut']
 
-    html = ['<table class="data-table"><thead><tr>']
-    for c in view2.columns:
-        cls = ' class="num"' if c in ('Volume (L)', 'Prix (Ar)',
-                                       'Prix / L (Ar)', 'Index') else ''
-        html.append(f'<th{cls}>{c}</th>')
-    html.append('</tr></thead><tbody>')
+    styled_view2 = (
+        view2.style
+        .applymap(style_status_cell, subset=['Statut'])
+        .format({
+            'Volume (L)': '{:.2f}',
+            'Prix (Ar)': '{:,.0f}',
+            'Prix / L (Ar)': '{:,.0f}',
+            'Index': '{:d}',
+        })
+        .set_properties(**{
+            'font-family': 'Inter, sans-serif',
+            'font-size': '13px',
+        })
+    )
 
-    for _, row in view2.iterrows():
-        html.append('<tr>')
-        for c in view2.columns:
-            val = row[c]
-            cls = ''
-            if c in ('Volume (L)', 'Prix (Ar)', 'Prix / L (Ar)', 'Index'):
-                cls = ' class="num"'
-            if c == 'Volume (L)':
-                val = f"{val:.2f}"
-            elif c in ('Prix (Ar)', 'Prix / L (Ar)'):
-                val = f"{int(val):,}".replace(',', ' ')
-            elif c == 'Statut':
-                if val == 'OK':
-                    val = '<span class="tag tag-ok">Conforme</span>'
-                elif val == 'KO':
-                    val = '<span class="tag tag-ko">À revoir</span>'
-                else:
-                    val = '<span class="tag tag-warn">—</span>'
-            html.append(f'<td{cls}>{val}</td>')
-        html.append('</tr>')
-
-    html.append('</tbody></table>')
-    st.markdown(''.join(html), unsafe_allow_html=True)
+    st.dataframe(
+        styled_view2,
+        use_container_width=True,
+        height=min(700, 80 + 35 * len(view2)),
+        hide_index=True,
+        column_config={
+            'Volume (L)': st.column_config.NumberColumn(format="%.2f"),
+            'Prix (Ar)': st.column_config.NumberColumn(format="%d"),
+            'Prix / L (Ar)': st.column_config.NumberColumn(format="%d"),
+            'Index': st.column_config.NumberColumn(format="%d"),
+        },
+    )
 
 
 # =============================================================================
@@ -546,7 +455,7 @@ with tab3:
         "L'écart indique de combien de points d'index le produit doit être ajusté."
     )
 
-    ko = d[d['Statut'] == 'KO'].copy()
+    ko = d[d['Statut'] == 'À revoir'].copy()
 
     if ko.empty:
         st.success("✅ Tous les produits respectent leur cible tarifaire.")
@@ -564,30 +473,47 @@ with tab3:
 
         st.markdown(f"**{len(ko)} produits à réviser** — triés par écart décroissant :")
 
-        html = ['<table class="data-table"><thead><tr>'
-                '<th>Marque</th><th>Format</th><th>Occasion</th>'
-                '<th>Rôle actuel</th><th>Prix / L</th><th>Index</th>'
-                '<th>Cible</th><th>Écart</th>'
-                '</tr></thead><tbody>']
+        diag = ko[['Marque', 'Format', 'Occasion', 'Rôle',
+                   'Prix_Litre_Ajusté', 'Index', 'Écart']].copy()
+        diag.columns = ['Marque', 'Format', 'Occasion', 'Rôle',
+                        'Prix / L (Ar)', 'Index', 'Écart']
 
-        for _, row in ko.iterrows():
-            cible = ROLE_TARGETS[row['Rôle']]
-            html.append('<tr>')
-            html.append(f'<td><b>{row["Marque"]}</b></td>')
-            html.append(f'<td>{row["Format"]}</td>')
-            html.append(f'<td>{row["Occasion"]}</td>')
-            html.append(f'<td>{row["Rôle"]}</td>')
-            pl = f"{int(row['Prix_Litre_Ajusté']):,}".replace(',', ' ')
-            html.append(f'<td class="num">{pl} Ar</td>')
-            html.append(f'<td class="num">{row["Index"]}</td>')
-            html.append(f'<td>{cible}</td>')
-            html.append(
-                f'<td class="num"><b style="color:#f87171;">+{int(row["Écart"])}</b></td>'
-            )
-            html.append('</tr>')
+        def color_ecart(val):
+            try:
+                v = int(val)
+                if v >= 20:
+                    return 'color: #f87171; font-weight: 700;'
+                if v >= 10:
+                    return 'color: #fbbf24; font-weight: 700;'
+                return 'color: #94a3b8;'
+            except Exception:
+                return ''
 
-        html.append('</tbody></table>')
-        st.markdown(''.join(html), unsafe_allow_html=True)
+        styled_diag = (
+            diag.style
+            .applymap(color_ecart, subset=['Écart'])
+            .format({
+                'Prix / L (Ar)': '{:,.0f}',
+                'Index': '{:d}',
+                'Écart': '+{:d}',
+            })
+            .set_properties(**{
+                'font-family': 'Inter, sans-serif',
+                'font-size': '13px',
+            })
+        )
+
+        st.dataframe(
+            styled_diag,
+            use_container_width=True,
+            height=min(500, 80 + 35 * len(diag)),
+            hide_index=True,
+            column_config={
+                'Prix / L (Ar)': st.column_config.NumberColumn(format="%d"),
+                'Index': st.column_config.NumberColumn(format="%d"),
+                'Écart': st.column_config.NumberColumn(format="%d"),
+            },
+        )
 
         # ---- Recommandations ----
         st.markdown("### Recommandations")
