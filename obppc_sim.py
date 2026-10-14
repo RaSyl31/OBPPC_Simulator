@@ -8,43 +8,31 @@ st.markdown("""
 <style>
     .main .block-container { padding-top: 1.25rem; max-width: 100%; }
 
-    /* Tableau matrice : fond sombre uniforme, seul le bord gauche est coloré */
     .obppc-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
     .obppc-table th {
-        background: #161b22; color: #8b949e;
-        padding: 8px 10px; font-size: 0.68rem;
-        text-transform: uppercase; letter-spacing: 0.05em;
+        background: #161b22; color: #8b949e; padding: 8px 10px;
+        font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em;
         border: 1px solid #30363d; font-weight: 600; text-align: center;
     }
     .obppc-table th.row-head { text-align: left; min-width: 110px; }
     .obppc-table td {
-        border: 1px solid #30363d;
-        padding: 8px 10px;
-        text-align: center;
-        color: #e6edf3;
-        background: #0e1117;
-        font-variant-numeric: tabular-nums;
-        vertical-align: middle;
+        border: 1px solid #30363d; padding: 8px 10px; text-align: center;
+        color: #e6edf3; background: #0e1117;
+        font-variant-numeric: tabular-nums; vertical-align: middle;
     }
     .obppc-table td.row-head {
-        text-align: left; font-weight: 600; color: #e6edf3;
-        background: #161b22;
+        text-align: left; font-weight: 600; color: #e6edf3; background: #161b22;
     }
     .obppc-table td.empty { color: #484f58; background: #0e1117; }
-    .obppc-table td.cell {
-        border-left: 3px solid var(--c, #30363d);
-    }
+    .obppc-table td.cell { border-left: 3px solid var(--c, #30363d); }
     .pv { font-weight: 600; font-size: 0.85rem; color: #e6edf3; }
     .idx { font-size: 0.7rem; color: #8b949e; margin-left: 4px; }
+    .warn { color: #f0883e; margin-left: 3px; }
 
     .legend { display: flex; gap: 1rem; margin: 0.75rem 0 1rem 0; flex-wrap: wrap; }
-    .legend-item {
-        display: flex; align-items: center; gap: 0.4rem;
-        font-size: 0.75rem; color: #c9d1d9;
-    }
-    .legend-swatch {
-        width: 10px; height: 10px; border-radius: 2px;
-    }
+    .legend-item { display: flex; align-items: center; gap: 0.4rem;
+                   font-size: 0.75rem; color: #c9d1d9; }
+    .legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -63,7 +51,6 @@ def load_data():
         ('Energie', 'XXL', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 4000),
         ('Energie', 'DYNAMIC', 'Upscale', 'Upscale (Premium)', 'CAN 25', 0.25, 3500),
         ('Energie', 'BOOST VITALITY', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 4000),
-
         ('Boisson Gazeuse', 'COCA', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35', 0.35, 1500),
         ('Boisson Gazeuse', 'COCA', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
         ('Boisson Gazeuse', 'COCA', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 2500),
@@ -85,7 +72,6 @@ def load_data():
         ('Boisson Gazeuse', 'CAPRICE', 'FC (VER)', 'Upsize (Grand format)', 'VC 100', 1.00, 3000),
         ('Boisson Gazeuse', 'TONIC', 'IC (VER)', 'Entry (Entrée de gamme)', 'VC 30', 0.30, 1200),
         ('Boisson Gazeuse', 'TONIC', 'FC (VER)', 'Upsize (Grand format)', 'VC 100', 1.00, 3000),
-
         ('Eaux', 'Cristal', 'IC (VER)', 'Entry (Entrée de gamme)', 'Cristal 30 VER', 0.30, 1500),
         ('Eaux', 'Cristal', 'IC (VER)', 'Frequency (Cœur de gamme)', 'Cristal 50 VER', 0.50, 2200),
         ('Eaux', 'Cristal', 'FC (VER)', 'Upsize (Grand format)', 'Cristal 100 VER', 1.00, 3800),
@@ -106,7 +92,6 @@ def load_data():
         ('Eaux', 'NATUR EAU', 'IC (PET)', 'Entry (Entrée de gamme)', 'NATUR EAU 50', 0.50, 1500),
         ('Eaux', 'NATUR EAU', 'FC (PET)', 'Frequency (Cœur de gamme)', 'NATUR EAU 100', 1.00, 2000),
         ('Eaux', 'NATUR EAU', 'FC (PET)', 'Upsize (Grand format)', 'NATUR EAU 150', 1.50, 2500),
-
         ('Bière', 'Beaufort', 'IC (VER)', 'Frequency (Cœur de gamme)', 'Beaufort 33 VER', 0.33, 4000),
         ('Bière', 'Beaufort', 'IC (CAN)', 'Upscale (Premium)', 'Beaufort 33 CAN', 0.33, 5000),
         ('Bière', 'Gold', 'IC (VER)', 'Entry (Entrée de gamme)', 'Gold Blanche 33 VER', 0.33, 3500),
@@ -127,20 +112,18 @@ def load_data():
     ]
     df = pd.DataFrame(rows, columns=['Segment', 'Marque', 'Occasion', 'Role_OBPPC',
                                       'Format', 'Volume_L', 'PVF_Ar'])
-    df['P_Litre'] = df['PVF_Ar'] / df['Volume_L']
 
     def occ_group(o):
-        if o.startswith('IC'):
-            return 'IC (Immédiate)'
-        if o.startswith('FC'):
-            return 'FC (Future)'
+        if o.startswith('IC'): return 'IC (Immédiate)'
+        if o.startswith('FC'): return 'FC (Future)'
         return 'Hors occasion'
     df['Occ_Group'] = df['Occasion'].apply(occ_group)
+    df['_id'] = range(len(df))  # identifiant stable pour l'édition
     return df
 
 
-df = load_data()
-ALL_SEGMENTS = sorted(df['Segment'].unique())
+BASE = load_data()
+ALL_SEGMENTS = sorted(BASE['Segment'].unique())
 
 ROLE_SIMPLE = {
     'Entry (Entrée de gamme)': 'Entry',
@@ -150,12 +133,15 @@ ROLE_SIMPLE = {
     'Upscale (Super-Premium Niche)': 'Upscale',
 }
 ROLE_COLORS = {
-    'Entry':     '#58a6ff',   # bleu clair
-    'Frequency': '#3fb950',   # vert
-    'Upsize':    '#d29922',   # jaune/orange
-    'Upscale':   '#bc8cff',   # violet clair
+    'Entry':     '#58a6ff',
+    'Frequency': '#3fb950',
+    'Upsize':    '#d29922',
+    'Upscale':   '#bc8cff',
 }
 ROLE_TARGET = {'Entry': '101–110', 'Frequency': '100', 'Upsize': '90–99', 'Upscale': '≥111'}
+ROLE_OPTIONS = ['Entry (Entrée de gamme)', 'Frequency (Cœur de gamme)',
+                'Upsize (Grand format)', 'Upscale (Premium)',
+                'Upscale (Super-Premium Niche)']
 
 
 def status(idx, role):
@@ -176,17 +162,22 @@ with st.sidebar:
 
     segments = st.multiselect("Segments", ALL_SEGMENTS, default=ALL_SEGMENTS)
     available_brands = (
-        sorted(df[df['Segment'].isin(segments)]['Marque'].unique())
+        sorted(BASE[BASE['Segment'].isin(segments)]['Marque'].unique())
         if segments else []
     )
     brands = st.multiselect("Marques", available_brands, default=available_brands)
 
     st.markdown("---")
-    channel = st.radio(
-        "Canal", ["GMS", "Horeca (+35%)", "Traditionnel (+15%)"],
-    )
-    coef_map = {"GMS": 1.00, "Horeca (+35%)": 1.35, "Traditionnel (+15%)": 1.15}
-    coef = coef_map[channel]
+    channel = st.radio("Canal", ["GMS", "Horeca (+35%)", "Traditionnel (+15%)"])
+    coef = {"GMS": 1.00, "Horeca (+35%)": 1.35, "Traditionnel (+15%)": 1.15}[channel]
+
+    st.markdown("---")
+    if st.button("Réinitialiser les prix", use_container_width=True):
+        # Purge la session d'édition
+        for k in list(st.session_state.keys()):
+            if k.startswith("editor_") or k == "edited_matrix":
+                del st.session_state[k]
+        st.rerun()
 
     st.markdown("---")
     st.caption(
@@ -200,22 +191,66 @@ with st.sidebar:
 
 
 # -----------------------------------------------------------------------------
-# Filtrage
+# Filtrage initial
 # -----------------------------------------------------------------------------
-d = df[(df['Segment'].isin(segments)) & (df['Marque'].isin(brands))].copy()
+d_base = BASE[(BASE['Segment'].isin(segments)) & (BASE['Marque'].isin(brands))].copy()
 
-if d.empty:
+if d_base.empty:
     st.warning("Sélectionnez au moins un segment et une marque.")
     st.stop()
 
+
+# =============================================================================
+# ÉDITEUR DE PRIX (au-dessus des onglets, pour que tout le reste en dépende)
+# =============================================================================
+st.markdown("## Éditeur de prix")
+st.caption(
+    "Modifiez directement les cellules **PVF (Ar)** ou **Volume (L)** — "
+    "index, statut, matrice et diagnostic se recalculent automatiquement."
+)
+
+editor_df = d_base[['_id', 'Segment', 'Marque', 'Occasion', 'Role_OBPPC',
+                    'Format', 'Volume_L', 'PVF_Ar']].copy()
+
+edited = st.data_editor(
+    editor_df,
+    column_config={
+        "_id": None,  # caché
+        "Segment": st.column_config.TextColumn("Segment", disabled=True, width="small"),
+        "Marque": st.column_config.TextColumn("Marque", disabled=True, width="small"),
+        "Occasion": st.column_config.TextColumn("Occasion", disabled=True, width="small"),
+        "Role_OBPPC": st.column_config.SelectboxColumn(
+            "Rôle OBPPC", options=ROLE_OPTIONS, required=True, width="medium"),
+        "Format": st.column_config.TextColumn("Format", disabled=True, width="medium"),
+        "Volume_L": st.column_config.NumberColumn(
+            "Volume (L)", min_value=0.05, step=0.05, format="%.2f", width="small"),
+        "PVF_Ar": st.column_config.NumberColumn(
+            "PVF (Ar)", min_value=0, step=100, format="%d", width="medium"),
+    },
+    hide_index=True,
+    use_container_width=True,
+    num_rows="fixed",
+    height=min(500, 80 + 35 * len(editor_df)),
+    key="price_editor",
+)
+
+# -----------------------------------------------------------------------------
+# Recalcul complet sur les valeurs éditées
+# -----------------------------------------------------------------------------
+d = edited.copy()
+d['P_Litre'] = d['PVF_Ar'] / d['Volume_L']
 d['PVF_Ajuste'] = d['PVF_Ar'] * coef
 d['P_Litre_Ajuste'] = d['P_Litre'] * coef
 d['Role'] = d['Role_OBPPC'].map(ROLE_SIMPLE)
 
-ref = (
-    d[d['Role'] == 'Frequency']
-    .groupby(['Segment', 'Occ_Group'])['P_Litre_Ajuste'].mean()
-)
+# Référence = moyenne des Frequency par (Segment × Occasion)
+def occ_group(o):
+    if str(o).startswith('IC'): return 'IC (Immédiate)'
+    if str(o).startswith('FC'): return 'FC (Future)'
+    return 'Hors occasion'
+d['Occ_Group'] = d['Occasion'].apply(occ_group)
+
+ref = d[d['Role'] == 'Frequency'].groupby(['Segment', 'Occ_Group'])['P_Litre_Ajuste'].mean()
 d['Ref_Litre'] = d.set_index(['Segment', 'Occ_Group']).index.map(ref)
 d['Ref_Litre'] = d['Ref_Litre'].fillna(
     d.groupby(['Segment', 'Occ_Group'])['P_Litre_Ajuste'].transform('mean')
@@ -223,23 +258,33 @@ d['Ref_Litre'] = d['Ref_Litre'].fillna(
 d['Index'] = (d['P_Litre_Ajuste'] / d['Ref_Litre'] * 100).round(0).astype(int)
 d['Statut'] = d.apply(lambda r: status(r['Index'], r['Role']), axis=1)
 
-
-# -----------------------------------------------------------------------------
-# En-tête
-# -----------------------------------------------------------------------------
-st.markdown(f"## Matrice OBPPC — Canal **{channel}**")
-st.caption(
-    f"{len(d)} SKU · {d['Marque'].nunique()} marques · "
-    f"{d['Segment'].nunique()} segments · référence = moyenne des Frequency"
+# Indicateur global de conformité au-dessus des onglets
+n_ok = int((d['Statut'] == 'OK').sum())
+n_total = len(d)
+taux = n_ok / n_total * 100 if n_total else 0
+color = '#3fb950' if taux >= 80 else '#d29922' if taux >= 50 else '#f85149'
+st.markdown(
+    f"<div style='padding:8px 12px; background:#161b22; border:1px solid #30363d; "
+    f"border-left:3px solid {color}; border-radius:4px; margin-top:0.5rem;'>"
+    f"<span style='color:#8b949e; font-size:0.72rem; text-transform:uppercase; "
+    f"letter-spacing:0.08em;'>Conformité OBPPC</span> "
+    f"<span style='color:{color}; font-weight:700; margin-left:8px;'>"
+    f"{n_ok}/{n_total} ({taux:.0f}%)</span>"
+    f"</div>",
+    unsafe_allow_html=True,
 )
 
+
+# =============================================================================
+# Onglets
+# =============================================================================
 tab1, tab2, tab3, tab4 = st.tabs([
     "Matrice OBPPC", "Couverture des rôles", "Échelle de prix", "Diagnostic",
 ])
 
 
 # =============================================================================
-# TAB 1 — MATRICE OBPPC (fond neutre + bord gauche coloré)
+# TAB 1 — MATRICE
 # =============================================================================
 with tab1:
     seg_choice = st.selectbox("Segment", sorted(d['Segment'].unique()), key="t1_seg")
@@ -252,15 +297,13 @@ with tab1:
 
     cols = sorted(
         sub['Format'].unique(),
-        key=lambda f: (
-            sub[sub['Format'] == f]['Occ_Order'].iloc[0],
-            sub[sub['Format'] == f]['Volume_L'].iloc[0],
-        ),
+        key=lambda f: (sub[sub['Format'] == f]['Occ_Order'].iloc[0],
+                       sub[sub['Format'] == f]['Volume_L'].iloc[0]),
     )
     brands_in = sorted(sub['Marque'].unique())
 
-    html = ['<table class="obppc-table">']
-    html.append('<thead><tr><th class="row-head">Marque</th>')
+    html = ['<table class="obppc-table"><thead><tr>'
+            '<th class="row-head">Marque</th>']
     for c in cols:
         html.append(f'<th>{c}</th>')
     html.append('</tr></thead><tbody>')
@@ -275,20 +318,15 @@ with tab1:
             else:
                 row = cell.iloc[0]
                 color = ROLE_COLORS[row['Role']]
-                pv = f'{int(row["PVF_Ajuste"]):,}'
-                idx = row['Index']
-                # petit indicateur de conformité
-                ok = row['Statut'] == 'OK'
-                mark = '' if ok else '⚠'
+                warn = '' if row['Statut'] == 'OK' else '<span class="warn">⚠</span>'
                 html.append(
                     f'<td class="cell" style="--c:{color};">'
-                    f'<span class="pv">{pv}</span>'
-                    f'<span class="idx">·{idx}{mark}</span>'
+                    f'<span class="pv">{int(row["PVF_Ajuste"]):,}</span>'
+                    f'<span class="idx">·{row["Index"]}</span>{warn}'
                     f'</td>'
                 )
         html.append('</tr>')
     html.append('</tbody></table>')
-
     st.markdown(''.join(html), unsafe_allow_html=True)
 
     st.markdown(
@@ -303,19 +341,16 @@ with tab1:
         unsafe_allow_html=True,
     )
     st.caption(
-        "Chiffre = PVF ajusté au canal (Ar). Nombre après le point = index prix/litre "
-        "(100 = référence Frequency du segment × occasion). ⚠ = non conforme à la cible."
+        "Chiffre principal = PVF ajusté au canal. Nombre après le point = index prix/litre. "
+        "⚠ = non conforme à la cible du rôle."
     )
 
 
 # =============================================================================
-# TAB 2 — COUVERTURE DES RÔLES
+# TAB 2 — COUVERTURE
 # =============================================================================
 with tab2:
     st.markdown("#### Couverture des rôles par marque")
-    st.caption(
-        "Une marque bien structurée couvre au minimum **Entry + Frequency** sur une occasion."
-    )
 
     occ_choice = st.radio(
         "Occasion", ['IC (Immédiate)', 'FC (Future)', 'Hors occasion'],
@@ -327,46 +362,37 @@ with tab2:
         st.info("Aucun SKU sur cette occasion.")
     else:
         pivot = sub2.pivot_table(
-            index='Marque', columns='Role',
-            values='Format', aggfunc='count',
+            index='Marque', columns='Role', values='Format', aggfunc='count',
         ).fillna(0).astype(int)
         for r in ['Entry', 'Frequency', 'Upsize', 'Upscale']:
             if r not in pivot.columns:
                 pivot[r] = 0
         pivot = pivot[['Entry', 'Frequency', 'Upsize', 'Upscale']]
 
-        html = ['<table class="obppc-table">']
-        html.append(
-            '<thead><tr><th class="row-head">Marque</th>'
-            '<th>Entry</th><th>Frequency</th><th>Upsize</th><th>Upscale</th>'
-            '<th>Couverture</th></tr></thead><tbody>'
-        )
+        html = ['<table class="obppc-table"><thead><tr>'
+                '<th class="row-head">Marque</th>'
+                '<th>Entry</th><th>Frequency</th><th>Upsize</th><th>Upscale</th>'
+                '<th>Couverture</th></tr></thead><tbody>']
         for brand, row in pivot.iterrows():
             covered = (row > 0).sum()
-            bar_color = '#3fb950' if covered >= 3 else '#d29922' if covered >= 2 else '#f85149'
+            c = '#3fb950' if covered >= 3 else '#d29922' if covered >= 2 else '#f85149'
             html.append(f'<tr><td class="row-head">{brand}</td>')
             for role in ['Entry', 'Frequency', 'Upsize', 'Upscale']:
-                n = row[role]
-                if n > 0:
-                    color = ROLE_COLORS[role]
+                if row[role] > 0:
                     html.append(
-                        f'<td class="cell" style="--c:{color};">'
-                        f'<span class="pv">{n}</span></td>'
+                        f'<td class="cell" style="--c:{ROLE_COLORS[role]};">'
+                        f'<span class="pv">{row[role]}</span></td>'
                     )
                 else:
                     html.append('<td class="empty">·</td>')
-            html.append(
-                f'<td><span style="color:{bar_color}; font-weight:700;">'
-                f'{covered}/4</span></td>'
-            )
+            html.append(f'<td><span style="color:{c}; font-weight:700;">{covered}/4</span></td>')
             html.append('</tr>')
         html.append('</tbody></table>')
         st.markdown(''.join(html), unsafe_allow_html=True)
 
-        st.markdown("##### Lacunes détectées")
         missing = pivot[(pivot['Entry'] == 0) | (pivot['Frequency'] == 0)]
         if missing.empty:
-            st.success("Toutes les marques couvrent Entry et Frequency sur cette occasion.")
+            st.success("Toutes les marques couvrent Entry et Frequency.")
         else:
             for brand, row in missing.iterrows():
                 gaps = []
@@ -380,7 +406,6 @@ with tab2:
 # =============================================================================
 with tab3:
     st.markdown("#### Échelle de prix par marque")
-    st.caption("Progression Entry → Frequency → Upsize → Upscale, par occasion.")
 
     brand_choice = st.selectbox("Marque", sorted(d['Marque'].unique()), key="t3_brand")
     bsub = d[d['Marque'] == brand_choice].copy()
@@ -397,22 +422,16 @@ with tab3:
         for occ in bsub['Occ_Group'].unique():
             occ_df = bsub[bsub['Occ_Group'] == occ]
             fig.add_trace(go.Bar(
-                x=occ_df['Role'],
-                y=occ_df['P_Litre_Ajuste'],
-                name=occ,
+                x=occ_df['Role'], y=occ_df['P_Litre_Ajuste'], name=occ,
                 text=[f'{int(v):,}' for v in occ_df['P_Litre_Ajuste']],
-                textposition='outside',
-                textfont=dict(color='#e6edf3', size=11),
+                textposition='outside', textfont=dict(color='#e6edf3', size=11),
                 marker_color=[ROLE_COLORS[r] for r in occ_df['Role']],
                 marker_line=dict(color='#0e1117', width=1),
             ))
-
         fig.update_layout(
-            barmode='group',
-            height=420,
+            barmode='group', height=420,
             margin=dict(l=20, r=20, t=20, b=20),
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
             font=dict(color='#c9d1d9', family='Inter'),
             yaxis=dict(title='Prix / L (Ar)', gridcolor='#21262d', zeroline=False),
             xaxis=dict(title='', gridcolor='#21262d'),
@@ -426,7 +445,6 @@ with tab3:
                         'PVF ajusté', 'Prix / L', 'Index', 'Statut']
         view['PVF ajusté'] = view['PVF ajusté'].round(0).astype(int)
         view['Prix / L'] = view['Prix / L'].round(0).astype(int)
-
         st.dataframe(
             view, use_container_width=True, hide_index=True,
             column_config={
@@ -442,13 +460,13 @@ with tab3:
 # TAB 4 — DIAGNOSTIC
 # =============================================================================
 with tab4:
-    st.markdown("#### Diagnostic OBPPC global")
+    st.markdown("#### Diagnostic OBPPC")
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("SKU analysés", len(d))
-    c2.metric("Conformes", int((d['Statut'] == 'OK').sum()))
-    c3.metric("Non conformes", int((d['Statut'] == 'KO').sum()))
-    c4.metric("Taux conformité", f"{(d['Statut'] == 'OK').mean() * 100:.0f}%")
+    c1.metric("SKU analysés", n_total)
+    c2.metric("Conformes", n_ok)
+    c3.metric("Non conformes", n_total - n_ok)
+    c4.metric("Taux conformité", f"{taux:.0f}%")
 
     st.markdown("##### Conformité par segment × occasion")
     summary = (
@@ -475,7 +493,6 @@ with tab4:
             if role == 'Upsize':    return max(90 - i, i - 99, 0)
             if role == 'Upscale':   return max(111 - i, 0)
             return 0
-
         ko['Écart'] = ko.apply(gap, axis=1)
         ko = ko.sort_values('Écart', ascending=False)
 
@@ -485,7 +502,6 @@ with tab4:
                        'Prix / L', 'Index', 'Écart']
         out['Prix / L'] = out['Prix / L'].round(0).astype(int)
         out['Écart'] = out['Écart'].astype(int)
-
         st.dataframe(
             out, use_container_width=True, hide_index=True,
             column_config={
@@ -500,6 +516,5 @@ with tab4:
              'Volume_L', 'PVF_Ajuste', 'P_Litre_Ajuste', 'Index', 'Statut']].to_csv(index=False)
     st.download_button(
         "Télécharger (CSV)", data=csv,
-        file_name=f"obppc_{channel.split()[0].lower()}.csv",
-        mime="text/csv",
+        file_name=f"obppc_{channel.split()[0].lower()}.csv", mime="text/csv",
     )
