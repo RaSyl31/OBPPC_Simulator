@@ -37,7 +37,27 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    #MainMenu, footer, header {visibility: hidden;}
+    /* ============================================================
+       RESET COMPLET DU HAUT DE PAGE
+       ============================================================ */
+    #MainMenu, footer { visibility: hidden; }
+
+    [data-testid="stHeader"] {
+        display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+    }
+    [data-testid="stAppViewContainer"] > .main {
+        padding-top: 0 !important;
+    }
+    section.main > div {
+        padding-top: 0 !important;
+    }
+    .main .block-container {
+        padding-top: 0.4rem !important;
+        padding-bottom: 3rem;
+        max-width: 1600px;
+    }
 
     /* ---------- Background global ---------- */
     .stApp {
@@ -47,12 +67,6 @@ st.markdown("""
             radial-gradient(800px 500px at 50% 100%,  rgba(139,92,246,0.07), transparent 65%),
             #0a0e1a;
         background-attachment: fixed;
-    }
-
-    .main .block-container {
-        padding-top: 1.25rem;
-        padding-bottom: 3rem;
-        max-width: 1600px;
     }
 
     /* ============================================================
@@ -253,7 +267,6 @@ st.markdown("""
         color: #94a3b8 !important;
     }
 
-    /* -- TAGS -- */
     div[data-baseweb="tag"] {
         background: #6366f1 !important;
         background-color: #6366f1 !important;
@@ -287,7 +300,6 @@ st.markdown("""
         fill: #ffffff !important;
     }
 
-    /* -- Dropdown -- */
     div[data-baseweb="popover"],
     div[data-baseweb="popover"] > div,
     div[data-baseweb="popover"] [role="listbox"],
@@ -642,7 +654,7 @@ else:
 
 
 # -----------------------------------------------------------------------------
-# Tableau éditable — HAUTEUR AUGMENTÉE
+# Tableau éditable
 # -----------------------------------------------------------------------------
 st.markdown('<div class="section-title">Portefeuille — Édition</div>', unsafe_allow_html=True)
 st.markdown(
@@ -694,8 +706,8 @@ else:
         use_container_width=True,
         num_rows="dynamic",
         key="data_editor",
-        height=650,          # ← 420 avant → 650 maintenant
-        row_height=38,       # ← lignes un peu plus aérées
+        height=650,
+        row_height=38,
     )
 
     col_btn, _ = st.columns([1, 4])
@@ -832,7 +844,6 @@ else:
             ])
         )
 
-        # Tableau résultats — hauteur augmentée aussi
         st.dataframe(styled, use_container_width=True, height=600)
 
         csv = display_df.to_csv(index=False)
