@@ -1,246 +1,85 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
 
-st.set_page_config(page_title="OBPPC", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(
+    page_title="OBPPC",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-# -----------------------------------------------------------------------------
-# CSS — thème dark soft + garde-fous pour les canvas
-# -----------------------------------------------------------------------------
+# CSS minimal — uniquement ce qui améliore la lisibilité
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
+    /* Taille de police confortable et interligne aéré */
     html, body, [class*="css"] {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        font-size: 14px;
-        color: #e3e8ef;
+        font-size: 15px;
+        line-height: 1.6;
     }
 
-    /* ---------- Global background ---------- */
-    .stApp, [data-testid="stAppViewContainer"] {
-        background-color: #181c24 !important;
-    }
-    [data-testid="stHeader"] {
-        background-color: #181c24 !important;
-    }
-    .main .block-container {
-        padding-top: 1.25rem;
-        max-width: 100%;
-        background-color: #181c24;
-    }
+    /* Titres avec de l'air */
+    h1 { font-size: 1.8rem !important; margin-bottom: 0.4rem !important; }
+    h2 { font-size: 1.35rem !important; margin-top: 1.5rem !important; }
+    h3 { font-size: 1.1rem !important; margin-top: 1.2rem !important; }
 
-    /* ---------- Sidebar ---------- */
-    section[data-testid="stSidebar"] {
-        background-color: #1a1f29 !important;
-        border-right: 1px solid #2c3340;
-    }
-    section[data-testid="stSidebar"] * {
-        color: #e3e8ef;
-    }
-
-    /* ---------- Typography ---------- */
-    h1, h2, h3, h4, h5, h6 { color: #f1f5f9; font-weight: 600; letter-spacing: -0.01em; }
-    p, span, label, div { color: #e3e8ef; }
-    .stCaption, [data-testid="stCaptionContainer"] { color: #94a3b8 !important; }
-
-    /* ---------- Inputs, Select, Radio ---------- */
-    [data-baseweb="select"] > div,
-    [data-baseweb="input"] > div,
-    .stTextInput input,
-    .stNumberInput input {
-        background-color: #222732 !important;
-        border-color: #2c3340 !important;
-        color: #e3e8ef !important;
-    }
-    [data-baseweb="tag"] {
-        background-color: #7c8cff !important;
-        color: #ffffff !important;
-    }
-    [data-baseweb="popover"], [data-baseweb="menu"] {
-        background-color: #222732 !important;
-        border-color: #2c3340 !important;
-    }
-    [data-baseweb="menu"] li {
-        color: #e3e8ef !important;
-    }
-    [data-baseweb="menu"] li:hover {
-        background-color: #2c3340 !important;
-    }
-
-    /* Radio / checkbox */
-    .stRadio label, .stCheckbox label { color: #e3e8ef !important; }
-
-    /* ---------- Buttons ---------- */
-    .stButton > button {
-        background-color: #222732 !important;
-        color: #e3e8ef !important;
-        border: 1px solid #2c3340 !important;
-        border-radius: 6px;
-    }
-    .stButton > button:hover {
-        background-color: #2c3340 !important;
-        border-color: #7c8cff !important;
-    }
-    .stButton > button[kind="primary"] {
-        background-color: #7c8cff !important;
-        border-color: #7c8cff !important;
-        color: #ffffff !important;
-    }
-
-    /* ---------- Data editor / dataframe : garde-fous ---------- */
-    [data-testid="stDataFrame"],
-    [data-testid="stDataEditor"] {
-        background-color: #1c212b !important;
-        border: 1px solid #2c3340 !important;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-    /* Toolbar du data_editor (boutons +/- lignes, search) */
-    [data-testid="stDataEditor"] [data-testid="stElementToolbar"],
-    [data-testid="stDataFrame"] [data-testid="stElementToolbar"] {
-        background-color: #1c212b !important;
-    }
-    [data-testid="stDataEditor"] button,
-    [data-testid="stDataFrame"] button {
-        background-color: transparent !important;
-        color: #cbd5e1 !important;
-        border-color: #2c3340 !important;
-    }
-    [data-testid="stDataEditor"] button:hover,
-    [data-testid="stDataFrame"] button:hover {
-        background-color: #2c3340 !important;
-    }
-    /* Barre d'édition en bas */
-    [data-testid="stDataEditor"] > div > div:last-child {
-        background-color: #1c212b !important;
-        border-top: 1px solid #2c3340 !important;
-    }
-
-    /* ---------- Tabs ---------- */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 2px;
-        background-color: transparent;
-        border-bottom: 1px solid #2c3340;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: transparent !important;
-        color: #94a3b8 !important;
-        border-radius: 6px 6px 0 0;
-        padding: 0.55rem 1rem;
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-    .stTabs [aria-selected="true"] {
-        color: #e3e8ef !important;
-        background-color: #1c212b !important;
-    }
-    .stTabs [data-baseweb="tab-highlight"] { background-color: #7c8cff !important; }
-
-    /* ---------- Metrics ---------- */
-    [data-testid="stMetricValue"] { color: #f1f5f9 !important; }
-    [data-testid="stMetricLabel"] { color: #94a3b8 !important; }
-
-    /* ---------- Alerts ---------- */
-    .stAlert {
-        background-color: #222732 !important;
-        border: 1px solid #2c3340 !important;
-        color: #e3e8ef !important;
-    }
-
-    /* ============================================================
-       Tableaux HTML custom (matrice, couverture)
-       ============================================================ */
-    .obppc-table {
+    /* Les tableaux HTML lisibles */
+    .data-table {
         width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        font-size: 0.82rem;
-        border: 1px solid #2c3340;
-        border-radius: 8px;
-        overflow: hidden;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin-top: 0.5rem;
     }
-    .obppc-table th {
-        background: #232934;
-        color: #94a3b8;
-        padding: 10px 12px;
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        font-weight: 600;
-        text-align: center;
-        border-bottom: 1px solid #2c3340;
-    }
-    .obppc-table th.row-head { text-align: left; min-width: 130px; }
-    .obppc-table td {
-        padding: 10px 12px;
-        text-align: center;
-        color: #e3e8ef;
-        background: #1c212b;
-        border-bottom: 1px solid #262c37;
-        vertical-align: top;
-    }
-    .obppc-table td.row-head {
-        text-align: left;
-        font-weight: 600;
-        color: #f1f5f9;
-        background: #21262f;
-        border-right: 1px solid #2c3340;
-    }
-    .obppc-table tr:last-child td { border-bottom: none; }
-    .obppc-table td.empty { color: #48505f; font-style: italic; }
-
-    .art-list {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        align-items: flex-start;
-        text-align: left;
-    }
-    .art-item {
-        display: inline-block;
-        padding: 2px 7px;
-        border-radius: 4px;
-        font-size: 0.72rem;
-        font-weight: 500;
-        background: rgba(255,255,255,0.04);
-        border-left: 2px solid var(--c, #64748b);
-        color: #e3e8ef;
-        white-space: nowrap;
-    }
-    .art-item .idx {
-        color: #94a3b8;
-        font-size: 0.65rem;
-        margin-left: 4px;
-        font-weight: 400;
-    }
-
-    .matrix-cell { font-weight: 600; font-size: 0.85rem; color: #f1f5f9; }
-    .matrix-idx  { font-size: 0.68rem; color: #94a3b8; margin-left: 4px; font-weight: 400; }
-    .warn-mark   { color: #f0883e; margin-left: 3px; font-weight: 700; }
-
-    .legend { display: flex; gap: 1rem; margin: 0.75rem 0 1rem 0; flex-wrap: wrap; }
-    .legend-item { display: flex; align-items: center; gap: 0.4rem;
-                   font-size: 0.75rem; color: #cbd5e1; }
-    .legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
-
-    .cov-pill {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-size: 0.72rem;
-        font-weight: 600;
-    }
-    .count-badge {
-        display: inline-block;
-        min-width: 18px;
-        padding: 1px 6px;
-        border-radius: 8px;
-        font-size: 0.68rem;
-        font-weight: 600;
-        background: rgba(255,255,255,0.06);
+    .data-table th {
+        background: #242832;
         color: #cbd5e1;
+        padding: 12px 14px;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 600;
+        border-bottom: 2px solid #343a4a;
+    }
+    .data-table td {
+        padding: 11px 14px;
+        color: #f5f7fa;
+        border-bottom: 1px solid #2a2e38;
+        font-variant-numeric: tabular-nums;
+    }
+    .data-table tr:hover td {
+        background: #22262f;
+    }
+    .data-table .num {
+        text-align: right;
+        font-weight: 500;
+    }
+
+    /* Badge de statut */
+    .tag {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .tag-ok   { background: #14351f; color: #4ade80; }
+    .tag-ko   { background: #3a1a1a; color: #f87171; }
+    .tag-warn { background: #3a2f14; color: #fbbf24; }
+
+    /* Cartes d'indicateurs */
+    .info-box {
+        background: #242832;
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin-bottom: 12px;
+        border-left: 4px solid #a78bfa;
+    }
+    .info-box .label {
+        color: #94a3b8;
+        font-size: 13px;
         margin-bottom: 4px;
+    }
+    .info-box .value {
+        color: #f5f7fa;
+        font-size: 22px;
+        font-weight: 700;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -252,105 +91,90 @@ st.markdown("""
 @st.cache_data
 def load_data():
     rows = [
-        ('Energie', 'Red Bull', 'Upscale', 'Upscale (Premium)', 'CAN 25', 0.25, 9900),
-        ('Energie', 'Monster', 'Upscale', 'Upscale (Premium)', 'CAN 50', 0.50, 9900),
-        ('Energie', 'FOSA', 'Upscale', 'Upscale (Premium)', 'CAN 50', 0.50, 5000),
-        ('Energie', 'XXL', 'IC (VER)', 'Entry (Entrée de gamme)', 'VC 30', 0.30, 2500),
-        ('Energie', 'XXL', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 35', 0.35, 3500),
-        ('Energie', 'XXL', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 4000),
-        ('Energie', 'DYNAMIC', 'Upscale', 'Upscale (Premium)', 'CAN 25', 0.25, 3500),
-        ('Energie', 'BOOST VITALITY', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 4000),
-        ('Boisson Gazeuse', 'COCA', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35', 0.35, 1500),
-        ('Boisson Gazeuse', 'COCA', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
-        ('Boisson Gazeuse', 'COCA', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 2500),
-        ('Boisson Gazeuse', 'COCA', 'FC (PET)', 'Upsize (Grand format)', 'PET 150', 1.50, 5000),
-        ('Boisson Gazeuse', 'WOCO', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35', 0.35, 1500),
-        ('Boisson Gazeuse', 'WOCO', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
-        ('Boisson Gazeuse', 'WOCO', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 2500),
-        ('Boisson Gazeuse', 'WOCO', 'IC (VER)', 'Entry (Entrée de gamme)', 'VC 30', 0.30, 1200),
-        ('Boisson Gazeuse', 'WOCO', 'FC (PET)', 'Upsize (Grand format)', 'PET 150', 1.50, 5000),
-        ('Boisson Gazeuse', 'WOCO', 'FC (VER)', 'Upsize (Grand format)', 'VC 100', 1.00, 3000),
-        ('Boisson Gazeuse', 'FANTA', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35', 0.35, 1500),
-        ('Boisson Gazeuse', 'FANTA', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
-        ('Boisson Gazeuse', 'FANTA', 'FC (PET)', 'Upsize (Grand format)', 'PET 150', 1.50, 5000),
-        ('Boisson Gazeuse', 'CAPRICE', 'IC (PET)', 'Entry (Entrée de gamme)', 'PET 35', 0.35, 1500),
-        ('Boisson Gazeuse', 'CAPRICE', 'IC (PET)', 'Frequency (Cœur de gamme)', 'PET 50', 0.50, 2000),
-        ('Boisson Gazeuse', 'CAPRICE', 'Upscale', 'Upscale (Premium)', 'CAN 33', 0.33, 2500),
-        ('Boisson Gazeuse', 'CAPRICE', 'IC (VER)', 'Entry (Entrée de gamme)', 'VC 30', 0.30, 1200),
-        ('Boisson Gazeuse', 'CAPRICE', 'FC (PET)', 'Upsize (Grand format)', 'PET 150', 1.50, 5000),
-        ('Boisson Gazeuse', 'CAPRICE', 'FC (VER)', 'Upsize (Grand format)', 'VC 100', 1.00, 3000),
-        ('Boisson Gazeuse', 'TONIC', 'IC (VER)', 'Entry (Entrée de gamme)', 'VC 30', 0.30, 1200),
-        ('Boisson Gazeuse', 'TONIC', 'FC (VER)', 'Upsize (Grand format)', 'VC 100', 1.00, 3000),
-        ('Eaux', 'Cristal', 'IC (VER)', 'Entry (Entrée de gamme)', 'Cristal 30 VER', 0.30, 1500),
-        ('Eaux', 'Cristal', 'IC (VER)', 'Frequency (Cœur de gamme)', 'Cristal 50 VER', 0.50, 2200),
-        ('Eaux', 'Cristal', 'FC (VER)', 'Upsize (Grand format)', 'Cristal 100 VER', 1.00, 3800),
-        ('Eaux', 'Cristal', 'FC (PET)', 'Upsize (Grand format)', 'Cristal 150 PET', 1.50, 5500),
-        ('Eaux', 'RANOVISY', 'IC (PET)', 'Entry (Entrée de gamme)', 'RANOVISY 33 PET', 0.33, 1000),
-        ('Eaux', 'RANOVISY', 'IC (PET)', 'Frequency (Cœur de gamme)', 'RANOVISY 50 PET', 0.50, 2400),
-        ('Eaux', 'RANOVISY', 'IC (PET)', 'Upsize (Grand format)', 'RANOVISY 75 PET', 0.75, 3000),
-        ('Eaux', 'VISY GASY', 'IC (PET)', 'Entry (Entrée de gamme)', 'VISY GASY 60 PET', 0.60, 2500),
-        ('Eaux', 'VISY GASY', 'FC (PET)', 'Upsize (Grand format)', 'VISY GASY 100 PET', 1.00, 3000),
-        ('Eaux', 'Eau vive', 'IC (PET)', 'Entry (Entrée de gamme)', 'Eau vive 50 PET', 0.50, 1600),
-        ('Eaux', 'Eau vive', 'FC (PET)', 'Upsize (Grand format)', 'Eau vive 150 PET', 1.50, 3300),
-        ('Eaux', 'Eau vive', 'IC (VER)', 'Frequency (Cœur de gamme)', 'Eau vive 50 VER', 0.50, 2200),
-        ('Eaux', 'Cristalline', 'FC (PET)', 'Upsize (Grand format)', 'Cristalline 100 PET', 1.50, 2100),
-        ('Eaux', 'Cristalline', 'FC (PET)', 'Upsize (Grand format)', 'Cristalline 200 PET', 2.00, 3600),
-        ('Eaux', 'OLYMPIKO', 'IC (PET)', 'Entry (Entrée de gamme)', 'OLYMPIKO 50', 0.50, 1500),
-        ('Eaux', 'OLYMPIKO', 'FC (PET)', 'Frequency (Cœur de gamme)', 'OLYMPIKO 100', 1.00, 2000),
-        ('Eaux', 'OLYMPIKO', 'FC (PET)', 'Upsize (Grand format)', 'OLYMPIKO 150', 1.50, 2500),
-        ('Eaux', 'NATUR EAU', 'IC (PET)', 'Entry (Entrée de gamme)', 'NATUR EAU 50', 0.50, 1500),
-        ('Eaux', 'NATUR EAU', 'FC (PET)', 'Frequency (Cœur de gamme)', 'NATUR EAU 100', 1.00, 2000),
-        ('Eaux', 'NATUR EAU', 'FC (PET)', 'Upsize (Grand format)', 'NATUR EAU 150', 1.50, 2500),
-        ('Bière', 'Beaufort', 'IC (VER)', 'Frequency (Cœur de gamme)', 'Beaufort 33 VER', 0.33, 4000),
-        ('Bière', 'Beaufort', 'IC (CAN)', 'Upscale (Premium)', 'Beaufort 33 CAN', 0.33, 5000),
-        ('Bière', 'Gold', 'IC (VER)', 'Entry (Entrée de gamme)', 'Gold Blanche 33 VER', 0.33, 3500),
-        ('Bière', 'Gold', 'FC (VER)', 'Entry (Entrée de gamme)', 'Gold 8 50 VER', 0.50, 4500),
-        ('Bière', 'Gold', 'FC (VER)', 'Frequency (Cœur de gamme)', 'Gold Blanche 50 VER', 0.50, 4500),
-        ('Bière', 'Gold', 'FC (VER)', 'Frequency (Cœur de gamme)', 'Gold Blonde 50 VER', 0.50, 4500),
-        ('Bière', 'Gold', 'FC (VER)', 'Frequency (Cœur de gamme)', 'Gold Blonde 65 VER', 0.65, 5000),
-        ('Bière', 'Gold', 'IC (CAN)', 'Upscale (Premium)', 'Gold 8 50 CAN', 0.50, 6000),
-        ('Bière', 'Gold', 'IC (CAN)', 'Upscale (Premium)', 'Gold Blanche 50 CAN', 0.50, 6000),
-        ('Bière', 'Gold', 'IC (CAN)', 'Upscale (Premium)', 'Gold Blonde 50 CAN', 0.50, 6000),
-        ('Bière', 'THB', 'IC (VER)', 'Entry (Entrée de gamme)', 'THB Pilsener 33 VER', 0.33, 2500),
-        ('Bière', 'THB', 'FC (VER)', 'Frequency (Cœur de gamme)', 'THB Pilsener 65 VER', 0.65, 4500),
-        ('Bière', 'THB', 'IC (CAN)', 'Upscale (Premium)', 'THB Pilsener 50 CAN', 0.50, 5000),
-        ('Bière', 'Queen', 'FC (VER)', 'Entry (Entrée de gamme)', 'Queen s 65 VER', 0.65, 4000),
-        ('Bière', 'Fresh', 'IC (VER)', 'Entry (Entrée de gamme)', 'Fresh 33 VER', 0.33, 2500),
-        ('Bière', 'Fresh', 'FC (VER)', 'Frequency (Cœur de gamme)', 'Fresh 65 VER', 0.65, 4000),
-        ('Bière', 'Fresh', 'IC (CAN)', 'Upscale (Premium)', 'Fresh 33 CAN', 0.33, 3500),
+        ('Energie', 'Red Bull', 'IC', 'Upscale', 'CAN 25', 0.25, 9900),
+        ('Energie', 'Monster', 'IC', 'Upscale', 'CAN 50', 0.50, 9900),
+        ('Energie', 'FOSA', 'IC', 'Upscale', 'CAN 50', 0.50, 5000),
+        ('Energie', 'XXL', 'IC', 'Entry', 'VC 30', 0.30, 2500),
+        ('Energie', 'XXL', 'IC', 'Frequency', 'PET 35', 0.35, 3500),
+        ('Energie', 'XXL', 'IC', 'Upscale', 'CAN 33', 0.33, 4000),
+        ('Energie', 'DYNAMIC', 'IC', 'Upscale', 'CAN 25', 0.25, 3500),
+        ('Energie', 'BOOST VITALITY', 'IC', 'Upscale', 'CAN 33', 0.33, 4000),
+        ('Boisson Gazeuse', 'COCA', 'IC', 'Entry', 'PET 35', 0.35, 1500),
+        ('Boisson Gazeuse', 'COCA', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
+        ('Boisson Gazeuse', 'COCA', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
+        ('Boisson Gazeuse', 'COCA', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
+        ('Boisson Gazeuse', 'WOCO', 'IC', 'Entry', 'PET 35', 0.35, 1500),
+        ('Boisson Gazeuse', 'WOCO', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
+        ('Boisson Gazeuse', 'WOCO', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
+        ('Boisson Gazeuse', 'WOCO', 'IC', 'Entry', 'VC 30', 0.30, 1200),
+        ('Boisson Gazeuse', 'WOCO', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
+        ('Boisson Gazeuse', 'WOCO', 'FC', 'Upsize', 'VC 100', 1.00, 3000),
+        ('Boisson Gazeuse', 'FANTA', 'IC', 'Entry', 'PET 35', 0.35, 1500),
+        ('Boisson Gazeuse', 'FANTA', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
+        ('Boisson Gazeuse', 'FANTA', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
+        ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Entry', 'PET 35', 0.35, 1500),
+        ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
+        ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
+        ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Entry', 'VC 30', 0.30, 1200),
+        ('Boisson Gazeuse', 'CAPRICE', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
+        ('Boisson Gazeuse', 'CAPRICE', 'FC', 'Upsize', 'VC 100', 1.00, 3000),
+        ('Boisson Gazeuse', 'TONIC', 'IC', 'Entry', 'VC 30', 0.30, 1200),
+        ('Boisson Gazeuse', 'TONIC', 'FC', 'Upsize', 'VC 100', 1.00, 3000),
+        ('Eaux', 'Cristal', 'IC', 'Entry', 'Cristal 30 VER', 0.30, 1500),
+        ('Eaux', 'Cristal', 'IC', 'Frequency', 'Cristal 50 VER', 0.50, 2200),
+        ('Eaux', 'Cristal', 'FC', 'Upsize', 'Cristal 100 VER', 1.00, 3800),
+        ('Eaux', 'Cristal', 'FC', 'Upsize', 'Cristal 150 PET', 1.50, 5500),
+        ('Eaux', 'RANOVISY', 'IC', 'Entry', 'RANOVISY 33 PET', 0.33, 1000),
+        ('Eaux', 'RANOVISY', 'IC', 'Frequency', 'RANOVISY 50 PET', 0.50, 2400),
+        ('Eaux', 'RANOVISY', 'IC', 'Upsize', 'RANOVISY 75 PET', 0.75, 3000),
+        ('Eaux', 'VISY GASY', 'IC', 'Entry', 'VISY GASY 60 PET', 0.60, 2500),
+        ('Eaux', 'VISY GASY', 'FC', 'Upsize', 'VISY GASY 100 PET', 1.00, 3000),
+        ('Eaux', 'Eau vive', 'IC', 'Entry', 'Eau vive 50 PET', 0.50, 1600),
+        ('Eaux', 'Eau vive', 'FC', 'Upsize', 'Eau vive 150 PET', 1.50, 3300),
+        ('Eaux', 'Eau vive', 'IC', 'Frequency', 'Eau vive 50 VER', 0.50, 2200),
+        ('Eaux', 'Cristalline', 'FC', 'Upsize', 'Cristalline 100 PET', 1.50, 2100),
+        ('Eaux', 'Cristalline', 'FC', 'Upsize', 'Cristalline 200 PET', 2.00, 3600),
+        ('Eaux', 'OLYMPIKO', 'IC', 'Entry', 'OLYMPIKO 50', 0.50, 1500),
+        ('Eaux', 'OLYMPIKO', 'FC', 'Frequency', 'OLYMPIKO 100', 1.00, 2000),
+        ('Eaux', 'OLYMPIKO', 'FC', 'Upsize', 'OLYMPIKO 150', 1.50, 2500),
+        ('Eaux', 'NATUR EAU', 'IC', 'Entry', 'NATUR EAU 50', 0.50, 1500),
+        ('Eaux', 'NATUR EAU', 'FC', 'Frequency', 'NATUR EAU 100', 1.00, 2000),
+        ('Eaux', 'NATUR EAU', 'FC', 'Upsize', 'NATUR EAU 150', 1.50, 2500),
+        ('Bière', 'Beaufort', 'IC', 'Frequency', 'Beaufort 33 VER', 0.33, 4000),
+        ('Bière', 'Beaufort', 'IC', 'Upscale', 'Beaufort 33 CAN', 0.33, 5000),
+        ('Bière', 'Gold', 'IC', 'Entry', 'Gold Blanche 33 VER', 0.33, 3500),
+        ('Bière', 'Gold', 'FC', 'Entry', 'Gold 8 50 VER', 0.50, 4500),
+        ('Bière', 'Gold', 'FC', 'Frequency', 'Gold Blanche 50 VER', 0.50, 4500),
+        ('Bière', 'Gold', 'FC', 'Frequency', 'Gold Blonde 50 VER', 0.50, 4500),
+        ('Bière', 'Gold', 'FC', 'Frequency', 'Gold Blonde 65 VER', 0.65, 5000),
+        ('Bière', 'Gold', 'IC', 'Upscale', 'Gold 8 50 CAN', 0.50, 6000),
+        ('Bière', 'Gold', 'IC', 'Upscale', 'Gold Blanche 50 CAN', 0.50, 6000),
+        ('Bière', 'Gold', 'IC', 'Upscale', 'Gold Blonde 50 CAN', 0.50, 6000),
+        ('Bière', 'THB', 'IC', 'Entry', 'THB Pilsener 33 VER', 0.33, 2500),
+        ('Bière', 'THB', 'FC', 'Frequency', 'THB Pilsener 65 VER', 0.65, 4500),
+        ('Bière', 'THB', 'IC', 'Upscale', 'THB Pilsener 50 CAN', 0.50, 5000),
+        ('Bière', 'Queen', 'FC', 'Entry', 'Queen s 65 VER', 0.65, 4000),
+        ('Bière', 'Fresh', 'IC', 'Entry', 'Fresh 33 VER', 0.33, 2500),
+        ('Bière', 'Fresh', 'FC', 'Frequency', 'Fresh 65 VER', 0.65, 4000),
+        ('Bière', 'Fresh', 'IC', 'Upscale', 'Fresh 33 CAN', 0.33, 3500),
     ]
-    df = pd.DataFrame(rows, columns=['Segment', 'Marque', 'Occasion', 'Role_OBPPC',
-                                      'Format', 'Volume_L', 'PVF_Ar'])
-
-    def occ_group(o):
-        if o.startswith('IC'): return 'IC (Immédiate)'
-        if o.startswith('FC'): return 'FC (Future)'
-        return 'Hors occasion'
-    df['Occ_Group'] = df['Occasion'].apply(occ_group)
-    df['_id'] = range(len(df))
+    df = pd.DataFrame(rows, columns=['Segment', 'Marque', 'Occasion',
+                                      'Rôle', 'Format', 'Volume_L', 'PVF_Ar'])
+    df['Prix_Litre'] = (df['PVF_Ar'] / df['Volume_L']).round(0).astype(int)
     return df
 
 
-BASE = load_data()
-ALL_SEGMENTS = sorted(BASE['Segment'].unique())
+df = load_data()
 
-ROLE_SIMPLE = {
-    'Entry (Entrée de gamme)': 'Entry',
-    'Frequency (Cœur de gamme)': 'Frequency',
-    'Upsize (Grand format)': 'Upsize',
-    'Upscale (Premium)': 'Upscale',
-    'Upscale (Super-Premium Niche)': 'Upscale',
+OCCASIONS = ['IC', 'FC']
+ROLES = ['Entry', 'Frequency', 'Upsize', 'Upscale']
+ROLE_TARGETS = {'Entry': '101–110', 'Frequency': '100', 'Upsize': '90–99', 'Upscale': '≥111'}
+ROLE_INFO = {
+    'Entry':     "Prix d'accès à la marque, petit format",
+    'Frequency': "Format de référence, prix pivot",
+    'Upsize':    "Grand format, prix au litre plus bas",
+    'Upscale':   "Format premium, prix au litre plus élevé",
 }
-ROLE_COLORS = {
-    'Entry':     '#58a6ff',
-    'Frequency': '#3fb950',
-    'Upsize':    '#d29922',
-    'Upscale':   '#bc8cff',
-}
-ROLE_TARGET = {'Entry': '101–110', 'Frequency': '100', 'Upsize': '90–99', 'Upscale': '≥111'}
-ROLE_OPTIONS = ['Entry (Entrée de gamme)', 'Frequency (Cœur de gamme)',
-                'Upsize (Grand format)', 'Upscale (Premium)',
-                'Upscale (Super-Premium Niche)']
 
 
 def status(idx, role):
@@ -362,366 +186,355 @@ def status(idx, role):
 
 
 # -----------------------------------------------------------------------------
-# Sidebar
+# SIDEBAR
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown("### OBPPC")
-    st.caption("Occasion · Brand · Package · Price · Channel")
-    st.markdown("---")
+    st.markdown("## ⚙️ Paramètres")
 
-    segments = st.multiselect("Segments", ALL_SEGMENTS, default=ALL_SEGMENTS)
-    available_brands = (
-        sorted(BASE[BASE['Segment'].isin(segments)]['Marque'].unique())
-        if segments else []
+    st.markdown("##### Filtres")
+    segments = st.multiselect(
+        "Segment",
+        sorted(df['Segment'].unique()),
+        default=sorted(df['Segment'].unique()),
+        help="Filtrer par type de boisson",
     )
-    brands = st.multiselect("Marques", available_brands, default=available_brands)
 
-    st.markdown("---")
-    channel = st.radio("Canal", ["GMS", "Horeca (+35%)", "Traditionnel (+15%)"])
-    coef = {"GMS": 1.00, "Horeca (+35%)": 1.35, "Traditionnel (+15%)": 1.15}[channel]
+    available_brands = sorted(df[df['Segment'].isin(segments)]['Marque'].unique()) if segments else []
+    brands = st.multiselect(
+        "Marque",
+        available_brands,
+        default=available_brands,
+        help="Filtrer par marque",
+    )
 
-    st.markdown("---")
-    if st.button("Réinitialiser les prix", use_container_width=True):
+    st.divider()
+
+    st.markdown("##### Canal de vente")
+    channel = st.radio(
+        "Canal",
+        ["GMS (prix de référence)", "Horeca (+35%)", "Traditionnel (+15%)"],
+        help="Applique un coefficient aux prix selon le canal",
+    )
+    coef = {
+        "GMS (prix de référence)": 1.00,
+        "Horeca (+35%)": 1.35,
+        "Traditionnel (+15%)": 1.15,
+    }[channel]
+
+    st.divider()
+
+    if st.button("🔄 Réinitialiser les modifications", use_container_width=True):
         for k in list(st.session_state.keys()):
-            if k.startswith("price_editor"):
+            if k.startswith("prix_"):
                 del st.session_state[k]
         st.rerun()
 
-    st.markdown("---")
-    st.caption(
-        "**Cibles index prix/litre**  \n"
-        f"<span style='color:{ROLE_COLORS['Entry']}'>■</span> Entry — 101–110  \n"
-        f"<span style='color:{ROLE_COLORS['Frequency']}'>■</span> Frequency — 100  \n"
-        f"<span style='color:{ROLE_COLORS['Upsize']}'>■</span> Upsize — 90–99  \n"
-        f"<span style='color:{ROLE_COLORS['Upscale']}'>■</span> Upscale — ≥111",
-        unsafe_allow_html=True,
-    )
+    st.divider()
+
+    st.markdown("##### 📖 Cibles d'index")
+    st.markdown(f"""
+    - **Entry** — {ROLE_TARGETS['Entry']}
+    - **Frequency** — {ROLE_TARGETS['Frequency']}
+    - **Upsize** — {ROLE_TARGETS['Upsize']}
+    - **Upscale** — {ROLE_TARGETS['Upscale']}
+    """)
+    st.caption("Index 100 = produit de référence (Frequency)")
 
 
 # -----------------------------------------------------------------------------
-# Filtrage
+# Filtrer
 # -----------------------------------------------------------------------------
-d_base = BASE[(BASE['Segment'].isin(segments)) & (BASE['Marque'].isin(brands))].copy()
+d = df[(df['Segment'].isin(segments)) & (df['Marque'].isin(brands))].copy()
 
-if d_base.empty:
-    st.warning("Sélectionnez au moins un segment et une marque.")
+if d.empty:
+    st.warning("⚠️ Aucun produit ne correspond à vos filtres. Élargissez votre sélection.")
     st.stop()
 
+d['PVF_Ajusté'] = (d['PVF_Ar'] * coef).round(0).astype(int)
+d['Prix_Litre_Ajusté'] = (d['Prix_Litre'] * coef).round(0).astype(int)
+
+# Référence : moyenne des Frequency par segment × occasion
+ref = (d[d['Rôle'] == 'Frequency']
+       .groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].mean())
+d['Ref'] = d.set_index(['Segment', 'Occasion']).index.map(ref)
+d['Ref'] = d['Ref'].fillna(d.groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].transform('mean'))
+d['Index'] = (d['Prix_Litre_Ajusté'] / d['Ref'] * 100).round(0).astype(int)
+d['Statut'] = d.apply(lambda r: status(r['Index'], r['Rôle']), axis=1)
+
 
 # =============================================================================
-# ÉDITEUR DE PRIX
+# EN-TÊTE
 # =============================================================================
-st.markdown("## Éditeur de prix")
-st.caption("Modifiez les PVF ou volumes — index, matrice et diagnostic se recalculent automatiquement.")
-
-editor_df = d_base[['_id', 'Segment', 'Marque', 'Occasion', 'Role_OBPPC',
-                    'Format', 'Volume_L', 'PVF_Ar']].copy()
-
-edited = st.data_editor(
-    editor_df,
-    column_config={
-        "_id": None,
-        "Segment": st.column_config.TextColumn("Segment", disabled=True, width="small"),
-        "Marque": st.column_config.TextColumn("Marque", disabled=True, width="small"),
-        "Occasion": st.column_config.TextColumn("Occasion", disabled=True, width="small"),
-        "Role_OBPPC": st.column_config.SelectboxColumn(
-            "Rôle OBPPC", options=ROLE_OPTIONS, required=True, width="medium"),
-        "Format": st.column_config.TextColumn("Format", disabled=True, width="medium"),
-        "Volume_L": st.column_config.NumberColumn(
-            "Volume (L)", min_value=0.05, step=0.05, format="%.2f", width="small"),
-        "PVF_Ar": st.column_config.NumberColumn(
-            "PVF (Ar)", min_value=0, step=100, format="%d", width="medium"),
-    },
-    hide_index=True,
-    use_container_width=True,
-    num_rows="fixed",
-    height=min(500, 80 + 35 * len(editor_df)),
-    key="price_editor",
-)
-
-# --- Recalcul complet
-d = edited.copy()
-d['P_Litre'] = d['PVF_Ar'] / d['Volume_L']
-d['PVF_Ajuste'] = d['PVF_Ar'] * coef
-d['P_Litre_Ajuste'] = d['P_Litre'] * coef
-d['Role'] = d['Role_OBPPC'].map(ROLE_SIMPLE)
-
-def occ_group(o):
-    if str(o).startswith('IC'): return 'IC (Immédiate)'
-    if str(o).startswith('FC'): return 'FC (Future)'
-    return 'Hors occasion'
-d['Occ_Group'] = d['Occasion'].apply(occ_group)
-
-ref = d[d['Role'] == 'Frequency'].groupby(['Segment', 'Occ_Group'])['P_Litre_Ajuste'].mean()
-d['Ref_Litre'] = d.set_index(['Segment', 'Occ_Group']).index.map(ref)
-d['Ref_Litre'] = d['Ref_Litre'].fillna(
-    d.groupby(['Segment', 'Occ_Group'])['P_Litre_Ajuste'].transform('mean')
-)
-d['Index'] = (d['P_Litre_Ajuste'] / d['Ref_Litre'] * 100).round(0).astype(int)
-d['Statut'] = d.apply(lambda r: status(r['Index'], r['Role']), axis=1)
-
-n_ok = int((d['Statut'] == 'OK').sum())
-n_total = len(d)
-taux = n_ok / n_total * 100 if n_total else 0
-color = '#4ade80' if taux >= 80 else '#fbbf24' if taux >= 50 else '#f87171'
+st.markdown("# Simulateur OBPPC")
 st.markdown(
-    f"<div style='padding:8px 14px; background:#222732; border:1px solid #2c3340; "
-    f"border-left:3px solid {color}; border-radius:6px; margin-top:0.5rem; "
-    f"font-size:0.82rem;'>"
-    f"<span style='color:#94a3b8; font-size:0.7rem; text-transform:uppercase; "
-    f"letter-spacing:0.08em; font-weight:600;'>Conformité OBPPC</span>"
-    f"<span style='color:{color}; font-weight:700; margin-left:10px;'>"
-    f"{n_ok} / {n_total} &nbsp;·&nbsp; {taux:.0f}%</span>"
-    f"</div>",
-    unsafe_allow_html=True,
+    "**Analyse de cohérence** entre les rôles tarifaires (Entry, Frequency, Upsize, Upscale) "
+    "et les prix au litre, par marque et par occasion."
 )
 
+# Bandeau de synthèse
+n_ok = int((d['Statut'] == 'OK').sum())
+n_ko = int((d['Statut'] == 'KO').sum())
+taux = n_ok / len(d) * 100 if len(d) else 0
+
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    st.metric("Produits analysés", len(d))
+with col2:
+    st.metric("✅ Conformes", n_ok)
+with col3:
+    st.metric("❌ Non conformes", n_ko)
+with col4:
+    st.metric("Taux de conformité", f"{taux:.0f}%")
+
+if taux >= 80:
+    st.success(f"**Cohérence élevée** — {n_ok} produits sur {len(d)} respectent leur cible tarifaire.")
+elif taux >= 50:
+    st.warning(f"**Cohérence partielle** — {n_ko} produits s'écartent de leur cible. Vérifiez l'onglet Diagnostic.")
+else:
+    st.error(f"**Cohérence faible** — {n_ko} produits ne respectent pas leur rôle. Arbitrage prix à revoir.")
+
+st.divider()
+
 
 # =============================================================================
-# Onglets
+# NAVIGATION
 # =============================================================================
-tab1, tab2, tab3, tab4 = st.tabs([
-    "Matrice OBPPC", "Couverture des rôles", "Échelle de prix", "Diagnostic",
+tab1, tab2, tab3 = st.tabs([
+    "①  ✏️  Modifier les prix",
+    "②  📊  Vue d'ensemble",
+    "③  🎯  Diagnostic",
 ])
 
 
 # =============================================================================
-# TAB 1 — MATRICE
+# TAB 1 — MODIFIER LES PRIX
 # =============================================================================
 with tab1:
-    seg_choice = st.selectbox("Segment", sorted(d['Segment'].unique()), key="t1_seg")
-    sub = d[d['Segment'] == seg_choice].copy()
-    sub['Occ_Order'] = sub['Occ_Group'].map(
-        {'IC (Immédiate)': 0, 'FC (Future)': 1, 'Hors occasion': 2}
+    st.markdown("## ✏️ Modifier les prix")
+    st.markdown(
+        "Ajustez le **prix de vente (PVF)** ou le **volume** d'un produit directement dans le tableau. "
+        "Toutes les analyses se recalculent automatiquement."
     )
-    sub = sub.sort_values(['Occ_Order', 'Volume_L'])
-    cols = sorted(sub['Format'].unique(),
-                  key=lambda f: (sub[sub['Format'] == f]['Occ_Order'].iloc[0],
-                                 sub[sub['Format'] == f]['Volume_L'].iloc[0]))
-    brands_in = sorted(sub['Marque'].unique())
 
-    html = ['<table class="obppc-table"><thead><tr><th class="row-head">Marque</th>']
-    for c in cols:
-        html.append(f'<th>{c}</th>')
+    editor_df = d[['Segment', 'Marque', 'Occasion', 'Rôle',
+                   'Format', 'Volume_L', 'PVF_Ar']].copy()
+
+    edited = st.data_editor(
+        editor_df,
+        column_config={
+            "Segment": st.column_config.TextColumn("Segment", disabled=True, width="small"),
+            "Marque": st.column_config.TextColumn("Marque", disabled=True, width="small"),
+            "Occasion": st.column_config.TextColumn("Occasion", disabled=True, width="small"),
+            "Rôle": st.column_config.SelectboxColumn(
+                "Rôle tarifaire", options=ROLES, required=True, width="medium",
+                help="Entry / Frequency / Upsize / Upscale",
+            ),
+            "Format": st.column_config.TextColumn("Format", disabled=True, width="medium"),
+            "Volume_L": st.column_config.NumberColumn(
+                "Volume (L)", min_value=0.05, step=0.05, format="%.2f",
+                help="Volume du contenant en litres",
+            ),
+            "PVF_Ar": st.column_config.NumberColumn(
+                "Prix de vente (Ar)", min_value=0, step=100, format="%d",
+                help="Prix de vente final en Ariary",
+            ),
+        },
+        hide_index=True,
+        use_container_width=True,
+        num_rows="fixed",
+        height=min(600, 100 + 38 * len(editor_df)),
+        key="price_editor",
+    )
+
+    # Recalcul
+    d2 = edited.copy()
+    d2['PVF_Ajusté'] = (d2['PVF_Ar'] * coef).round(0).astype(int)
+    d2['Prix_Litre_Ajusté'] = ((d2['PVF_Ar'] / d2['Volume_L']) * coef).round(0).astype(int)
+
+    ref2 = (d2[d2['Rôle'] == 'Frequency']
+            .groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].mean())
+    d2['Ref'] = d2.set_index(['Segment', 'Occasion']).index.map(ref2)
+    d2['Ref'] = d2['Ref'].fillna(
+        d2.groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].transform('mean'))
+    d2['Index'] = (d2['Prix_Litre_Ajusté'] / d2['Ref'] * 100).round(0).astype(int)
+    d2['Statut'] = d2.apply(lambda r: status(r['Index'], r['Rôle']), axis=1)
+
+    st.markdown("### Résultats en direct")
+    st.caption(f"Canal : {channel} · Index 100 = moyenne des Frequency du même segment × occasion")
+
+    # Tableau de résultats propre
+    view = d2[['Marque', 'Format', 'Occasion', 'Rôle',
+               'Prix_Litre_Ajusté', 'Index', 'Statut']].copy()
+    view.columns = ['Marque', 'Format', 'Occasion', 'Rôle',
+                    'Prix / L (Ar)', 'Index', 'Statut']
+    view['Prix / L (Ar)'] = view['Prix / L (Ar)'].apply(lambda x: f"{x:,}".replace(',', ' '))
+    view['Statut'] = view['Statut'].map({
+        'OK': '<span class="tag tag-ok">Conforme</span>',
+        'KO': '<span class="tag tag-ko">À revoir</span>',
+        '—':  '<span class="tag tag-warn">—</span>',
+    })
+
+    html = ['<table class="data-table">']
+    html.append('<thead><tr>')
+    for c in view.columns:
+        html.append(f'<th{" class=num" if "Prix" in c or "Index" in c else ""}>{c}</th>')
     html.append('</tr></thead><tbody>')
-
-    for brand in brands_in:
-        html.append(f'<tr><td class="row-head">{brand}</td>')
-        bsub = sub[sub['Marque'] == brand]
-        for c in cols:
-            cell = bsub[bsub['Format'] == c]
-            if cell.empty:
-                html.append('<td class="empty">—</td>')
-            else:
-                row = cell.iloc[0]
-                color = ROLE_COLORS[row['Role']]
-                warn = '' if row['Statut'] == 'OK' else '<span class="warn-mark">⚠</span>'
-                html.append(
-                    f'<td style="border-left:3px solid {color};">'
-                    f'<span class="matrix-cell">{int(row["PVF_Ajuste"]):,}</span>'
-                    f'<span class="matrix-idx">·{row["Index"]}</span>{warn}'
-                    f'</td>'
-                )
+    for _, row in view.iterrows():
+        html.append('<tr>')
+        for i, c in enumerate(view.columns):
+            cls = ' class="num"' if c in ('Prix / L (Ar)', 'Index') else ''
+            html.append(f'<td{cls}>{row[c]}</td>')
         html.append('</tr>')
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
 
-    st.markdown(
-        '<div class="legend">'
-        + ''.join([
-            f'<div class="legend-item">'
-            f'<span class="legend-swatch" style="background:{c};"></span>'
-            f'{r} (cible {ROLE_TARGET[r]})</div>'
-            for r, c in ROLE_COLORS.items()
-        ])
-        + '</div>',
-        unsafe_allow_html=True,
-    )
-
 
 # =============================================================================
-# TAB 2 — COUVERTURE
+# TAB 2 — VUE D'ENSEMBLE
 # =============================================================================
 with tab2:
-    st.markdown("#### Couverture des rôles par marque")
-    st.caption("Chaque cellule liste les articles qui occupent ce rôle sur l'occasion sélectionnée.")
+    st.markdown("## 📊 Vue d'ensemble du portefeuille")
 
-    occ_choice = st.radio(
-        "Occasion", ['IC (Immédiate)', 'FC (Future)', 'Hors occasion'],
-        horizontal=True, key="t2_occ",
+    st.markdown("### Couverture des rôles par marque")
+    st.markdown(
+        "Ce tableau montre quels rôles tarifaires chaque marque occupe. "
+        "Une marque bien structurée couvre **au minimum Entry + Frequency**."
     )
-    sub2 = d[d['Occ_Group'] == occ_choice]
 
-    if sub2.empty:
-        st.info("Aucun SKU sur cette occasion.")
+    sub = d[d['Occasion'] == st.radio(
+        "Occasion", OCCASIONS, horizontal=True, key="vue_occ",
+        help="IC = consommation immédiate · FC = consommation future"
+    )]
+
+    if sub.empty:
+        st.info("Aucun produit sur cette occasion.")
     else:
-        brands_in = sorted(sub2['Marque'].unique())
-        roles_cols = ['Entry', 'Frequency', 'Upsize', 'Upscale']
+        brands_in = sorted(sub['Marque'].unique())
 
-        html = ['<table class="obppc-table"><thead><tr>'
-                '<th class="row-head">Marque</th>'
-                '<th>Entry</th><th>Frequency</th><th>Upsize</th><th>Upscale</th>'
-                '<th style="min-width:80px;">Couverture</th></tr></thead><tbody>']
+        html = ['<table class="data-table"><thead><tr>'
+                '<th>Marque</th><th>Entry</th><th>Frequency</th>'
+                '<th>Upsize</th><th>Upscale</th><th>Couverture</th>'
+                '</tr></thead><tbody>']
 
         for brand in brands_in:
-            bsub = sub2[sub2['Marque'] == brand]
-            html.append(f'<tr><td class="row-head">{brand}</td>')
-
-            covered_roles = 0
-            for role in roles_cols:
-                rsub = bsub[bsub['Role'] == role]
+            bsub = sub[sub['Marque'] == brand]
+            html.append(f'<tr><td><b>{brand}</b></td>')
+            covered = 0
+            for role in ROLES:
+                rsub = bsub[bsub['Rôle'] == role]
                 if rsub.empty:
-                    html.append('<td class="empty">—</td>')
+                    html.append('<td style="color:#4a5264;">—</td>')
                 else:
-                    covered_roles += 1
-                    color = ROLE_COLORS[role]
-                    items = []
-                    for _, art in rsub.iterrows():
-                        items.append(
-                            f'<span class="art-item" style="--c:{color};">'
-                            f'{art["Format"]}'
-                            f'<span class="idx">{int(art["P_Litre_Ajuste"]):,} Ar/L</span>'
-                            f'</span>'
-                        )
-                    html.append(
-                        f'<td><div class="art-list">'
-                        f'<span class="count-badge">{len(rsub)}</span>'
-                        + ''.join(items) +
-                        '</div></td>'
-                    )
-
-            cov_color = '#4ade80' if covered_roles >= 3 else '#fbbf24' if covered_roles == 2 else '#f87171'
-            html.append(
-                f'<td><span class="cov-pill" style="background:{cov_color}22; '
-                f'color:{cov_color};">{covered_roles}/4</span></td>'
-            )
+                    covered += 1
+                    formats = ', '.join(rsub['Format'].tolist())
+                    html.append(f'<td>{formats}</td>')
+            cov_color = '#4ade80' if covered >= 3 else '#fbbf24' if covered == 2 else '#f87171'
+            html.append(f'<td><b style="color:{cov_color}">{covered}/4</b></td>')
             html.append('</tr>')
 
         html.append('</tbody></table>')
         st.markdown(''.join(html), unsafe_allow_html=True)
 
-        st.markdown("##### Lacunes détectées")
-        any_gap = False
-        for brand in brands_in:
-            bsub = sub2[sub2['Marque'] == brand]
-            gaps = [r for r in ['Entry', 'Frequency'] if bsub[bsub['Role'] == r].empty]
-            if gaps:
-                any_gap = True
-                st.warning(f"**{brand}** — rôle(s) manquant(s) : {', '.join(gaps)}")
-        if not any_gap:
-            st.success("Toutes les marques couvrent Entry et Frequency sur cette occasion.")
+    st.markdown("### Tous les produits du périmètre")
+    st.markdown(
+        "Vue tabulaire complète avec le prix au litre, l'index de positionnement "
+        "et le statut de conformité."
+    )
+
+    view2 = d[['Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
+               'Volume_L', 'PVF_Ajusté', 'Prix_Litre_Ajusté', 'Index', 'Statut']].copy()
+    view2.columns = ['Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
+                     'Volume (L)', 'Prix (Ar)', 'Prix / L (Ar)', 'Index', 'Statut']
+    view2['Statut'] = view2['Statut'].map({
+        'OK': '<span class="tag tag-ok">Conforme</span>',
+        'KO': '<span class="tag tag-ko">À revoir</span>',
+        '—':  '<span class="tag tag-warn">—</span>',
+    })
+
+    html = ['<table class="data-table"><thead><tr>']
+    for c in view2.columns:
+        html.append(f'<th>{c}</th>')
+    html.append('</tr></thead><tbody>')
+    for _, row in view2.iterrows():
+        html.append('<tr>')
+        for c in view2.columns:
+            val = row[c]
+            cls = ' class="num"' if c in ('Volume (L)', 'Prix (Ar)', 'Prix / L (Ar)', 'Index') else ''
+            if c == 'Volume (L)':
+                val = f"{val:.2f}"
+            elif c in ('Prix (Ar)', 'Prix / L (Ar)'):
+                val = f"{int(val):,}".replace(',', ' ')
+            html.append(f'<td{cls}>{val}</td>')
+        html.append('</tr>')
+    html.append('</tbody></table>')
+    st.markdown(''.join(html), unsafe_allow_html=True)
 
 
 # =============================================================================
-# TAB 3 — ÉCHELLE
+# TAB 3 — DIAGNOSTIC
 # =============================================================================
 with tab3:
-    st.markdown("#### Échelle de prix par marque")
-
-    brand_choice = st.selectbox("Marque", sorted(d['Marque'].unique()), key="t3_brand")
-    bsub = d[d['Marque'] == brand_choice].copy()
-    order_roles = ['Entry', 'Frequency', 'Upsize', 'Upscale']
-    bsub = bsub[bsub['Role'].isin(order_roles)]
-    bsub['Role_Order'] = bsub['Role'].map({r: i for i, r in enumerate(order_roles)})
-    bsub = bsub.sort_values(['Occ_Group', 'Role_Order'])
-
-    if bsub.empty:
-        st.info("Aucune donnée pour cette marque.")
-    else:
-        fig = go.Figure()
-        for occ in bsub['Occ_Group'].unique():
-            occ_df = bsub[bsub['Occ_Group'] == occ]
-            fig.add_trace(go.Bar(
-                x=occ_df['Role'], y=occ_df['P_Litre_Ajuste'], name=occ,
-                text=[f'{int(v):,}' for v in occ_df['P_Litre_Ajuste']],
-                textposition='outside', textfont=dict(color='#e3e8ef', size=11),
-                marker_color=[ROLE_COLORS[r] for r in occ_df['Role']],
-                marker_line=dict(color='#181c24', width=1),
-            ))
-        fig.update_layout(
-            barmode='group', height=420,
-            margin=dict(l=20, r=20, t=20, b=20),
-            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='#cbd5e1', family='Inter'),
-            yaxis=dict(title='Prix / L (Ar)', gridcolor='#2c3340', zeroline=False),
-            xaxis=dict(title='', gridcolor='#2c3340'),
-            legend=dict(orientation='h', y=1.1, bgcolor='rgba(0,0,0,0)',
-                        font=dict(color='#cbd5e1')),
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-        view = bsub[['Occ_Group', 'Role', 'Format', 'Volume_L',
-                     'PVF_Ajuste', 'P_Litre_Ajuste', 'Index', 'Statut']].copy()
-        view.columns = ['Occasion', 'Rôle', 'Format', 'Volume (L)',
-                        'PVF ajusté', 'Prix / L', 'Index', 'Statut']
-        view['PVF ajusté'] = view['PVF ajusté'].round(0).astype(int)
-        view['Prix / L'] = view['Prix / L'].round(0).astype(int)
-        st.dataframe(view, use_container_width=True, hide_index=True,
-                     column_config={
-                         'Volume (L)': st.column_config.NumberColumn(format="%.2f"),
-                         'PVF ajusté': st.column_config.NumberColumn(format="%d Ar"),
-                         'Prix / L': st.column_config.NumberColumn(format="%d Ar"),
-                         'Index': st.column_config.NumberColumn(format="%d"),
-                     })
-
-
-# =============================================================================
-# TAB 4 — DIAGNOSTIC
-# =============================================================================
-with tab4:
-    st.markdown("#### Diagnostic OBPPC")
-
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("SKU analysés", n_total)
-    c2.metric("Conformes", n_ok)
-    c3.metric("Non conformes", n_total - n_ok)
-    c4.metric("Taux conformité", f"{taux:.0f}%")
-
-    st.markdown("##### Conformité par segment × occasion")
-    summary = (
-        d.groupby(['Segment', 'Occ_Group'])
-        .apply(lambda g: pd.Series({
-            'SKU': len(g),
-            'Conformes': (g['Statut'] == 'OK').sum(),
-            'Taux (%)': round((g['Statut'] == 'OK').mean() * 100, 1),
-        }))
-        .reset_index()
+    st.markdown("## 🎯 Diagnostic OBPPC")
+    st.markdown(
+        "Liste des produits qui **ne respectent pas leur rôle tarifaire**. "
+        "L'écart indique de combien de points d'index le produit doit être ajusté."
     )
-    st.dataframe(summary, use_container_width=True, hide_index=True)
 
-    st.markdown("##### Positions à réviser")
     ko = d[d['Statut'] == 'KO'].copy()
 
     if ko.empty:
-        st.success("Toutes les positions sont conformes.")
+        st.success("✅ Tous les produits respectent leur cible tarifaire.")
     else:
-        def gap(row):
-            i, role = row['Index'], row['Role']
+        def ecart(row):
+            i, role = row['Index'], row['Rôle']
             if role == 'Entry':     return max(101 - i, i - 110, 0)
             if role == 'Frequency': return abs(i - 100)
             if role == 'Upsize':    return max(90 - i, i - 99, 0)
             if role == 'Upscale':   return max(111 - i, 0)
             return 0
-        ko['Écart'] = ko.apply(gap, axis=1)
+
+        ko['Écart'] = ko.apply(ecart, axis=1)
         ko = ko.sort_values('Écart', ascending=False)
 
-        out = ko[['Segment', 'Marque', 'Occ_Group', 'Format', 'Role',
-                  'P_Litre_Ajuste', 'Index', 'Écart']].copy()
-        out.columns = ['Segment', 'Marque', 'Occasion', 'Format', 'Rôle',
-                       'Prix / L', 'Index', 'Écart']
-        out['Prix / L'] = out['Prix / L'].round(0).astype(int)
-        out['Écart'] = out['Écart'].astype(int)
-        st.dataframe(out, use_container_width=True, hide_index=True,
-                     column_config={
-                         'Prix / L': st.column_config.NumberColumn(format="%d Ar"),
-                         'Index': st.column_config.NumberColumn(format="%d"),
-                         'Écart': st.column_config.NumberColumn(format="%d pts"),
-                     })
+        st.markdown(f"**{len(ko)} produits à réviser** — triés par écart décroissant :")
 
-    st.markdown("##### Export")
-    csv = d[['Segment', 'Marque', 'Occ_Group', 'Format', 'Role_OBPPC',
-             'Volume_L', 'PVF_Ajuste', 'P_Litre_Ajuste', 'Index', 'Statut']].to_csv(index=False)
-    st.download_button(
-        "Télécharger (CSV)", data=csv,
-        file_name=f"obppc_{channel.split()[0].lower()}.csv", mime="text/csv",
-    )
+        html = ['<table class="data-table"><thead><tr>'
+                '<th>Marque</th><th>Format</th><th>Rôle actuel</th>'
+                '<th>Prix / L</th><th>Index</th><th>Cible</th><th>Écart</th>'
+                '</tr></thead><tbody>']
+
+        for _, row in ko.iterrows():
+            cible = ROLE_TARGETS[row['Rôle']]
+            html.append('<tr>')
+            html.append(f'<td><b>{row["Marque"]}</b></td>')
+            html.append(f'<td>{row["Format"]}</td>')
+            html.append(f'<td>{row["Rôle"]}</td>')
+            html.append(f'<td class="num">{int(row["Prix_Litre_Ajusté"]):,} Ar</td>'.replace(',', ' '))
+            html.append(f'<td class="num">{row["Index"]}</td>')
+            html.append(f'<td>{cible}</td>')
+            html.append(f'<td class="num"><b style="color:#f87171">+{int(row["Écart"])}</b></td>')
+            html.append('</tr>')
+        html.append('</tbody></table>')
+        st.markdown(''.join(html), unsafe_allow_html=True)
+
+        st.markdown("### Recommandations")
+
+        entry_ko = ko[ko['Rôle'] == 'Entry']
+        freq_ko = ko[ko['Rôle'] == 'Frequency']
+        up_ko = ko[ko['Rôle'].isin(['Upsize', 'Upscale'])]
+
+        if len(freq_ko):
+            st.warning(
+                f"**{len(freq_ko)} produits Frequency** ne sont pas à l'index 100. "
+                "Le produit de référence doit être ajusté en priorité, car tous les autres index dépendent de lui."
+            )
+        if len(entry_ko):
+            st.info(
+                f"**{len(entry_ko)} produits Entry** sont en dehors de la cible 101–110. "
+                "Vérifiez le positionnement du format d'accès (petit format)."
+            )
+        if len(up_ko):
+            st.info(
+                f"**{len(up_ko)} produits Upsize/Upscale** sont à revoir. "
+                "Vérifiez la cohérence entre volume et prix au litre."
+            )
