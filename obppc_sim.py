@@ -11,11 +11,28 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# Styles personnalisés (design corporate / analytique)
+# Dark theme — design premium
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    :root {
+        --bg:           #0a0e1a;
+        --bg-elev:      #131826;
+        --bg-elev-2:    #1a2234;
+        --border:       #1f2937;
+        --border-soft:  rgba(99,102,241,0.18);
+        --text:         #e2e8f0;
+        --text-dim:     #94a3b8;
+        --text-faint:   #64748b;
+        --accent:       #6366f1;
+        --accent-2:     #06b6d4;
+        --accent-3:     #8b5cf6;
+        --success:      #10b981;
+        --warn:         #f59e0b;
+        --danger:       #ef4444;
+    }
 
     html, body, [class*="css"] {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -23,159 +40,256 @@ st.markdown("""
 
     #MainMenu, footer, header {visibility: hidden;}
 
+    /* ---------- Background global avec halos ---------- */
+    .stApp {
+        background:
+            radial-gradient(1200px 700px at 12% -10%, rgba(99,102,241,0.12), transparent 60%),
+            radial-gradient(1000px 600px at 95% 0%,   rgba(6,182,212,0.09),  transparent 60%),
+            radial-gradient(800px 500px at 50% 100%,  rgba(139,92,246,0.07), transparent 65%),
+            #0a0e1a;
+        background-attachment: fixed;
+    }
+
     .main .block-container {
-        padding-top: 1.5rem;
-        padding-bottom: 2rem;
+        padding-top: 1.75rem;
+        padding-bottom: 3rem;
         max-width: 1500px;
     }
 
-    /* ---- Header ---- */
+    /* ---------- Header ---------- */
     .app-header {
-        background: #0f172a;
-        padding: 1.25rem 1.75rem;
-        border-radius: 10px;
-        margin-bottom: 1.75rem;
+        position: relative;
+        background: linear-gradient(135deg, rgba(30,41,59,0.85), rgba(15,23,42,0.9));
+        border: 1px solid rgba(99,102,241,0.28);
+        border-radius: 16px;
+        padding: 1.6rem 2rem;
+        margin-bottom: 1.9rem;
+        overflow: hidden;
+        box-shadow:
+            0 0 0 1px rgba(99,102,241,0.06),
+            0 30px 60px -25px rgba(99,102,241,0.45);
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 1rem;
+    }
+    .app-header::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(700px 160px at 0% 0%, rgba(99,102,241,0.35), transparent 60%);
+        pointer-events: none;
     }
     .app-header h1 {
         margin: 0;
-        font-size: 1.35rem;
-        font-weight: 600;
-        color: #ffffff;
-        letter-spacing: -0.01em;
+        font-size: 1.55rem;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        background: linear-gradient(90deg, #ffffff 0%, #c7d2fe 60%, #a5b4fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
     .app-header .subtitle {
-        margin: 0.25rem 0 0 0;
-        color: #94a3b8;
-        font-size: 0.83rem;
+        margin: 0.35rem 0 0 0;
+        color: var(--text-dim);
+        font-size: 0.85rem;
         font-weight: 400;
     }
     .app-header .badge {
-        background: #1e293b;
-        color: #94a3b8;
-        padding: 0.35rem 0.75rem;
-        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(99,102,241,0.12);
+        color: #c7d2fe;
+        padding: 0.45rem 0.85rem;
+        border-radius: 6px;
         font-size: 0.68rem;
-        font-weight: 500;
-        letter-spacing: 0.08em;
+        font-weight: 600;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
-        border: 1px solid #334155;
+        border: 1px solid rgba(99,102,241,0.35);
+        white-space: nowrap;
+    }
+    .app-header .badge .dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: #22d3ee;
+        box-shadow: 0 0 10px #22d3ee, 0 0 20px rgba(34,211,238,0.5);
+        animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%      { opacity: 0.55; transform: scale(0.85); }
     }
 
-    /* ---- Section titles ---- */
+    /* ---------- Section titles ---------- */
     .section-title {
-        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        font-size: 1.02rem;
         font-weight: 600;
-        color: #0f172a;
-        margin: 1.5rem 0 0.75rem 0;
-        padding-bottom: 0.45rem;
-        border-bottom: 2px solid #e2e8f0;
+        color: var(--text);
+        margin: 1.75rem 0 0.5rem 0;
+        letter-spacing: -0.01em;
+    }
+    .section-title::before {
+        content: "";
+        width: 3px;
+        height: 18px;
+        border-radius: 2px;
+        background: linear-gradient(180deg, var(--accent), var(--accent-2));
+        box-shadow: 0 0 12px rgba(99,102,241,0.6);
     }
     .section-caption {
         font-size: 0.82rem;
-        color: #64748b;
+        color: var(--text-faint);
         margin-bottom: 1rem;
+        padding-left: 0.9rem;
     }
 
-    /* ---- KPI cards ---- */
+    /* ---------- KPI cards ---------- */
     .kpi-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 0.85rem;
-        margin-bottom: 1.25rem;
+        gap: 0.9rem;
+        margin: 0.5rem 0 1.4rem 0;
     }
     .kpi-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 0.9rem 1rem;
+        position: relative;
+        background: linear-gradient(160deg, rgba(26,34,52,0.9), rgba(15,23,42,0.9));
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.05rem 1.15rem;
+        overflow: hidden;
+        transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .kpi-card::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        opacity: 0.85;
+    }
+    .kpi-card:hover {
+        border-color: rgba(99,102,241,0.45);
+        transform: translateY(-2px);
     }
     .kpi-label {
         font-size: 0.68rem;
-        font-weight: 500;
-        color: #64748b;
+        font-weight: 600;
+        color: var(--text-faint);
         text-transform: uppercase;
-        letter-spacing: 0.06em;
-        margin-bottom: 0.4rem;
+        letter-spacing: 0.09em;
+        margin-bottom: 0.5rem;
     }
     .kpi-value {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #0f172a;
-        line-height: 1.1;
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: #ffffff;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+    }
+    .kpi-value .unit {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        font-weight: 500;
+        margin-left: 0.2rem;
     }
     .kpi-sub {
         font-size: 0.72rem;
-        color: #94a3b8;
-        margin-top: 0.3rem;
+        color: var(--text-faint);
+        margin-top: 0.4rem;
     }
 
-    /* ---- Sidebar ---- */
+    /* ---------- Sidebar ---------- */
     section[data-testid="stSidebar"] {
-        background: #f8fafc;
-        border-right: 1px solid #e2e8f0;
+        background: linear-gradient(180deg, #0d1322 0%, #0a0e1a 100%);
+        border-right: 1px solid var(--border);
     }
     section[data-testid="stSidebar"] .block-container {
-        padding-top: 1.25rem;
+        padding-top: 1.5rem;
     }
     .sidebar-block-title {
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         font-weight: 600;
-        color: #475569;
+        color: #a5b4fc;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin: 0.75rem 0 0.5rem 0;
+        letter-spacing: 0.12em;
+        margin: 0.9rem 0 0.55rem 0;
     }
     .rule-item {
         display: flex;
         justify-content: space-between;
         font-size: 0.8rem;
-        color: #334155;
-        padding: 0.35rem 0;
-        border-bottom: 1px dashed #e2e8f0;
+        color: var(--text-dim);
+        padding: 0.45rem 0;
+        border-bottom: 1px dashed rgba(148,163,184,0.15);
     }
+    .rule-item:last-child { border-bottom: none; }
     .rule-item span:last-child {
         font-variant-numeric: tabular-nums;
-        color: #0f172a;
-        font-weight: 500;
+        color: #c7d2fe;
+        font-weight: 600;
     }
 
-    /* ---- Buttons ---- */
-    .stButton > button {
-        border-radius: 6px;
-        font-weight: 500;
-        font-size: 0.87rem;
-        border: 1px solid #cbd5e1;
-        padding: 0.45rem 1.1rem;
-        transition: all 0.15s ease;
+    /* ---------- Inputs ---------- */
+    .stMultiSelect [data-baseweb="tag"] {
+        background: rgba(99,102,241,0.2) !important;
+        border: 1px solid rgba(99,102,241,0.4) !important;
+        color: #c7d2fe !important;
     }
-    .stButton > button[kind="primary"] {
-        background: #0f172a;
-        border-color: #0f172a;
+
+    /* ---------- Buttons ---------- */
+    .stButton > button {
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.88rem;
+        padding: 0.55rem 1.2rem;
+        border: 1px solid var(--border-soft);
+        background: var(--bg-elev);
+        color: var(--text);
+        transition: all 0.18s ease;
+    }
+    .stButton > button:hover {
+        border-color: rgba(99,102,241,0.55);
         color: #ffffff;
     }
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border: none;
+        color: #ffffff;
+        box-shadow: 0 10px 30px -10px rgba(99,102,241,0.7);
+    }
     .stButton > button[kind="primary"]:hover {
-        background: #1e293b;
-        border-color: #1e293b;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        box-shadow: 0 14px 35px -10px rgba(99,102,241,0.9);
+        transform: translateY(-1px);
     }
 
-    /* ---- Dataframe wrapper ---- */
-    [data-testid="stDataFrame"] {
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
+    /* ---------- Dataframes ---------- */
+    [data-testid="stDataFrame"], [data-testid="stDataEditor"] {
+        border: 1px solid var(--border-soft) !important;
+        border-radius: 12px !important;
         overflow: hidden;
+        box-shadow: 0 20px 40px -25px rgba(0,0,0,0.8);
     }
 
-    /* ---- Download button ---- */
+    /* ---------- Download button ---------- */
     [data-testid="stDownloadButton"] > button {
-        border-radius: 6px;
+        border-radius: 8px;
         font-size: 0.85rem;
-        border: 1px solid #cbd5e1;
+        border: 1px solid var(--border-soft);
+        background: var(--bg-elev);
+        color: var(--text);
+    }
+    [data-testid="stDownloadButton"] > button:hover {
+        border-color: rgba(6,182,212,0.55);
+        color: #67e8f9;
     }
 
-    hr { margin: 1.25rem 0; border-color: #e2e8f0; }
+    hr { border-color: var(--border); margin: 1.4rem 0; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -279,37 +393,28 @@ df_initial = load_initial_data()
 
 
 # -----------------------------------------------------------------------------
-# Logique métier : évaluation de l'index vs cible OBPPC
+# Logique métier
 # -----------------------------------------------------------------------------
 def check_index_status(index_value, role):
     if role == 'Entry (Entrée de gamme)':
-        if 101 <= index_value <= 110:
-            return 'Conforme'
-        return 'Non conforme'
-    elif role == 'Frequency (Cœur de gamme)':
-        if index_value == 100:
-            return 'Conforme'
-        return 'Non conforme'
-    elif role == 'Upsize (Grand format)':
-        if 90 <= index_value <= 99:
-            return 'Conforme'
-        return 'Non conforme'
-    elif role in ['Upscale (Premium)', 'Upscale (Super-Premium Niche)']:
-        if index_value >= 111:
-            return 'Conforme'
-        return 'Non conforme'
+        return 'Conforme' if 101 <= index_value <= 110 else 'Non conforme'
+    if role == 'Frequency (Cœur de gamme)':
+        return 'Conforme' if index_value == 100 else 'Non conforme'
+    if role == 'Upsize (Grand format)':
+        return 'Conforme' if 90 <= index_value <= 99 else 'Non conforme'
+    if role in ['Upscale (Premium)', 'Upscale (Super-Premium Niche)']:
+        return 'Conforme' if index_value >= 111 else 'Non conforme'
     return '—'
 
 
 def target_label(role):
-    mapping = {
+    return {
         'Entry (Entrée de gamme)': '101 – 110',
         'Frequency (Cœur de gamme)': '100',
         'Upsize (Grand format)': '90 – 99',
         'Upscale (Premium)': '≥ 111',
         'Upscale (Super-Premium Niche)': '≥ 111',
-    }
-    return mapping.get(role, '—')
+    }.get(role, '—')
 
 
 # -----------------------------------------------------------------------------
@@ -321,13 +426,13 @@ st.markdown("""
         <h1>Simulateur OBPPC</h1>
         <p class="subtitle">Occasion · Brand · Package · Price · Channel — analyse de cohérence pricing</p>
     </div>
-    <div class="badge">Pricing Analytics</div>
+    <div class="badge"><span class="dot"></span>Pricing Analytics</div>
 </div>
 """, unsafe_allow_html=True)
 
 
 # -----------------------------------------------------------------------------
-# Sidebar — filtres et rappel de la logique
+# Sidebar
 # -----------------------------------------------------------------------------
 with st.sidebar:
     st.markdown('<div class="sidebar-block-title">Segments</div>', unsafe_allow_html=True)
@@ -373,10 +478,13 @@ else:
 
 
 # -----------------------------------------------------------------------------
-# Section — Tableau éditable
+# Tableau éditable
 # -----------------------------------------------------------------------------
 st.markdown('<div class="section-title">Portefeuille — Édition</div>', unsafe_allow_html=True)
-st.markdown('<div class="section-caption">Ajustez les volumes, PVF et rôles OBPPC, puis lancez le recalcul.</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-caption">Ajustez les volumes, PVF et rôles OBPPC, puis lancez le recalcul.</div>',
+    unsafe_allow_html=True,
+)
 
 edited_df = st.data_editor(
     df_filtered,
@@ -426,7 +534,7 @@ edited_df = st.data_editor(
 
 
 # -----------------------------------------------------------------------------
-# Bouton de recalcul
+# Bouton
 # -----------------------------------------------------------------------------
 col_btn, _ = st.columns([1, 4])
 with col_btn:
@@ -434,7 +542,7 @@ with col_btn:
 
 
 # -----------------------------------------------------------------------------
-# Section — Résultats
+# Résultats
 # -----------------------------------------------------------------------------
 if calculate_button:
     edited_df['P_Litre_Ar'] = edited_df['PVF_Ar'] / edited_df['Volume_L']
@@ -444,7 +552,6 @@ if calculate_button:
     edited_df['Index_PVF_Freq'] = 0.0
     edited_df['Index_P_Litre_Freq'] = 0.0
 
-    # Index intra-segment (base = premier produit du segment)
     for segment in edited_df['Segment'].unique():
         mask = edited_df['Segment'] == segment
         seg = edited_df[mask]
@@ -457,7 +564,6 @@ if calculate_button:
         if base_pl > 0:
             edited_df.loc[mask, 'Index_P_Litre'] = (edited_df.loc[mask, 'P_Litre_Ar'] / base_pl * 100).round(0).astype(int)
 
-    # Index vs référence Frequency
     freq = edited_df[edited_df['Role_OBPPC'].str.contains('Frequency', na=False)]
     if len(freq) > 0:
         base_pvf = freq['PVF_Ar'].mean()
@@ -489,7 +595,6 @@ if calculate_button:
         ),
     })
 
-    # ---- KPI cards ----
     total_sku = len(display_df)
     conformes = (display_df['Statut'] == 'Conforme').sum()
     taux = (conformes / total_sku * 100) if total_sku else 0
@@ -505,17 +610,17 @@ if calculate_button:
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Prix moyen / L</div>
-            <div class="kpi-value">{prix_moyen_l:,.0f} Ar</div>
+            <div class="kpi-value">{prix_moyen_l:,.0f}<span class="unit">Ar</span></div>
             <div class="kpi-sub">Moyenne tous rôles OBPPC</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Positions conformes</div>
-            <div class="kpi-value">{conformes} / {total_sku}</div>
+            <div class="kpi-value">{conformes}<span class="unit">/ {total_sku}</span></div>
             <div class="kpi-sub">Respectent la cible OBPPC</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Taux de conformité</div>
-            <div class="kpi-value">{taux:.0f}%</div>
+            <div class="kpi-value">{taux:.0f}<span class="unit">%</span></div>
             <div class="kpi-sub">Cohérence portefeuille</div>
         </div>
     </div>
