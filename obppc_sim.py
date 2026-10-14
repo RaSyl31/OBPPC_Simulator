@@ -223,11 +223,6 @@ def compute_target(row, coef):
     """
     Calcule les cibles de prix en respectant la contrainte :
     le prix proposé ne doit JAMAIS être inférieur au prix actuel.
-
-    Retourne un dict :
-      - action : 'augmenter' | 'au-dessus' | 'conforme'
-      - pvf_min, pvf_max : intervalle proposé (>= prix actuel)
-      - msg : message d'affichage
     """
     current_pvf = row['PVF_Ar']
     idx = row['Index']
@@ -245,24 +240,18 @@ def compute_target(row, coef):
 
     idx_min, idx_max = ROLE_INDEX_RANGE[role]
 
-    # Cibles calculées depuis l'index
     pl_min_cible = (idx_min * ref / 100) / coef
     pl_max_cible = (idx_max * ref / 100) / coef
     pvf_min_cible = pl_min_cible * vol
     pvf_max_cible = pl_max_cible * vol
 
-    # Contrainte : ne jamais descendre en dessous du prix actuel
     pvf_min = max(pvf_min_cible, current_pvf)
     pvf_max = max(pvf_max_cible, pvf_min)
 
-    # Déterminer l'action
     if idx < idx_min:
-        # Produit trop bas → on propose d'augmenter
         action = 'augmenter'
         msg = f"{int(pvf_min):,} – {int(pvf_max):,} Ar".replace(',', ' ')
     else:
-        # idx > idx_max : produit trop haut → cible en dessous du prix actuel
-        # On ne propose PAS de baisse → "au-dessus de la cible"
         action = 'au-dessus'
         msg = '⚠️ Prix déjà au-dessus de la cible'
 
@@ -301,7 +290,6 @@ def style_couverture(series):
 
 
 def style_proposition(series):
-    """Vert si proposition d'augmentation, ambre si au-dessus de la cible, gris si conforme."""
     out = []
     for v in series:
         s = str(v)
@@ -431,7 +419,7 @@ tab1, tab2, tab3 = st.tabs([
 
 
 # =============================================================================
-# TAB 1 — MODIFIER LES PRIX (avec proposition à la hausse)
+# TAB 1 — MODIFIER LES PRIX
 # =============================================================================
 with tab1:
     st.markdown("## ✏️ Modifier les prix")
@@ -492,16 +480,21 @@ with tab1:
     st.caption(f"Canal : **{channel}** · Index 100 = moyenne des Frequency du même segment × occasion")
 
     result = d2[['Marque', 'Format', 'Occasion', 'Rôle',
-                 'Prix_Litre_Ajusté', 'Index', 'Statut', 'Proposition']].copy()
+                 'PVF_Ar', 'Prix_Litre_Ajusté', 'Index',
+                 'Statut', 'Proposition']].copy()
     result.columns = ['Marque', 'Format', 'Occasion', 'Rôle',
-                      'Prix / L (Ar)', 'Index', 'Statut',
-                      '💡 Proposition']
+                      'Prix actuel (Ar)', 'Prix / L (Ar)', 'Index',
+                      'Statut', '💡 Proposition']
 
     styled_result = (
         result.style
         .apply(style_status, subset=['Statut'])
         .apply(style_proposition, subset=['💡 Proposition'])
-        .format({'Prix / L (Ar)': '{:,.0f}', 'Index': '{:d}'})
+        .format({
+            'Prix actuel (Ar)': '{:,.0f}',
+            'Prix / L (Ar)':    '{:,.0f}',
+            'Index':            '{:d}',
+        })
     )
 
     st.dataframe(
@@ -510,12 +503,21 @@ with tab1:
         height=min(500, 80 + 35 * len(result)),
         hide_index=True,
         column_config={
-            'Prix / L (Ar)': st.column_config.NumberColumn(format="%d"),
+            'Prix actuel (Ar)': st.column_config.NumberColumn(
+                "Prix actuel (Ar)",
+                help="Prix de vente (PVF) saisi dans le tableau d'édition",
+                format="%d",
+            ),
+            'Prix / L (Ar)': st.column_config.NumberColumn(
+                "Prix / L (Ar)",
+                help="Prix au litre ajusté selon le canal sélectionné",
+                format="%d",
+            ),
             'Index': st.column_config.NumberColumn(format="%d"),
             '💡 Proposition': st.column_config.TextColumn(
                 "💡 Proposition",
-                help="Intervalle de prix à appliquer pour rentrer dans la cible (jamais "
-                     "en dessous du prix actuel). 'Prix déjà au-dessus de la cible' "
+                help="Intervalle de prix à appliquer pour rentrer dans la cible "
+                     "(jamais en dessous du prix actuel). 'Prix déjà au-dessus de la cible' "
                      "signifie qu'aucun ajustement à la hausse n'est possible.",
                 width="large",
             ),
@@ -588,7 +590,6 @@ with tab2:
         "le statut de conformité et la proposition de prix."
     )
 
-    # Ajout des propositions
     view2 = d.copy()
     props = view2.apply(lambda r: compute_target(r, coef), axis=1)
     view2['Proposition'] = props.apply(lambda x: x['msg'])
@@ -631,7 +632,7 @@ with tab2:
 
 
 # =============================================================================
-# TAB 3 — DIAGNOSTIC avec propositions détaillées
+# TAB 3 — DIAGNOSTIC
 # =============================================================================
 with tab3:
     st.markdown("## 🎯 Diagnostic OBPPC")
@@ -641,7 +642,6 @@ with tab3:
         "⚠️ Aucune proposition de baisse n'est faite — uniquement des ajustements à la hausse."
     )
 
-    # On ne garde que les non conformes à augmenter (sous-évalués)
     ko = d[d['Statut'] == 'À revoir'].copy()
 
     if ko.empty:
@@ -653,13 +653,11 @@ with tab3:
         ko['PVF_max'] = proposals.apply(lambda x: x['pvf_max'])
         ko['Proposition'] = proposals.apply(lambda x: x['msg'])
 
-        # Séparation : produits à augmenter vs au-dessus de la cible
         to_increase = ko[ko['Action'] == 'augmenter'].copy()
         above_target = ko[ko['Action'] == 'au-dessus'].copy()
 
         # ---- Produits à augmenter ----
         if not to_increase.empty:
-            # Écart en points d'index
             def ecart_index(row):
                 i = row['Index']
                 imin, imax = ROLE_INDEX_RANGE[row['Rôle']]
@@ -720,7 +718,6 @@ with tab3:
                 },
             )
 
-            # Recommandations
             st.markdown("##### Recommandations")
             entry_ko = to_increase[to_increase['Rôle'] == 'Entry']
             freq_ko = to_increase[to_increase['Rôle'] == 'Frequency']
@@ -784,7 +781,7 @@ with tab3:
                 },
             )
 
-        # ---- Export du diagnostic complet ----
+        # ---- Export du diagnostic ----
         st.markdown("---")
         st.markdown("### Export du diagnostic")
         export_diag = ko[[
