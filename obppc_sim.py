@@ -120,15 +120,19 @@ st.markdown("""
 @st.cache_data
 def load_data():
     rows = [
+        # --- ENERGIE ---
         ('Energie', 'Red Bull', 'IC', 'Upscale', 'CAN 25', 0.25, 9900),
         ('Energie', 'Monster', 'IC', 'Upscale', 'CAN 50', 0.50, 9900),
         ('Energie', 'FOSA', 'IC', 'Upscale', 'CAN 50', 0.50, 5000),
         ('Energie', 'XXL', 'IC', 'Entry', 'VC 30', 0.30, 2500),
         ('Energie', 'XXL', 'IC', 'Frequency', 'PET 35', 0.35, 3500),
+        ('Energie', 'XXL', 'IC', 'Frequency', 'PET 50', 0.50, 5000),  # référence Energie
         ('Energie', 'XXL', 'IC', 'Upscale', 'CAN 33', 0.33, 4000),
         ('Energie', 'DYNAMIC', 'IC', 'Upscale', 'CAN 25', 0.25, 3500),
         ('Energie', 'BOOST VITALITY', 'IC', 'Upscale', 'CAN 33', 0.33, 4000),
-        ('Boisson Gazeuse', 'COCA', 'IC', 'Entry', 'PET 35', 0.35, 1500),
+
+        # --- BOISSON GAZEUSE ---
+        ('Boisson Gazeuse', 'COCA', 'IC', 'Frequency', 'PET 35', 0.35, 1500),  # référence BG
         ('Boisson Gazeuse', 'COCA', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
         ('Boisson Gazeuse', 'COCA', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
         ('Boisson Gazeuse', 'COCA', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
@@ -149,6 +153,8 @@ def load_data():
         ('Boisson Gazeuse', 'CAPRICE', 'FC', 'Upsize', 'VC 100', 1.00, 3000),
         ('Boisson Gazeuse', 'TONIC', 'IC', 'Entry', 'VC 30', 0.30, 1200),
         ('Boisson Gazeuse', 'TONIC', 'FC', 'Upsize', 'VC 100', 1.00, 3000),
+
+        # --- EAUX ---
         ('Eaux', 'Cristal', 'IC', 'Entry', 'Cristal 30 VER', 0.30, 1500),
         ('Eaux', 'Cristal', 'IC', 'Frequency', 'Cristal 50 VER', 0.50, 2200),
         ('Eaux', 'Cristal', 'FC', 'Upsize', 'Cristal 100 VER', 1.00, 3800),
@@ -161,7 +167,7 @@ def load_data():
         ('Eaux', 'Eau vive', 'IC', 'Entry', 'Eau vive 50 PET', 0.50, 1600),
         ('Eaux', 'Eau vive', 'FC', 'Upsize', 'Eau vive 150 PET', 1.50, 3300),
         ('Eaux', 'Eau vive', 'IC', 'Frequency', 'Eau vive 50 VER', 0.50, 2200),
-        ('Eaux', 'Cristalline', 'FC', 'Upsize', 'Cristalline 100 PET', 1.50, 2100),
+        ('Eaux', 'Cristalline', 'FC', 'Frequency', 'Cristalline 100 PET', 1.00, 2100),  # référence Eaux
         ('Eaux', 'Cristalline', 'FC', 'Upsize', 'Cristalline 200 PET', 2.00, 3600),
         ('Eaux', 'OLYMPIKO', 'IC', 'Entry', 'OLYMPIKO 50', 0.50, 1500),
         ('Eaux', 'OLYMPIKO', 'FC', 'Frequency', 'OLYMPIKO 100', 1.00, 2000),
@@ -169,6 +175,8 @@ def load_data():
         ('Eaux', 'NATUR EAU', 'IC', 'Entry', 'NATUR EAU 50', 0.50, 1500),
         ('Eaux', 'NATUR EAU', 'FC', 'Frequency', 'NATUR EAU 100', 1.00, 2000),
         ('Eaux', 'NATUR EAU', 'FC', 'Upsize', 'NATUR EAU 150', 1.50, 2500),
+
+        # --- BIERE ---
         ('Bière', 'Beaufort', 'IC', 'Frequency', 'Beaufort 33 VER', 0.33, 4000),
         ('Bière', 'Beaufort', 'IC', 'Upscale', 'Beaufort 33 CAN', 0.33, 5000),
         ('Bière', 'Gold', 'IC', 'Entry', 'Gold Blanche 33 VER', 0.33, 3500),
@@ -180,7 +188,7 @@ def load_data():
         ('Bière', 'Gold', 'IC', 'Upscale', 'Gold Blanche 50 CAN', 0.50, 6000),
         ('Bière', 'Gold', 'IC', 'Upscale', 'Gold Blonde 50 CAN', 0.50, 6000),
         ('Bière', 'THB', 'IC', 'Entry', 'THB Pilsener 33 VER', 0.33, 2500),
-        ('Bière', 'THB', 'FC', 'Frequency', 'THB Pilsener 65 VER', 0.65, 4500),
+        ('Bière', 'THB', 'IC', 'Frequency', 'THB Pilsener 65 VER', 0.65, 4500),  # référence Bière
         ('Bière', 'THB', 'IC', 'Upscale', 'THB Pilsener 50 CAN', 0.50, 5000),
         ('Bière', 'Queen', 'FC', 'Entry', 'Queen s 65 VER', 0.65, 4000),
         ('Bière', 'Fresh', 'IC', 'Entry', 'Fresh 33 VER', 0.33, 2500),
@@ -194,6 +202,18 @@ def load_data():
 
 
 df = load_data()
+
+# =============================================================================
+# RÉFÉRENCE PAR SEGMENT
+# =============================================================================
+# Produit de référence (index 100) par segment.
+# Format : {segment : (marque, mot-clé du format)}
+REFERENCE_PRODUCTS = {
+    'Energie':         ('XXL',         'PET 50'),
+    'Boisson Gazeuse': ('COCA',        'PET 35'),
+    'Eaux':            ('Cristalline', 'Cristalline 100'),
+    'Bière':           ('THB',         'THB Pilsener 65'),
+}
 
 OCCASIONS = ['IC', 'FC']
 ROLES = ['Entry', 'Frequency', 'Upsize', 'Upscale']
@@ -209,6 +229,28 @@ ROLE_INDEX_RANGE = {
     'Upsize':    (90, 99),
     'Upscale':   (111, 999),
 }
+
+
+def find_reference(df_full, segment, coef):
+    """
+    Trouve le produit de référence pour un segment dans le dataframe complet.
+    Retourne (label, prix_litre_ajusté) ou (None, None) si introuvable.
+    """
+    if segment not in REFERENCE_PRODUCTS:
+        return None, None
+    marque, fmt_pattern = REFERENCE_PRODUCTS[segment]
+    mask = (df_full['Segment'] == segment) & (df_full['Marque'] == marque)
+    sub = df_full[mask]
+    if sub.empty:
+        return None, None
+    for _, row in sub.iterrows():
+        if fmt_pattern.lower() in str(row['Format']).lower():
+            pl_adj = (row['PVF_Ar'] / row['Volume_L']) * coef
+            return f"{row['Marque']} — {row['Format']}", round(pl_adj)
+    # Fallback : premier produit de la marque
+    row = sub.iloc[0]
+    pl_adj = (row['PVF_Ar'] / row['Volume_L']) * coef
+    return f"{row['Marque']} — {row['Format']}", round(pl_adj)
 
 
 def status(idx, role):
@@ -355,7 +397,6 @@ with st.sidebar:
     - **Upsize** — {ROLE_TARGETS['Upsize']}
     - **Upscale** — {ROLE_TARGETS['Upscale']}
     """)
-    st.caption("Index 100 = produit de référence (moyenne des Frequency du même segment × occasion)")
 
 
 # =============================================================================
@@ -370,13 +411,36 @@ if d.empty:
 d['PVF_Ajusté'] = (d['PVF_Ar'] * coef).round(0).astype(int)
 d['Prix_Litre_Ajusté'] = (d['Prix_Litre'] * coef).round(0).astype(int)
 
-ref = (d[d['Rôle'] == 'Frequency']
-       .groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].mean())
-d['Ref'] = d.set_index(['Segment', 'Occasion']).index.map(ref)
-d['Ref'] = d['Ref'].fillna(
-    d.groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].transform('mean'))
+# --- Calcul des références par segment
+ref_by_segment = {}
+ref_label_by_segment = {}
+for segment in d['Segment'].unique():
+    label, pl = find_reference(d, segment, coef)
+    if pl is None:
+        # Fallback : moyenne des Frequency du segment
+        freq = d[(d['Segment'] == segment) & (d['Rôle'] == 'Frequency')]
+        if len(freq):
+            pl = freq['Prix_Litre_Ajusté'].mean()
+            label = f"(fallback) Moyenne Frequency {segment}"
+        else:
+            pl = d[d['Segment'] == segment]['Prix_Litre_Ajusté'].mean()
+            label = f"(fallback) Moyenne {segment}"
+    ref_by_segment[segment] = pl
+    ref_label_by_segment[segment] = label
+
+d['Ref'] = d['Segment'].map(ref_by_segment)
 d['Index'] = (d['Prix_Litre_Ajusté'] / d['Ref'] * 100).round(0).astype(int)
 d['Statut'] = d.apply(lambda r: status(r['Index'], r['Rôle']), axis=1)
+
+# --- Affichage des références utilisées
+with st.sidebar:
+    st.divider()
+    st.markdown("##### 🎯 Références actives")
+    for seg in sorted(ref_label_by_segment.keys()):
+        st.caption(
+            f"**{seg}** · {ref_label_by_segment[seg]}  \n"
+            f"Index 100 = {int(ref_by_segment[seg]):,} Ar/L".replace(',', ' ')
+        )
 
 
 # =============================================================================
@@ -385,7 +449,8 @@ d['Statut'] = d.apply(lambda r: status(r['Index'], r['Rôle']), axis=1)
 st.markdown("# Simulateur OBPPC")
 st.markdown(
     "**Analyse de cohérence** entre les rôles tarifaires et les prix au litre, "
-    "avec **proposition d'intervalle de prix à la hausse** pour chaque produit sous-évalué."
+    "avec **proposition d'intervalle de prix à la hausse** pour chaque produit sous-évalué. "
+    "La référence (index 100) est **fixe par segment**."
 )
 
 n_ok = int((d['Statut'] == 'Conforme').sum())
@@ -425,8 +490,7 @@ with tab1:
     st.markdown("## ✏️ Modifier les prix")
     st.markdown(
         "Ajustez le **prix de vente (PVF)** ou le **volume** d'un produit directement "
-        "dans le tableau. Toutes les analyses se recalent automatiquement. "
-        "La colonne **💡 Proposition** indique l'intervalle à viser pour les produits sous-évalués."
+        "dans le tableau. Toutes les analyses se recalent automatiquement."
     )
 
     editor_df = d[['Segment', 'Marque', 'Occasion', 'Rôle',
@@ -461,11 +525,16 @@ with tab1:
     d2['PVF_Ajusté'] = (d2['PVF_Ar'] * coef).round(0).astype(int)
     d2['Prix_Litre_Ajusté'] = ((d2['PVF_Ar'] / d2['Volume_L']) * coef).round(0).astype(int)
 
-    ref2 = (d2[d2['Rôle'] == 'Frequency']
-            .groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].mean())
-    d2['Ref'] = d2.set_index(['Segment', 'Occasion']).index.map(ref2)
-    d2['Ref'] = d2['Ref'].fillna(
-        d2.groupby(['Segment', 'Occasion'])['Prix_Litre_Ajusté'].transform('mean'))
+    # Références par segment (recalculées)
+    ref2_by_segment = {}
+    for segment in d2['Segment'].unique():
+        label, pl = find_reference(d2, segment, coef)
+        if pl is None:
+            freq = d2[(d2['Segment'] == segment) & (d2['Rôle'] == 'Frequency')]
+            pl = freq['Prix_Litre_Ajusté'].mean() if len(freq) else d2[d2['Segment'] == segment]['Prix_Litre_Ajusté'].mean()
+        ref2_by_segment[segment] = pl
+
+    d2['Ref'] = d2['Segment'].map(ref2_by_segment)
     d2['Index'] = (d2['Prix_Litre_Ajusté'] / d2['Ref'] * 100).round(0).astype(int)
     d2['Statut'] = d2.apply(lambda r: status(r['Index'], r['Rôle']), axis=1)
 
@@ -477,7 +546,7 @@ with tab1:
     d2['Proposition'] = proposals.apply(lambda x: x['msg'])
 
     st.markdown("### Résultats en direct")
-    st.caption(f"Canal : **{channel}** · Index 100 = moyenne des Frequency du même segment × occasion")
+    st.caption(f"Canal : **{channel}** · Index 100 = référence fixe par segment")
 
     result = d2[['Marque', 'Format', 'Occasion', 'Rôle',
                  'PVF_Ar', 'Prix_Litre_Ajusté', 'Index',
@@ -517,8 +586,7 @@ with tab1:
             '💡 Proposition': st.column_config.TextColumn(
                 "💡 Proposition",
                 help="Intervalle de prix à appliquer pour rentrer dans la cible "
-                     "(jamais en dessous du prix actuel). 'Prix déjà au-dessus de la cible' "
-                     "signifie qu'aucun ajustement à la hausse n'est possible.",
+                     "(jamais en dessous du prix actuel).",
                 width="large",
             ),
         },
@@ -527,11 +595,10 @@ with tab1:
     # --- Résumé
     n_augment = int((d2['Action'] == 'augmenter').sum())
     n_above = int((d2['Action'] == 'au-dessus').sum())
-    n_conf = int((d2['Action'] == 'conforme').sum())
 
     if n_augment or n_above:
         msg = f"💡 **{n_augment} produit(s)** sous-évalué(s) à augmenter · "
-        msg += f"**{n_above} produit(s)** au-dessus de la cible (pas d'ajustement à la hausse)"
+        msg += f"**{n_above} produit(s)** au-dessus de la cible"
         st.info(msg + ". Voir les détails dans l'onglet **③ Diagnostic**.")
     else:
         st.success("✅ Tous les produits sont conformes à leur rôle tarifaire.")
@@ -637,9 +704,8 @@ with tab2:
 with tab3:
     st.markdown("## 🎯 Diagnostic OBPPC")
     st.markdown(
-        "Liste des produits **non conformes** avec l'intervalle de prix à la hausse "
-        "pour les remettre en conformité. "
-        "⚠️ Aucune proposition de baisse n'est faite — uniquement des ajustements à la hausse."
+        "Liste des produits **non conformes** avec l'intervalle de prix à la hausse. "
+        "⚠️ Aucune proposition de baisse n'est faite."
     )
 
     ko = d[d['Statut'] == 'À revoir'].copy()
@@ -661,40 +727,33 @@ with tab3:
             def ecart_index(row):
                 i = row['Index']
                 imin, imax = ROLE_INDEX_RANGE[row['Rôle']]
-                if i < imin:
-                    return imin - i
-                return 0
+                return imin - i if i < imin else 0
 
             to_increase['Écart'] = to_increase.apply(ecart_index, axis=1)
             to_increase = to_increase.sort_values('Écart', ascending=False)
 
             st.markdown(f"### ⬆️ {len(to_increase)} produits à augmenter")
             st.caption(
-                "Ces produits sont **sous-évalués** par rapport à leur rôle. "
-                "L'intervalle proposé est toujours supérieur au prix actuel."
+                "Produits **sous-évalués**. L'intervalle proposé est toujours supérieur au prix actuel."
             )
 
             diag = to_increase[[
-                'Marque', 'Format', 'Occasion', 'Rôle',
+                'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
                 'PVF_Ar', 'Prix_Litre_Ajusté', 'Index',
                 'PVF_min', 'PVF_max',
             ]].copy()
             diag.columns = [
-                'Marque', 'Format', 'Occasion', 'Rôle',
+                'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
                 'PVF actuel', 'Prix / L actuel', 'Index actuel',
                 'PVF cible min', 'PVF cible max',
             ]
 
-            def style_index_low(series):
-                return ['color: #ff6b6b; font-weight: 700;'] * len(series)
-
-            def style_target_up(series):
-                return ['color: #4ade80; font-weight: 700;'] * len(series)
-
             styled_diag = (
                 diag.style
-                .apply(style_index_low, subset=['Index actuel'])
-                .apply(style_target_up, subset=['PVF cible min', 'PVF cible max'])
+                .apply(lambda s: ['color: #ff6b6b; font-weight: 700;'] * len(s),
+                       subset=['Index actuel'])
+                .apply(lambda s: ['color: #4ade80; font-weight: 700;'] * len(s),
+                       subset=['PVF cible min', 'PVF cible max'])
                 .format({
                     'PVF actuel':       '{:,.0f}',
                     'Prix / L actuel':  '{:,.0f}',
@@ -718,50 +777,28 @@ with tab3:
                 },
             )
 
-            st.markdown("##### Recommandations")
-            entry_ko = to_increase[to_increase['Rôle'] == 'Entry']
-            freq_ko = to_increase[to_increase['Rôle'] == 'Frequency']
-            up_ko = to_increase[to_increase['Rôle'].isin(['Upsize', 'Upscale'])]
-
-            if len(freq_ko):
-                st.warning(
-                    f"**{len(freq_ko)} produits Frequency** sous-évalués. "
-                    "Le produit de référence doit être ajusté en priorité."
-                )
-            if len(entry_ko):
-                st.info(
-                    f"**{len(entry_ko)} produits Entry** à repositionner à la hausse."
-                )
-            if len(up_ko):
-                st.info(
-                    f"**{len(up_ko)} produits Upsize / Upscale** à augmenter."
-                )
-
         # ---- Produits au-dessus de la cible ----
         if not above_target.empty:
             st.markdown("---")
             st.markdown(f"### ⚠️ {len(above_target)} produits au-dessus de la cible")
             st.caption(
-                "Ces produits ont un index **supérieur** à la cible de leur rôle. "
-                "**Aucune proposition de baisse n'est faite** — ils nécessitent un "
-                "arbitrage manuel (changement de rôle, repositionnement, ou acceptation en l'état)."
+                "Index **supérieur** à la cible du rôle. **Aucune baisse n'est proposée** — "
+                "arbitrage manuel requis (changement de rôle, repositionnement)."
             )
 
             diag_above = above_target[[
-                'Marque', 'Format', 'Occasion', 'Rôle',
+                'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
                 'PVF_Ar', 'Prix_Litre_Ajusté', 'Index',
             ]].copy()
             diag_above.columns = [
-                'Marque', 'Format', 'Occasion', 'Rôle',
+                'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
                 'PVF actuel', 'Prix / L actuel', 'Index actuel',
             ]
 
-            def style_index_high(series):
-                return ['color: #fbbf24; font-weight: 700;'] * len(series)
-
             styled_above = (
                 diag_above.style
-                .apply(style_index_high, subset=['Index actuel'])
+                .apply(lambda s: ['color: #fbbf24; font-weight: 700;'] * len(s),
+                       subset=['Index actuel'])
                 .format({
                     'PVF actuel':       '{:,.0f}',
                     'Prix / L actuel':  '{:,.0f}',
@@ -781,16 +818,16 @@ with tab3:
                 },
             )
 
-        # ---- Export du diagnostic ----
+        # ---- Export diagnostic ----
         st.markdown("---")
         st.markdown("### Export du diagnostic")
         export_diag = ko[[
-            'Marque', 'Format', 'Occasion', 'Rôle',
+            'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
             'PVF_Ar', 'Prix_Litre_Ajusté', 'Index',
             'Action', 'PVF_min', 'PVF_max',
         ]].copy()
         export_diag.columns = [
-            'Marque', 'Format', 'Occasion', 'Rôle',
+            'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
             'PVF actuel (Ar)', 'Prix/L actuel (Ar)', 'Index actuel',
             'Action', 'PVF cible min (Ar)', 'PVF cible max (Ar)',
         ]
