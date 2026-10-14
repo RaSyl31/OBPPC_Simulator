@@ -228,7 +228,7 @@ def load_data():
         ('Energie', 'BOOST VITALITY', 'IC', 'Upscale', 'CAN 33', 0.33, 4000),
 
         # --- BOISSON GAZEUSE ---
-        ('Boisson Gazeuse', 'COCA', 'IC', 'Frequency', 'PET 35', 0.35, 1500),
+        ('Boisson Gazeuse', 'COCA', 'IC', 'Entry', 'PET 35', 0.35, 1500),
         ('Boisson Gazeuse', 'COCA', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
         ('Boisson Gazeuse', 'COCA', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
         ('Boisson Gazeuse', 'COCA', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
@@ -241,7 +241,7 @@ def load_data():
         ('Boisson Gazeuse', 'FANTA', 'IC', 'Entry', 'PET 35', 0.35, 1500),
         ('Boisson Gazeuse', 'FANTA', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
         ('Boisson Gazeuse', 'FANTA', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
-        ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Entry', 'PET 35', 0.35, 1500),
+        ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Frequency', 'PET 35', 0.35, 1500),  # RÉFÉRENCE BG
         ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
         ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
         ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Entry', 'VC 30', 0.30, 1200),
@@ -263,7 +263,7 @@ def load_data():
         ('Eaux', 'Eau vive', 'IC', 'Entry', 'Eau vive 50 PET', 0.50, 1600),
         ('Eaux', 'Eau vive', 'FC', 'Upsize', 'Eau vive 150 PET', 1.50, 3300),
         ('Eaux', 'Eau vive', 'IC', 'Frequency', 'Eau vive 50 VER', 0.50, 2200),
-        ('Eaux', 'Cristalline', 'FC', 'Frequency', 'Cristalline 100 PET', 1.00, 2100),
+        ('Eaux', 'Cristalline', 'FC', 'Frequency', 'Cristalline 100 PET', 1.00, 2100),  # RÉFÉRENCE EAUX
         ('Eaux', 'Cristalline', 'FC', 'Upsize', 'Cristalline 200 PET', 2.00, 3600),
         ('Eaux', 'OLYMPIKO', 'IC', 'Entry', 'OLYMPIKO 50', 0.50, 1500),
         ('Eaux', 'OLYMPIKO', 'FC', 'Frequency', 'OLYMPIKO 100', 1.00, 2000),
@@ -284,7 +284,7 @@ def load_data():
         ('Bière', 'Gold', 'IC', 'Upscale', 'Gold Blanche 50 CAN', 0.50, 6000),
         ('Bière', 'Gold', 'IC', 'Upscale', 'Gold Blonde 50 CAN', 0.50, 6000),
         ('Bière', 'THB', 'IC', 'Entry', 'THB Pilsener 33 VER', 0.33, 2500),
-        ('Bière', 'THB', 'IC', 'Frequency', 'THB Pilsener 65 VER', 0.65, 4500),
+        ('Bière', 'THB', 'IC', 'Frequency', 'THB Pilsener 65 VER', 0.65, 4500),  # RÉFÉRENCE BIERE
         ('Bière', 'THB', 'IC', 'Upscale', 'THB Pilsener 50 CAN', 0.50, 5000),
         ('Bière', 'Queen', 'FC', 'Entry', 'Queen s 65 VER', 0.65, 4000),
         ('Bière', 'Fresh', 'IC', 'Entry', 'Fresh 33 VER', 0.33, 2500),
@@ -304,7 +304,7 @@ df = load_data()
 # =============================================================================
 REFERENCE_PRODUCTS = {
     'Energie':         ('XXL',         'PET 50'),
-    'Boisson Gazeuse': ('COCA',        'PET 35'),
+    'Boisson Gazeuse': ('CAPRICE',     'PET 35'),
     'Eaux':            ('Cristalline', 'Cristalline 100'),
     'Bière':           ('THB',         'THB Pilsener 65'),
 }
