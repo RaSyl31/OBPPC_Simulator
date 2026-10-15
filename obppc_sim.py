@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 # =============================================================================
-# CSS — dark bleu partout (dropdowns, menus, éditeur, onglets)
+# CSS — dark bleu partout
 # =============================================================================
 st.markdown("""
 <style>
@@ -35,7 +35,6 @@ st.markdown("""
     [data-testid="stCaptionContainer"] p,
     .stCaption { color: #a8c0dd !important; }
 
-    /* ---------- INPUTS / SELECT ---------- */
     [data-baseweb="select"] > div,
     [data-baseweb="input"] > div,
     [data-testid="stMultiSelect"] [data-baseweb="select"] > div,
@@ -62,7 +61,6 @@ st.markdown("""
         color: #a8c0dd !important;
     }
 
-    /* ---------- TAGS MULTISELECT ---------- */
     [data-baseweb="tag"] {
         background-color: #4a9eff !important;
         color: #ffffff !important;
@@ -77,7 +75,6 @@ st.markdown("""
         background-color: transparent !important;
     }
 
-    /* ---------- DROPDOWN / POPOVER ---------- */
     [data-baseweb="popover"],
     [data-baseweb="popover"] > div,
     [data-baseweb="popover"] [role="listbox"],
@@ -127,12 +124,10 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* ---------- RADIO / CHECKBOX ---------- */
     .stRadio label, .stCheckbox label,
     .stRadio > div > label > div { color: #ffffff !important; }
     .stRadio [data-testid="stMarkdownContainer"] p { color: #ffffff !important; }
 
-    /* ---------- BOUTONS ---------- */
     .stButton > button,
     [data-testid="stDownloadButton"] > button {
         background-color: #132f4c !important;
@@ -147,12 +142,10 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* ---------- METRICS ---------- */
     [data-testid="stMetricValue"],
     [data-testid="stMetricLabel"],
     [data-testid="stMetricDelta"] { color: #ffffff !important; }
 
-    /* ---------- TABS ---------- */
     .stTabs [data-baseweb="tab-list"] {
         background-color: transparent !important;
         border-bottom: 1px solid #1e4976;
@@ -167,7 +160,6 @@ st.markdown("""
         border-bottom: 2px solid #4a9eff !important;
     }
 
-    /* ---------- DATAFRAME / DATA EDITOR ---------- */
     [data-testid="stDataFrame"],
     [data-testid="stDataEditor"] {
         background-color: #132f4c !important;
@@ -188,7 +180,6 @@ st.markdown("""
         background-color: #132f4c !important;
     }
 
-    /* ---------- ALERTS ---------- */
     .stAlert {
         background-color: #132f4c !important;
         border: 1px solid #1e4976 !important;
@@ -196,7 +187,6 @@ st.markdown("""
     }
     .stAlert *, .stAlert p { color: #ffffff !important; }
 
-    /* ---------- DIVERS ---------- */
     hr { border-color: #1e4976 !important; }
     strong, b { color: #ffffff !important; }
     a { color: #4a9eff !important; }
@@ -216,82 +206,83 @@ st.markdown("""
 @st.cache_data
 def load_data():
     rows = [
+        # (Entreprise, Segment, Marque, Occasion, Rôle, Format, Volume_L, PVF_Ar)
         # --- ENERGIE ---
-        ('Energie', 'Red Bull', 'IC', 'Upscale', 'CAN 25', 0.25, 9900),
-        ('Energie', 'Monster', 'IC', 'Upscale', 'CAN 50', 0.50, 9900),
-        ('Energie', 'FOSA', 'IC', 'Upscale', 'CAN 50', 0.50, 5000),
-        ('Energie', 'XXL', 'IC', 'Entry', 'VC 30', 0.30, 2500),
-        ('Energie', 'XXL', 'IC', 'Frequency', 'PET 35', 0.35, 3500),
-        ('Energie', 'XXL', 'IC', 'Frequency', 'PET 50', 0.50, 5000),
-        ('Energie', 'XXL', 'IC', 'Upscale', 'CAN 33', 0.33, 4000),
-        ('Energie', 'DYNAMIC', 'IC', 'Upscale', 'CAN 25', 0.25, 3500),
-        ('Energie', 'BOOST VITALITY', 'IC', 'Upscale', 'CAN 33', 0.33, 4000),
+        ('Concurrent', 'Energie', 'Red Bull', 'IC', 'Upscale', 'CAN 25', 0.25, 9900),
+        ('Concurrent', 'Energie', 'Monster', 'IC', 'Upscale', 'CAN 50', 0.50, 9900),
+        ('STAR', 'Energie', 'FOSA', 'IC', 'Upscale', 'CAN 50', 0.50, 5000),
+        ('STAR', 'Energie', 'XXL', 'IC', 'Entry', 'VC 30', 0.30, 2500),
+        ('STAR', 'Energie', 'XXL', 'IC', 'Frequency', 'PET 35', 0.35, 3500),
+        ('STAR', 'Energie', 'XXL', 'IC', 'Frequency', 'PET 50', 0.50, 5000),
+        ('STAR', 'Energie', 'XXL', 'IC', 'Upscale', 'CAN 33', 0.33, 4000),
+        ('Concurrent', 'Energie', 'DYNAMIC', 'IC', 'Upscale', 'CAN 25', 0.25, 3500),
+        ('Concurrent', 'Energie', 'BOOST VITALITY', 'IC', 'Upscale', 'CAN 33', 0.33, 4000),
 
         # --- BOISSON GAZEUSE ---
-        ('Boisson Gazeuse', 'COCA', 'IC', 'Entry', 'PET 35', 0.35, 1500),
-        ('Boisson Gazeuse', 'COCA', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
-        ('Boisson Gazeuse', 'COCA', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
-        ('Boisson Gazeuse', 'COCA', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
-        ('Boisson Gazeuse', 'WOCO', 'IC', 'Entry', 'PET 35', 0.35, 1500),
-        ('Boisson Gazeuse', 'WOCO', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
-        ('Boisson Gazeuse', 'WOCO', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
-        ('Boisson Gazeuse', 'WOCO', 'IC', 'Entry', 'VC 30', 0.30, 1200),
-        ('Boisson Gazeuse', 'WOCO', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
-        ('Boisson Gazeuse', 'WOCO', 'FC', 'Upsize', 'VC 100', 1.00, 3000),
-        ('Boisson Gazeuse', 'FANTA', 'IC', 'Entry', 'PET 35', 0.35, 1500),
-        ('Boisson Gazeuse', 'FANTA', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
-        ('Boisson Gazeuse', 'FANTA', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
-        ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Frequency', 'PET 35', 0.35, 1500),  # RÉFÉRENCE BG
-        ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
-        ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
-        ('Boisson Gazeuse', 'CAPRICE', 'IC', 'Entry', 'VC 30', 0.30, 1200),
-        ('Boisson Gazeuse', 'CAPRICE', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
-        ('Boisson Gazeuse', 'CAPRICE', 'FC', 'Upsize', 'VC 100', 1.00, 3000),
-        ('Boisson Gazeuse', 'TONIC', 'IC', 'Entry', 'VC 30', 0.30, 1200),
-        ('Boisson Gazeuse', 'TONIC', 'FC', 'Upsize', 'VC 100', 1.00, 3000),
+        ('Concurrent', 'Boisson Gazeuse', 'COCA', 'IC', 'Entry', 'PET 35', 0.35, 1500),
+        ('Concurrent', 'Boisson Gazeuse', 'COCA', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
+        ('Concurrent', 'Boisson Gazeuse', 'COCA', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
+        ('Concurrent', 'Boisson Gazeuse', 'COCA', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
+        ('STAR', 'Boisson Gazeuse', 'WOCO', 'IC', 'Entry', 'PET 35', 0.35, 1500),
+        ('STAR', 'Boisson Gazeuse', 'WOCO', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
+        ('STAR', 'Boisson Gazeuse', 'WOCO', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
+        ('STAR', 'Boisson Gazeuse', 'WOCO', 'IC', 'Entry', 'VC 30', 0.30, 1200),
+        ('STAR', 'Boisson Gazeuse', 'WOCO', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
+        ('STAR', 'Boisson Gazeuse', 'WOCO', 'FC', 'Upsize', 'VC 100', 1.00, 3000),
+        ('Concurrent', 'Boisson Gazeuse', 'FANTA', 'IC', 'Entry', 'PET 35', 0.35, 1500),
+        ('Concurrent', 'Boisson Gazeuse', 'FANTA', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
+        ('Concurrent', 'Boisson Gazeuse', 'FANTA', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
+        ('STAR', 'Boisson Gazeuse', 'CAPRICE', 'IC', 'Frequency', 'PET 35', 0.35, 1500),  # RÉFÉRENCE BG
+        ('STAR', 'Boisson Gazeuse', 'CAPRICE', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
+        ('STAR', 'Boisson Gazeuse', 'CAPRICE', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
+        ('STAR', 'Boisson Gazeuse', 'CAPRICE', 'IC', 'Entry', 'VC 30', 0.30, 1200),
+        ('STAR', 'Boisson Gazeuse', 'CAPRICE', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
+        ('STAR', 'Boisson Gazeuse', 'CAPRICE', 'FC', 'Upsize', 'VC 100', 1.00, 3000),
+        ('STAR', 'Boisson Gazeuse', 'TONIC', 'IC', 'Entry', 'VC 30', 0.30, 1200),
+        ('STAR', 'Boisson Gazeuse', 'TONIC', 'FC', 'Upsize', 'VC 100', 1.00, 3000),
 
         # --- EAUX ---
-        ('Eaux', 'Cristal', 'IC', 'Entry', 'Cristal 30 VER', 0.30, 1500),
-        ('Eaux', 'Cristal', 'IC', 'Frequency', 'Cristal 50 VER', 0.50, 2200),
-        ('Eaux', 'Cristal', 'FC', 'Upsize', 'Cristal 100 VER', 1.00, 3800),
-        ('Eaux', 'Cristal', 'FC', 'Upsize', 'Cristal 150 PET', 1.50, 5500),
-        ('Eaux', 'RANOVISY', 'IC', 'Entry', 'RANOVISY 33 PET', 0.33, 1000),
-        ('Eaux', 'RANOVISY', 'IC', 'Frequency', 'RANOVISY 50 PET', 0.50, 2400),
-        ('Eaux', 'RANOVISY', 'IC', 'Upsize', 'RANOVISY 75 PET', 0.75, 3000),
-        ('Eaux', 'VISY GASY', 'IC', 'Entry', 'VISY GASY 60 PET', 0.60, 2500),
-        ('Eaux', 'VISY GASY', 'FC', 'Upsize', 'VISY GASY 100 PET', 1.00, 3000),
-        ('Eaux', 'Eau vive', 'IC', 'Entry', 'Eau vive 50 PET', 0.50, 1600),
-        ('Eaux', 'Eau vive', 'FC', 'Upsize', 'Eau vive 150 PET', 1.50, 3300),
-        ('Eaux', 'Eau vive', 'IC', 'Frequency', 'Eau vive 50 VER', 0.50, 2200),
-        ('Eaux', 'Cristalline', 'FC', 'Frequency', 'Cristalline 100 PET', 1.00, 2100),  # RÉFÉRENCE EAUX
-        ('Eaux', 'Cristalline', 'FC', 'Upsize', 'Cristalline 200 PET', 2.00, 3600),
-        ('Eaux', 'OLYMPIKO', 'IC', 'Entry', 'OLYMPIKO 50', 0.50, 1500),
-        ('Eaux', 'OLYMPIKO', 'FC', 'Frequency', 'OLYMPIKO 100', 1.00, 2000),
-        ('Eaux', 'OLYMPIKO', 'FC', 'Upsize', 'OLYMPIKO 150', 1.50, 2500),
-        ('Eaux', 'NATUR EAU', 'IC', 'Entry', 'NATUR EAU 50', 0.50, 1500),
-        ('Eaux', 'NATUR EAU', 'FC', 'Frequency', 'NATUR EAU 100', 1.00, 2000),
-        ('Eaux', 'NATUR EAU', 'FC', 'Upsize', 'NATUR EAU 150', 1.50, 2500),
+        ('STAR', 'Eaux', 'Cristal', 'IC', 'Entry', 'Cristal 30 VER', 0.30, 1500),
+        ('STAR', 'Eaux', 'Cristal', 'IC', 'Frequency', 'Cristal 50 VER', 0.50, 2200),
+        ('STAR', 'Eaux', 'Cristal', 'FC', 'Upsize', 'Cristal 100 VER', 1.00, 3800),
+        ('STAR', 'Eaux', 'Cristal', 'FC', 'Upsize', 'Cristal 150 PET', 1.50, 5500),
+        ('Concurrent', 'Eaux', 'RANOVISY', 'IC', 'Entry', 'RANOVISY 33 PET', 0.33, 1000),
+        ('Concurrent', 'Eaux', 'RANOVISY', 'IC', 'Frequency', 'RANOVISY 50 PET', 0.50, 2400),
+        ('Concurrent', 'Eaux', 'RANOVISY', 'IC', 'Upsize', 'RANOVISY 75 PET', 0.75, 3000),
+        ('Concurrent', 'Eaux', 'VISY GASY', 'IC', 'Entry', 'VISY GASY 60 PET', 0.60, 2500),
+        ('Concurrent', 'Eaux', 'VISY GASY', 'FC', 'Upsize', 'VISY GASY 100 PET', 1.00, 3000),
+        ('STAR', 'Eaux', 'Eau vive', 'IC', 'Entry', 'Eau vive 50 PET', 0.50, 1600),
+        ('STAR', 'Eaux', 'Eau vive', 'FC', 'Upsize', 'Eau vive 150 PET', 1.50, 3300),
+        ('STAR', 'Eaux', 'Eau vive', 'IC', 'Frequency', 'Eau vive 50 VER', 0.50, 2200),
+        ('STAR', 'Eaux', 'Cristalline', 'FC', 'Frequency', 'Cristalline 100 PET', 1.00, 2100),  # RÉFÉRENCE EAUX
+        ('STAR', 'Eaux', 'Cristalline', 'FC', 'Upsize', 'Cristalline 200 PET', 2.00, 3600),
+        ('Concurrent', 'Eaux', 'OLYMPIKO', 'IC', 'Entry', 'OLYMPIKO 50', 0.50, 1500),
+        ('Concurrent', 'Eaux', 'OLYMPIKO', 'FC', 'Frequency', 'OLYMPIKO 100', 1.00, 2000),
+        ('Concurrent', 'Eaux', 'OLYMPIKO', 'FC', 'Upsize', 'OLYMPIKO 150', 1.50, 2500),
+        ('Concurrent', 'Eaux', 'NATUR EAU', 'IC', 'Entry', 'NATUR EAU 50', 0.50, 1500),
+        ('Concurrent', 'Eaux', 'NATUR EAU', 'FC', 'Frequency', 'NATUR EAU 100', 1.00, 2000),
+        ('Concurrent', 'Eaux', 'NATUR EAU', 'FC', 'Upsize', 'NATUR EAU 150', 1.50, 2500),
 
         # --- BIERE ---
-        ('Bière', 'Beaufort', 'IC', 'Frequency', 'Beaufort 33 VER', 0.33, 4000),
-        ('Bière', 'Beaufort', 'IC', 'Upscale', 'Beaufort 33 CAN', 0.33, 5000),
-        ('Bière', 'Gold', 'IC', 'Entry', 'Gold Blanche 33 VER', 0.33, 3500),
-        ('Bière', 'Gold', 'FC', 'Entry', 'Gold 8 50 VER', 0.50, 4500),
-        ('Bière', 'Gold', 'FC', 'Frequency', 'Gold Blanche 50 VER', 0.50, 4500),
-        ('Bière', 'Gold', 'FC', 'Frequency', 'Gold Blonde 50 VER', 0.50, 4500),
-        ('Bière', 'Gold', 'FC', 'Frequency', 'Gold Blonde 65 VER', 0.65, 5000),
-        ('Bière', 'Gold', 'IC', 'Upscale', 'Gold 8 50 CAN', 0.50, 6000),
-        ('Bière', 'Gold', 'IC', 'Upscale', 'Gold Blanche 50 CAN', 0.50, 6000),
-        ('Bière', 'Gold', 'IC', 'Upscale', 'Gold Blonde 50 CAN', 0.50, 6000),
-        ('Bière', 'THB', 'IC', 'Entry', 'THB Pilsener 33 VER', 0.33, 2500),
-        ('Bière', 'THB', 'IC', 'Frequency', 'THB Pilsener 65 VER', 0.65, 4500),  # RÉFÉRENCE BIERE
-        ('Bière', 'THB', 'IC', 'Upscale', 'THB Pilsener 50 CAN', 0.50, 5000),
-        ('Bière', 'Queen', 'FC', 'Entry', 'Queen s 65 VER', 0.65, 4000),
-        ('Bière', 'Fresh', 'IC', 'Entry', 'Fresh 33 VER', 0.33, 2500),
-        ('Bière', 'Fresh', 'FC', 'Frequency', 'Fresh 65 VER', 0.65, 4000),
-        ('Bière', 'Fresh', 'IC', 'Upscale', 'Fresh 33 CAN', 0.33, 3500),
+        ('STAR', 'Bière', 'Beaufort', 'IC', 'Frequency', 'Beaufort 33 VER', 0.33, 4000),
+        ('STAR', 'Bière', 'Beaufort', 'IC', 'Upscale', 'Beaufort 33 CAN', 0.33, 5000),
+        ('STAR', 'Bière', 'Gold', 'IC', 'Entry', 'Gold Blanche 33 VER', 0.33, 3500),
+        ('STAR', 'Bière', 'Gold', 'FC', 'Entry', 'Gold 8 50 VER', 0.50, 4500),
+        ('STAR', 'Bière', 'Gold', 'FC', 'Frequency', 'Gold Blanche 50 VER', 0.50, 4500),
+        ('STAR', 'Bière', 'Gold', 'FC', 'Frequency', 'Gold Blonde 50 VER', 0.50, 4500),
+        ('STAR', 'Bière', 'Gold', 'FC', 'Frequency', 'Gold Blonde 65 VER', 0.65, 5000),
+        ('STAR', 'Bière', 'Gold', 'IC', 'Upscale', 'Gold 8 50 CAN', 0.50, 6000),
+        ('STAR', 'Bière', 'Gold', 'IC', 'Upscale', 'Gold Blanche 50 CAN', 0.50, 6000),
+        ('STAR', 'Bière', 'Gold', 'IC', 'Upscale', 'Gold Blonde 50 CAN', 0.50, 6000),
+        ('STAR', 'Bière', 'THB', 'IC', 'Entry', 'THB Pilsener 33 VER', 0.33, 2500),
+        ('STAR', 'Bière', 'THB', 'IC', 'Frequency', 'THB Pilsener 65 VER', 0.65, 4500),  # RÉFÉRENCE BIERE
+        ('STAR', 'Bière', 'THB', 'IC', 'Upscale', 'THB Pilsener 50 CAN', 0.50, 5000),
+        ('STAR', 'Bière', 'Queen', 'FC', 'Entry', 'Queen s 65 VER', 0.65, 4000),
+        ('STAR', 'Bière', 'Fresh', 'IC', 'Entry', 'Fresh 33 VER', 0.33, 2500),
+        ('STAR', 'Bière', 'Fresh', 'FC', 'Frequency', 'Fresh 65 VER', 0.65, 4000),
+        ('STAR', 'Bière', 'Fresh', 'IC', 'Upscale', 'Fresh 33 CAN', 0.33, 3500),
     ]
-    df = pd.DataFrame(rows, columns=['Segment', 'Marque', 'Occasion',
+    df = pd.DataFrame(rows, columns=['Entreprise', 'Segment', 'Marque', 'Occasion',
                                       'Rôle', 'Format', 'Volume_L', 'PVF_Ar'])
     df['Prix_Litre'] = (df['PVF_Ar'] / df['Volume_L']).round(0).astype(int)
     return df
@@ -299,16 +290,7 @@ def load_data():
 
 df = load_data()
 
-# =============================================================================
-# RÉFÉRENCE PAR SEGMENT
-# =============================================================================
-REFERENCE_PRODUCTS = {
-    'Energie':         ('XXL',         'PET 50'),
-    'Boisson Gazeuse': ('CAPRICE',     'PET 35'),
-    'Eaux':            ('Cristalline', 'Cristalline 100'),
-    'Bière':           ('THB',         'THB Pilsener 65'),
-}
-
+ENTREPRISES = ['STAR', 'Concurrent']
 OCCASIONS = ['IC', 'FC']
 ROLES = ['Entry', 'Frequency', 'Upsize', 'Upscale']
 ROLE_TARGETS = {
@@ -322,6 +304,16 @@ ROLE_INDEX_RANGE = {
     'Frequency': (100, 100),
     'Upsize':    (90, 99),
     'Upscale':   (111, 999),
+}
+
+# =============================================================================
+# RÉFÉRENCE PAR SEGMENT (produits STAR uniquement)
+# =============================================================================
+REFERENCE_PRODUCTS = {
+    'Energie':         ('XXL',         'PET 50'),
+    'Boisson Gazeuse': ('CAPRICE',     'PET 35'),
+    'Eaux':            ('Cristalline', 'Cristalline 100'),
+    'Bière':           ('THB',         'THB Pilsener 65'),
 }
 
 
@@ -419,6 +411,18 @@ def style_proposition(series):
     return out
 
 
+def style_entreprise(series):
+    out = []
+    for v in series:
+        if v == 'STAR':
+            out.append('color: #4a9eff; font-weight: 700;')
+        elif v == 'Concurrent':
+            out.append('color: #fbbf24; font-weight: 600;')
+        else:
+            out.append('')
+    return out
+
+
 # =============================================================================
 # SIDEBAR
 # =============================================================================
@@ -426,6 +430,12 @@ with st.sidebar:
     st.markdown("## ⚙️ Paramètres")
 
     st.markdown("##### Filtres")
+    entreprises = st.multiselect(
+        "Entreprise",
+        ENTREPRISES,
+        default=ENTREPRISES,
+    )
+
     segments = st.multiselect(
         "Segment",
         sorted(df['Segment'].unique()),
@@ -433,8 +443,10 @@ with st.sidebar:
     )
 
     available_brands = (
-        sorted(df[df['Segment'].isin(segments)]['Marque'].unique())
-        if segments else []
+        sorted(df[
+            (df['Segment'].isin(segments)) & (df['Entreprise'].isin(entreprises))
+        ]['Marque'].unique())
+        if segments and entreprises else []
     )
     brands = st.multiselect(
         "Marque",
@@ -477,7 +489,11 @@ with st.sidebar:
 # =============================================================================
 # FILTRAGE + CALCUL
 # =============================================================================
-d = df[(df['Segment'].isin(segments)) & (df['Marque'].isin(brands))].copy()
+d = df[
+    (df['Entreprise'].isin(entreprises)) &
+    (df['Segment'].isin(segments)) &
+    (df['Marque'].isin(brands))
+].copy()
 
 if d.empty:
     st.warning("⚠️ Aucun produit ne correspond à vos filtres. Élargissez votre sélection.")
@@ -486,17 +502,21 @@ if d.empty:
 d['PVF_Ajusté'] = (d['PVF_Ar'] * coef).round(0).astype(int)
 d['Prix_Litre_Ajusté'] = (d['Prix_Litre'] * coef).round(0).astype(int)
 
+# Références calculées sur le portefeuille COMPLET (pas seulement filtré)
+ref_source = df[df['Entreprise'].isin(entreprises)].copy() if entreprises else df.copy()
+ref_source['Prix_Litre_Ajusté'] = (ref_source['Prix_Litre'] * coef).round(0).astype(int)
+
 ref_by_segment = {}
 ref_label_by_segment = {}
 for segment in d['Segment'].unique():
-    label, pl = find_reference(d, segment, coef)
+    label, pl = find_reference(ref_source, segment, coef)
     if pl is None:
-        freq = d[(d['Segment'] == segment) & (d['Rôle'] == 'Frequency')]
+        freq = ref_source[(ref_source['Segment'] == segment) & (ref_source['Rôle'] == 'Frequency')]
         if len(freq):
             pl = freq['Prix_Litre_Ajusté'].mean()
             label = f"(fallback) Moyenne Frequency {segment}"
         else:
-            pl = d[d['Segment'] == segment]['Prix_Litre_Ajusté'].mean()
+            pl = ref_source[ref_source['Segment'] == segment]['Prix_Litre_Ajusté'].mean()
             label = f"(fallback) Moyenne {segment}"
     ref_by_segment[segment] = pl
     ref_label_by_segment[segment] = label
@@ -565,12 +585,13 @@ with tab1:
         "dans le tableau. Toutes les analyses se recalent automatiquement."
     )
 
-    editor_df = d[['Segment', 'Marque', 'Occasion', 'Rôle',
+    editor_df = d[['Entreprise', 'Segment', 'Marque', 'Occasion', 'Rôle',
                    'Format', 'Volume_L', 'PVF_Ar']].copy()
 
     edited = st.data_editor(
         editor_df,
         column_config={
+            "Entreprise": st.column_config.TextColumn("Entreprise", disabled=True, width="small"),
             "Segment": st.column_config.TextColumn("Segment", disabled=True, width="small"),
             "Marque": st.column_config.TextColumn("Marque", disabled=True, width="small"),
             "Occasion": st.column_config.TextColumn("Occasion", disabled=True, width="small"),
@@ -596,15 +617,7 @@ with tab1:
     d2['PVF_Ajusté'] = (d2['PVF_Ar'] * coef).round(0).astype(int)
     d2['Prix_Litre_Ajusté'] = ((d2['PVF_Ar'] / d2['Volume_L']) * coef).round(0).astype(int)
 
-    ref2_by_segment = {}
-    for segment in d2['Segment'].unique():
-        label, pl = find_reference(d2, segment, coef)
-        if pl is None:
-            freq = d2[(d2['Segment'] == segment) & (d2['Rôle'] == 'Frequency')]
-            pl = freq['Prix_Litre_Ajusté'].mean() if len(freq) else d2[d2['Segment'] == segment]['Prix_Litre_Ajusté'].mean()
-        ref2_by_segment[segment] = pl
-
-    d2['Ref'] = d2['Segment'].map(ref2_by_segment)
+    d2['Ref'] = d2['Segment'].map(ref_by_segment)
     d2['Index'] = (d2['Prix_Litre_Ajusté'] / d2['Ref'] * 100).round(0).astype(int)
     d2['Statut'] = d2.apply(lambda r: status(r['Index'], r['Rôle']), axis=1)
 
@@ -617,15 +630,16 @@ with tab1:
     st.markdown("### Résultats en direct")
     st.caption(f"Canal : **{channel}** · Index 100 = référence fixe par segment")
 
-    result = d2[['Marque', 'Format', 'Occasion', 'Rôle',
+    result = d2[['Entreprise', 'Marque', 'Format', 'Occasion', 'Rôle',
                  'PVF_Ar', 'Prix_Litre_Ajusté', 'Index',
                  'Statut', 'Proposition']].copy()
-    result.columns = ['Marque', 'Format', 'Occasion', 'Rôle',
+    result.columns = ['Entreprise', 'Marque', 'Format', 'Occasion', 'Rôle',
                       'Prix actuel (Ar)', 'Prix / L (Ar)', 'Index',
                       'Statut', '💡 Proposition']
 
     styled_result = (
         result.style
+        .apply(style_entreprise, subset=['Entreprise'])
         .apply(style_status, subset=['Statut'])
         .apply(style_proposition, subset=['💡 Proposition'])
         .format({
@@ -641,6 +655,11 @@ with tab1:
         height=min(500, 80 + 35 * len(result)),
         hide_index=True,
         column_config={
+            'Entreprise': st.column_config.TextColumn(
+                "Entreprise",
+                help="STAR = notre portefeuille · Concurrent = benchmark marché",
+                width="small",
+            ),
             'Prix actuel (Ar)': st.column_config.NumberColumn(
                 "Prix actuel (Ar)",
                 help="Prix de vente (PVF) saisi dans le tableau d'édition",
@@ -677,17 +696,68 @@ with tab1:
 with tab2:
     st.markdown("## 📊 Vue d'ensemble du portefeuille")
 
-    st.markdown("### Couverture des rôles par marque")
-    st.markdown(
-        "Ce tableau indique quels rôles tarifaires chaque marque occupe. "
+    # --- Répartition STAR vs Concurrent par segment
+    st.markdown("### Répartition STAR vs Concurrent par segment")
+    st.caption(
+        "Nombre de SKU par entreprise et par segment, avec part de portefeuille STAR."
+    )
+
+    pivot_ent = d.pivot_table(
+        index='Segment', columns='Entreprise', values='Marque', aggfunc='count'
+    ).fillna(0).astype(int)
+    for col in ['STAR', 'Concurrent']:
+        if col not in pivot_ent.columns:
+            pivot_ent[col] = 0
+    pivot_ent = pivot_ent[['STAR', 'Concurrent']]
+    pivot_ent['Total'] = pivot_ent['STAR'] + pivot_ent['Concurrent']
+    pivot_ent['% STAR'] = (pivot_ent['STAR'] / pivot_ent['Total'] * 100).round(1)
+    pivot_ent = pivot_ent.reset_index()
+
+    def style_pct_star(series):
+        out = []
+        for v in series:
+            try:
+                n = float(v)
+                if n >= 60:
+                    out.append('color: #4ade80; font-weight: 700;')
+                elif n >= 30:
+                    out.append('color: #fbbf24; font-weight: 700;')
+                else:
+                    out.append('color: #ff6b6b; font-weight: 700;')
+            except Exception:
+                out.append('')
+        return out
+
+    styled_pivot = (
+        pivot_ent.style
+        .apply(style_pct_star, subset=['% STAR'])
+        .format({'% STAR': '{:.1f}%'})
+    )
+
+    st.dataframe(
+        styled_pivot,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            'STAR': st.column_config.NumberColumn("STAR", format="%d"),
+            'Concurrent': st.column_config.NumberColumn("Concurrent", format="%d"),
+            'Total': st.column_config.NumberColumn("Total", format="%d"),
+            '% STAR': st.column_config.NumberColumn("% STAR", format="%.1f"),
+        },
+    )
+
+    # --- Couverture des rôles (STAR uniquement)
+    st.markdown("### Couverture des rôles par marque STAR")
+    st.caption(
+        "Ce tableau indique quels rôles tarifaires chaque marque STAR occupe. "
         "Une marque bien structurée couvre **au minimum Entry + Frequency**."
     )
 
     occ_filter = st.radio("Occasion", OCCASIONS, horizontal=True, key="vue_occ")
-    sub = d[d['Occasion'] == occ_filter]
+    sub = d[(d['Occasion'] == occ_filter) & (d['Entreprise'] == 'STAR')]
 
     if sub.empty:
-        st.info("Aucun produit sur cette occasion.")
+        st.info("Aucun produit STAR sur cette occasion.")
     else:
         rows_cov = []
         for brand in sorted(sub['Marque'].unique()):
@@ -715,21 +785,23 @@ with tab2:
             hide_index=True,
         )
 
+    # --- Tous les produits
     st.markdown("### Tous les produits du périmètre")
 
     view2 = d.copy()
     props = view2.apply(lambda r: compute_target(r, coef), axis=1)
     view2['Proposition'] = props.apply(lambda x: x['msg'])
 
-    view2_final = view2[['Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
+    view2_final = view2[['Entreprise', 'Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
                           'Volume_L', 'PVF_Ajusté', 'Prix_Litre_Ajusté',
                           'Index', 'Statut', 'Proposition']].copy()
-    view2_final.columns = ['Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
+    view2_final.columns = ['Entreprise', 'Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
                             'Volume (L)', 'Prix (Ar)', 'Prix / L (Ar)',
                             'Index', 'Statut', '💡 Proposition']
 
     styled_view2 = (
         view2_final.style
+        .apply(style_entreprise, subset=['Entreprise'])
         .apply(style_status, subset=['Statut'])
         .apply(style_proposition, subset=['💡 Proposition'])
         .format({
@@ -746,6 +818,7 @@ with tab2:
         height=min(700, 80 + 35 * len(view2_final)),
         hide_index=True,
         column_config={
+            'Entreprise': st.column_config.TextColumn("Entreprise", width="small"),
             'Volume (L)': st.column_config.NumberColumn(format="%.2f"),
             'Prix (Ar)': st.column_config.NumberColumn(format="%d"),
             'Prix / L (Ar)': st.column_config.NumberColumn(format="%d"),
@@ -765,10 +838,24 @@ with tab3:
     st.markdown("## 🎯 Diagnostic OBPPC")
     st.markdown(
         "Liste des produits **non conformes** avec l'intervalle de prix à la hausse. "
-        "⚠️ Aucune proposition de baisse n'est faite."
+        "⚠️ Aucune proposition de baisse n'est faite. "
+        "Filtre par défaut sur **STAR** uniquement."
     )
 
-    ko = d[d['Statut'] == 'À revoir'].copy()
+    # Filtre : ne garder que STAR par défaut, mais laisser l'utilisateur choisir
+    ent_diag = st.radio(
+        "Périmètre du diagnostic",
+        ["STAR uniquement", "Concurrents uniquement", "Tout"],
+        horizontal=True, key="diag_ent",
+    )
+    if ent_diag == "STAR uniquement":
+        base_diag = d[d['Entreprise'] == 'STAR']
+    elif ent_diag == "Concurrents uniquement":
+        base_diag = d[d['Entreprise'] == 'Concurrent']
+    else:
+        base_diag = d
+
+    ko = base_diag[base_diag['Statut'] == 'À revoir'].copy()
 
     if ko.empty:
         st.success("✅ Tous les produits respectent leur cible tarifaire.")
@@ -797,18 +884,19 @@ with tab3:
             )
 
             diag = to_increase[[
-                'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
+                'Entreprise', 'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
                 'PVF_Ar', 'Prix_Litre_Ajusté', 'Index',
                 'PVF_min', 'PVF_max',
             ]].copy()
             diag.columns = [
-                'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
+                'Entreprise', 'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
                 'PVF actuel', 'Prix / L actuel', 'Index actuel',
                 'PVF cible min', 'PVF cible max',
             ]
 
             styled_diag = (
                 diag.style
+                .apply(style_entreprise, subset=['Entreprise'])
                 .apply(lambda s: ['color: #ff6b6b; font-weight: 700;'] * len(s),
                        subset=['Index actuel'])
                 .apply(lambda s: ['color: #4ade80; font-weight: 700;'] * len(s),
@@ -844,16 +932,17 @@ with tab3:
             )
 
             diag_above = above_target[[
-                'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
+                'Entreprise', 'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
                 'PVF_Ar', 'Prix_Litre_Ajusté', 'Index',
             ]].copy()
             diag_above.columns = [
-                'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
+                'Entreprise', 'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
                 'PVF actuel', 'Prix / L actuel', 'Index actuel',
             ]
 
             styled_above = (
                 diag_above.style
+                .apply(style_entreprise, subset=['Entreprise'])
                 .apply(lambda s: ['color: #fbbf24; font-weight: 700;'] * len(s),
                        subset=['Index actuel'])
                 .format({
@@ -878,12 +967,12 @@ with tab3:
         st.markdown("---")
         st.markdown("### Export du diagnostic")
         export_diag = ko[[
-            'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
+            'Entreprise', 'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
             'PVF_Ar', 'Prix_Litre_Ajusté', 'Index',
             'Action', 'PVF_min', 'PVF_max',
         ]].copy()
         export_diag.columns = [
-            'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
+            'Entreprise', 'Segment', 'Marque', 'Format', 'Occasion', 'Rôle',
             'PVF actuel (Ar)', 'Prix/L actuel (Ar)', 'Index actuel',
             'Action', 'PVF cible min (Ar)', 'PVF cible max (Ar)',
         ]
@@ -897,7 +986,7 @@ with tab3:
 
     st.markdown("---")
     st.markdown("### Export global")
-    csv = d[['Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
+    csv = d[['Entreprise', 'Segment', 'Marque', 'Occasion', 'Rôle', 'Format',
              'Volume_L', 'PVF_Ajusté', 'Prix_Litre_Ajusté',
              'Index', 'Statut']].to_csv(index=False).encode('utf-8-sig')
 
