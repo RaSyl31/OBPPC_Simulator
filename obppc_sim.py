@@ -98,22 +98,19 @@ st.markdown("""
 
 
 # =============================================================================
-# MAPPING MARQUE → FICHIER LOGO (nom exact dans le dossier logos/)
+# MAPPING MARQUE → FICHIER LOGO
 # =============================================================================
 LOGO_FILES = {
-    # BI
     'Beaufort':       'beaufort.png',
     'Gold':           'gold.png',
     'THB':            'thb.png',
     'Queen':          'queen.png',
     'Fresh':          'fresh.png',
-    # BG
     'COCA':           'coca.png',
     'WOCO':           'woco.png',
     'FANTA':          'fanta.png',
     'CAPRICE':        'caprice.png',
     'TONIC':          'tonic.png',
-    # EAUX
     'Cristal':        'cristal.png',
     'RANOVISY':       'ranovisy.png',
     'VISY GASY':      'visy_gasy.png',
@@ -121,7 +118,6 @@ LOGO_FILES = {
     'Cristalline':    'cristalline.png',
     'OLYMPIKO':       'olympiko.png',
     'NATUR EAU':      'natur_eau.png',
-    # ENERGY
     'Red Bull':       'red_bull.png',
     'Monster':        'monster.png',
     'FOSA':           'fosa.png',
@@ -159,7 +155,7 @@ DEFAULT_LOGO = {'color': '#64748b', 'init': '?'}
 
 
 # =============================================================================
-# CHARGEMENT DES LOGOS (dossier logos/)
+# CHARGEMENT DES LOGOS
 # =============================================================================
 LOGOS_DIR = Path(__file__).parent / "logos"
 
@@ -1296,10 +1292,12 @@ with tab1:
             '<th class="left">Format</th>',
             '<th colspan="4">2026</th>',
             '<th colspan="4">2027</th>',
+            '<th class="left">Commentaire</th>',
             '</tr><tr>',
             '<th></th><th></th>',
             '<th>PVF</th><th>P/L</th><th>Idx PVF</th><th>Idx P/L</th>',
             '<th>PVF</th><th>P/L</th><th>Idx P/L</th><th>Hausse</th>',
+            '<th></th>',
             '</tr></thead><tbody>']
     for _, row in d.iterrows():
         statut_cls = 'ok' if row['statut'] == 'OK' else 'ko'
@@ -1315,58 +1313,11 @@ with tab1:
             f'<td>{fmt(row["prop_p_litre"])}</td>'
             f'<td class="muted">{row["idx_pl_prop"]}</td>'
             f'<td>{row["hausse_pct"]*100:+.1f}%</td>'
+            f'<td class="left muted">{row["commentaire"]}</td>'
             '</tr>'
         )
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
-
-    # =========================================================================
-    # ✅ COLONNE COMMENTAIRE ÉDITABLE
-    # =========================================================================
-    st.markdown("##### ✏️ Commentaires (modifiables)")
-    st.caption("Cliquez dans une cellule pour saisir ou modifier un commentaire.")
-
-    comment_rows = []
-    for _, row in d.iterrows():
-        key = (row['marque'], row['format'])
-        current = st.session_state.commentaires.get(
-            key, row.get('commentaire', '')
-        )
-        comment_rows.append({
-            'marque': row['marque'],
-            'format': row['format'],
-            'commentaire': current,
-        })
-
-    comment_df = pd.DataFrame(comment_rows)
-
-    edited_comments = st.data_editor(
-        comment_df,
-        column_config={
-            'marque': st.column_config.TextColumn(
-                "Marque", disabled=True, width=120),
-            'format': st.column_config.TextColumn(
-                "Format", disabled=True, width=260),
-            'commentaire': st.column_config.TextColumn(
-                "Commentaire", width=600,
-                help="Saisir une note libre (ex : PVC +500 / PVA +400)"),
-        },
-        hide_index=True,
-        use_container_width=True,
-        num_rows="fixed",
-        height=min(500, 80 + 36 * len(comment_df)),
-        key=f"comment_editor_{cat_key}",
-    )
-
-    for _, r in edited_comments.iterrows():
-        key = (r['marque'], r['format'])
-        st.session_state.commentaires[key] = r['commentaire']
-
-    # Réinjection dans le DataFrame principal
-    d['commentaire'] = d.apply(
-        lambda r: st.session_state.commentaires.get(
-            (r['marque'], r['format']), r.get('commentaire', '')
-        ), axis=1)
 
 with tab2:
     html = ['<table class="obppc"><thead><tr>',
@@ -1421,6 +1372,56 @@ with tab3:
         )
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
+
+
+# =============================================================================
+# ✅ COLONNE COMMENTAIRE ÉDITABLE (indépendante, sous les onglets)
+# =============================================================================
+st.markdown("---")
+st.markdown("### ✏️ Commentaires (modifiables)")
+st.caption("Cliquez dans une cellule pour saisir ou modifier un commentaire.")
+
+comment_rows = []
+for _, row in d.iterrows():
+    key = (row['marque'], row['format'])
+    current = st.session_state.commentaires.get(
+        key, row.get('commentaire', '')
+    )
+    comment_rows.append({
+        'marque': row['marque'],
+        'format': row['format'],
+        'commentaire': current,
+    })
+
+comment_df = pd.DataFrame(comment_rows)
+
+edited_comments = st.data_editor(
+    comment_df,
+    column_config={
+        'marque': st.column_config.TextColumn(
+            "Marque", disabled=True, width=120),
+        'format': st.column_config.TextColumn(
+            "Format", disabled=True, width=280),
+        'commentaire': st.column_config.TextColumn(
+            "Commentaire", width=650,
+            help="Saisir une note libre (ex : PVC +500 / PVA +400)"),
+    },
+    hide_index=True,
+    use_container_width=True,
+    num_rows="fixed",
+    height=min(500, 80 + 36 * len(comment_df)),
+    key=f"comment_editor_{cat_key}",
+)
+
+for _, r in edited_comments.iterrows():
+    key = (r['marque'], r['format'])
+    st.session_state.commentaires[key] = r['commentaire']
+
+# Réinjection (utile pour l'export CSV)
+d['commentaire'] = d.apply(
+    lambda r: st.session_state.commentaires.get(
+        (r['marque'], r['format']), r.get('commentaire', '')
+    ), axis=1)
 
 
 # =============================================================================
