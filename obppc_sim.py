@@ -28,27 +28,11 @@ st.markdown("""
     .obppc td.muted { color: #8b949e; }
     .obppc tr:hover td { background: #161b22; }
 
-    /* ✅ Lignes STAR en rouge */
-    .obppc tr.star-row td {
-        background: #2d1215 !important;
-        border-top: 1px solid #5a1f24 !important;
-        border-bottom: 1px solid #5a1f24 !important;
-        color: #ffd7d7 !important;
-    }
-    .obppc tr.star-row td:first-child {
-        border-left: 3px solid #f85149 !important;
-    }
-    .obppc tr.star-row:hover td {
-        background: #3d181c !important;
-    }
-    .obppc tr.star-row td.muted { color: #ffb3b3 !important; }
+    /* ✅ Nom de marque STAR en rouge */
+    .brand-star { color: #f85149 !important; font-weight: 700; }
+    .brand-comp { color: #e6edf3; font-weight: 700; }
 
-    .role-dot { display: inline-block; width: 8px; height: 8px;
-                border-radius: 50%; margin-right: 6px; vertical-align: middle; }
-
-    .ok { color: #3fb950; font-weight: 700; }
-    .ko { color: #f85149; font-weight: 700; }
-
+    /* Tag STAR / Concurrent */
     .tag {
         display: inline-block; padding: 1px 6px; border-radius: 3px;
         font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
@@ -56,6 +40,12 @@ st.markdown("""
     }
     .tag-star { background: #7c3aed; color: #fff; }
     .tag-comp { background: #484f58; color: #e6edf3; }
+
+    .role-dot { display: inline-block; width: 8px; height: 8px;
+                border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+    .ok { color: #3fb950; font-weight: 700; }
+    .ko { color: #f85149; font-weight: 700; }
 
     .kpi-band {
         display: grid; grid-template-columns: repeat(5, 1fr);
@@ -535,12 +525,22 @@ def safe_pct(v, d=0):
         return '—'
 
 
-def brand_tag(marque, star_brands):
+def brand_name_html(marque, star_brands):
+    """Retourne le nom de marque coloré en rouge si STAR, sinon normal."""
     if star_brands is None:
-        return f'<span class="tag tag-star">{marque}</span>'
+        return f'<span class="brand-star">{marque}</span>'
     if marque in star_brands:
-        return f'<span class="tag tag-star">{marque}</span>'
-    return f'<span class="tag tag-comp">{marque}</span>'
+        return f'<span class="brand-star">{marque}</span>'
+    return f'<span class="brand-comp">{marque}</span>'
+
+
+def brand_tag(marque, star_brands):
+    """Tag STAR / CONCUR (utilisé dans la comparaison par contenance)."""
+    if star_brands is None:
+        return '<span class="tag tag-star">STAR</span>'
+    if marque in star_brands:
+        return '<span class="tag tag-star">STAR</span>'
+    return '<span class="tag tag-comp">CONCUR</span>'
 
 
 def _detect_emballage(format_str):
@@ -936,7 +936,7 @@ st.markdown(kpi_html, unsafe_allow_html=True)
 
 
 # =============================================================================
-# TABLEAU PRINCIPAL  (STAR en rouge)
+# TABLEAU PRINCIPAL  (nom STAR en rouge)
 # =============================================================================
 st.markdown("### Vue d'ensemble")
 
@@ -961,9 +961,6 @@ for _, row in d.iterrows():
     hp = row['hausse_pct'] * 100
     hausse_color = '#3fb950' if hp > 0 else '#8b949e' if hp == 0 else '#f85149'
 
-    # ✅ Ligne STAR en rouge
-    row_cls = 'star-row' if row['type'] == 'STAR' else ''
-
     pap_min_txt = fmt(row['pap_min'])
     if row['pap_max'] > 0:
         pap_max_txt = fmt(row['pap_max'])
@@ -973,8 +970,8 @@ for _, row in d.iterrows():
         marge_pap = '<span class="muted">—</span>'
 
     html.append(
-        f'<tr class="{row_cls}">'
-        f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
+        '<tr>'
+        f'<td class="left bold">{brand_name_html(row["marque"], cfg["star_brands"])}</td>'
         f'<td class="left"><span class="role-dot" style="background:{color};"></span>'
         f'{row["role"]}</td>'
         f'<td class="left">{row["format"]}</td>'
@@ -1061,7 +1058,7 @@ if cfg['has_competitors']:
     st.markdown("##### Comparaison par contenance — tous formats confondus")
     st.caption(
         "Regroupement par volume (L), trié du PVF le plus bas au plus élevé. "
-        "STAR (lignes rouges) et Concurrents sont mélangés."
+        "Nom STAR en rouge."
     )
 
     volumes = sorted(d['vol'].unique())
@@ -1126,14 +1123,7 @@ if cfg['has_competitors']:
         ordered = sub.sort_values('pvf', ascending=True)
 
         for _, row in ordered.iterrows():
-            # ✅ Ligne STAR en rouge
-            if row['type'] == 'STAR':
-                row_cls = 'star-row'
-                type_label = '<span class="tag tag-star">STAR</span>'
-            else:
-                row_cls = ''
-                type_label = '<span class="tag tag-comp">CONCUR</span>'
-
+            type_label = brand_tag(row['marque'], cfg['star_brands'])
             statut_cls = 'ok' if row['statut'] == 'OK' else 'ko'
             role_color = ROLE_COLORS.get(row['role'], '#64748b')
 
@@ -1146,9 +1136,9 @@ if cfg['has_competitors']:
                 marge_pap = '<span class="muted">—</span>'
 
             html.append(
-                f'<tr class="{row_cls}">'
+                '<tr>'
                 f'<td class="left">{type_label}</td>'
-                f'<td class="left bold">{row["marque"]}</td>'
+                f'<td class="left bold">{brand_name_html(row["marque"], cfg["star_brands"])}</td>'
                 f'<td class="left">{row["format"]}</td>'
                 f'<td class="left"><span class="role-dot" '
                 f'style="background:{role_color};"></span>{row["role"]}</td>'
@@ -1166,7 +1156,7 @@ if cfg['has_competitors']:
 
 
 # =============================================================================
-# DÉTAILS EN ONGLETS  (STAR en rouge)
+# DÉTAILS EN ONGLETS  (nom STAR en rouge)
 # =============================================================================
 st.markdown("### Détails par SKU")
 tab1, tab2, tab3 = st.tabs(["Prix & Index", "Marges 2026", "Marges 2027"])
@@ -1186,10 +1176,9 @@ with tab1:
             '</tr></thead><tbody>']
     for _, row in d.iterrows():
         statut_cls = 'ok' if row['statut'] == 'OK' else 'ko'
-        row_cls = 'star-row' if row['type'] == 'STAR' else ''
         html.append(
-            f'<tr class="{row_cls}">'
-            f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
+            '<tr>'
+            f'<td class="left bold">{brand_name_html(row["marque"], cfg["star_brands"])}</td>'
             f'<td class="left">{row["format"]}</td>'
             f'<td>{fmt(row["pvf"])}</td>'
             f'<td>{fmt(row["p_litre"])}</td>'
@@ -1213,7 +1202,6 @@ with tab2:
             '<th>PVC</th><th>PAP min</th><th>PAP max</th><th>Marge PDV/PAP max</th>',
             '</tr></thead><tbody>']
     for _, row in d.iterrows():
-        row_cls = 'star-row' if row['type'] == 'STAR' else ''
         pap_min_txt = fmt(row['pap_min'])
         if row['pap_max'] > 0:
             pap_max_txt = fmt(row['pap_max'])
@@ -1222,8 +1210,8 @@ with tab2:
             pap_max_txt = '<span class="muted">—</span>'
             marge_pap = '<span class="muted">—</span>'
         html.append(
-            f'<tr class="{row_cls}">'
-            f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
+            '<tr>'
+            f'<td class="left bold">{brand_name_html(row["marque"], cfg["star_brands"])}</td>'
             f'<td class="left">{row["format"]}</td>'
             f'<td>{fmt(row["pva"])}</td>'
             f'<td>{fmt(row["pv_ds"])}</td>'
@@ -1246,10 +1234,9 @@ with tab3:
             '<th>PVC 27</th>',
             '</tr></thead><tbody>']
     for _, row in d.iterrows():
-        row_cls = 'star-row' if row['type'] == 'STAR' else ''
         html.append(
-            f'<tr class="{row_cls}">'
-            f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
+            '<tr>'
+            f'<td class="left bold">{brand_name_html(row["marque"], cfg["star_brands"])}</td>'
             f'<td class="left">{row["format"]}</td>'
             f'<td>{fmt(row["pva_2027"])}</td>'
             f'<td>{fmt(row["pv_ds_2027"])}</td>'
