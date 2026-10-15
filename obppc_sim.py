@@ -16,11 +16,6 @@ st.markdown("""
         border: 1px solid #30363d; font-weight: 600; text-align: center;
         vertical-align: middle; line-height: 1.2;
     }
-    .obppc th.rot {
-        writing-mode: vertical-rl; transform: rotate(180deg);
-        height: 130px; width: 26px; padding: 4px 2px;
-        font-size: 0.58rem;
-    }
     .obppc td {
         border: 1px solid #30363d; padding: 6px 8px;
         text-align: right; color: #e6edf3; background: #0e1117;
@@ -39,14 +34,6 @@ st.markdown("""
     .ko { color: #f85149; font-weight: 700; }
     .warn { color: #d29922; font-weight: 700; }
 
-    /* Section marker */
-    .group-header {
-        background: #161b22 !important;
-        color: #a5b4fc !important; font-weight: 700 !important;
-        font-size: 0.7rem !important; text-align: left !important;
-        letter-spacing: 0.08em; text-transform: uppercase;
-    }
-
     /* KPI bandeau */
     .kpi-band {
         display: grid; grid-template-columns: repeat(5, 1fr);
@@ -64,22 +51,13 @@ st.markdown("""
         font-size: 1.15rem; color: #e6edf3; font-weight: 700;
         font-variant-numeric: tabular-nums; margin-top: 2px;
     }
-
-    /* Alerte écart */
-    .alert {
-        padding: 8px 12px; background: #161b22; border-radius: 6px;
-        border-left: 3px solid var(--c); margin-bottom: 6px;
-        font-size: 0.82rem; color: #e6edf3;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 
 # =============================================================================
-# DONNÉES — Feuille PVC BI (données exactes du fichier)
+# DONNÉES — Feuille PVC BI
 # =============================================================================
-# Colonnes : marque, role, format, vol, pvf, prop_pvf, pva, pv_ds, pvc,
-#            pap_min, pap_max, commentaire
 DATA_BI = [
     # --- BEAUFORT ---
     {'marque': 'Beaufort', 'role': 'Frequency (Cœur de gamme)',
@@ -196,10 +174,10 @@ DATA_BI = [
 
 df_raw = pd.DataFrame(DATA_BI)
 
-# Référence = Beaufort 33CL VER (Frequency ligne 1 dans le fichier)
-REF_PVF_INDEX = 4000      # Beaufort Frequency = Index 100
+# Référence : Beaufort 33CL VER Frequency (ligne 1)
+REF_PVF_INDEX = 4000
 REF_PL_INDEX = 4000 / 0.33
-# Référence THB 65 (pour Index PVF/Prix (THB 65))
+# Référence secondaire THB 65 (Frequency)
 REF_THB65_PVF = 4500
 REF_THB65_PL = 4500 / 0.65
 
@@ -214,6 +192,8 @@ ROLE_COLORS = {
     'Upscale (Premium)': '#bc8cff',
     'Upscale (Super-Premium Niche)': '#a855f7',
 }
+ROLE_TARGET = {'Entry': '101–110', 'Frequency': '100',
+               'Upsize': '90–99', 'Upscale': '≥ 111'}
 
 def role_simple(r):
     if r.startswith('Upscale'):   return 'Upscale'
@@ -221,9 +201,6 @@ def role_simple(r):
     if r.startswith('Frequency'): return 'Frequency'
     if r.startswith('Upsize'):    return 'Upsize'
     return 'Autre'
-
-ROLE_TARGET = {'Entry': '101–110', 'Frequency': '100',
-               'Upsize': '90–99', 'Upscale': '≥ 111'}
 
 def status_from_idx(idx, role):
     if role == 'Entry':     return 'OK' if 101 <= idx <= 110 else 'KO'
@@ -234,12 +211,18 @@ def status_from_idx(idx, role):
 
 def fmt(v, unit=''):
     if pd.isna(v): return '—'
-    if isinstance(v, float) and v.is_integer(): v = int(v)
+    try:
+        v = float(v)
+    except (TypeError, ValueError):
+        return str(v)
+    if v.is_integer(): v = int(v)
     return f"{v:,.0f}".replace(',', ' ') + (f" {unit}" if unit else '')
 
-def fmt_pct(v):
-    if pd.isna(v): return '—'
-    return f"{v*100:.0f}%"
+def safe_pct(v, digits=0):
+    try:
+        return f"{float(v)*100:.{digits}f}%"
+    except (TypeError, ValueError):
+        return '—'
 
 
 # =============================================================================
@@ -250,7 +233,7 @@ def compute(df):
     d['p_litre'] = d['pvf'] / d['vol']
     d['prop_p_litre'] = d['prop_pvf'] / d['vol']
 
-    # Index vs Beaufort Frequency (ligne 1)
+    # Index vs Beaufort Frequency
     d['idx_pvf']  = (d['pvf'] / REF_PVF_INDEX * 100).round(0).astype(int)
     d['idx_pl']   = (d['p_litre'] / REF_PL_INDEX * 100).round(0).astype(int)
     d['idx_pvf_thb65'] = (d['pvf'] / REF_THB65_PVF * 100).round(0).astype(int)
@@ -262,7 +245,7 @@ def compute(df):
     d['idx_pvf_thb65_prop'] = (d['prop_pvf'] / REF_THB65_PVF * 100).round(0).astype(int)
     d['idx_pl_thb65_prop']  = (d['prop_p_litre'] / REF_THB65_PL * 100).round(0).astype(int)
 
-    # Marges
+    # Marges 2026
     d['marge_ds'] = d['pv_ds'] - d['pva']
     d['marge_ds_pct'] = d['marge_ds'] / d['pva']
     d['marge_pdv'] = d['pvc'] - d['pv_ds']
@@ -271,19 +254,21 @@ def compute(df):
     d['marge_max'] = d['pap_max'] - d['pv_ds']
     d['marge_pdv_min_pct'] = d['marge_min'] / d['pv_ds']
     d['marge_pdv_max_pct'] = d['marge_max'] / d['pv_ds']
+
+    # Hausse
     d['hausse'] = d['prop_pvf'] - d['pvf']
     d['hausse_pct'] = d['hausse'] / d['pvf']
 
-    # PAP 2027
+    # PAP 2027 (logique du fichier : nouvelles valeurs = anciennes + hausse)
     d['pva_2027'] = d['pva'] + d['hausse']
     d['pv_ds_2027'] = d['pv_ds'] + d['hausse']
     d['marge_ds_2027'] = d['pv_ds_2027'] - d['pva_2027']
-    d['marge_ds_2027_pct'] = d['marge_ds_2027'] / d['pva_2027']
+    d['marge_ds_2027_pct'] = d['marge_ds_2027'] / d['pva_2027'].replace(0, pd.NA)
     d['pvc_2027'] = d['prop_pvf']
     d['marge_pdv_2027'] = d['pvc_2027'] - d['pv_ds_2027']
-    d['marge_pdv_2027_pct'] = d['marge_pdv_2027'] / d['pv_ds_2027']
+    d['marge_pdv_2027_pct'] = d['marge_pdv_2027'] / d['pv_ds_2027'].replace(0, pd.NA)
 
-    # Statut vs cible du rôle (basé sur l'index P/L vs Beaufort Frequency)
+    # Statut vs cible
     d['role_simple'] = d['role'].apply(role_simple)
     d['statut'] = d.apply(
         lambda r: status_from_idx(r['idx_pl'], r['role_simple']), axis=1)
@@ -311,14 +296,15 @@ with st.sidebar:
     st.markdown("---")
     if st.button("Réinitialiser les propositions", use_container_width=True):
         for k in list(st.session_state.keys()):
-            if k.startswith('prop_') or k.startswith('editor_'):
+            if k.startswith('prop_editor'):
                 del st.session_state[k]
         st.rerun()
 
     st.markdown("---")
     st.markdown("##### Cibles index P/L")
     for r, target in ROLE_TARGET.items():
-        color = ROLE_COLORS[[k for k in ROLE_COLORS if k.startswith(r)][0]]
+        color_key = [k for k in ROLE_COLORS if k.startswith(r)]
+        color = ROLE_COLORS[color_key[0]] if color_key else '#64748b'
         st.markdown(
             f"<div style='font-size:0.72rem; color:#cbd5e1; margin-bottom:3px;'>"
             f"<span class='role-dot' style='background:{color};'></span>"
@@ -326,7 +312,8 @@ with st.sidebar:
             unsafe_allow_html=True)
     st.markdown(
         "<div style='font-size:0.68rem; color:#6e7681; margin-top:10px;'>"
-        "Référence index : <b>Beaufort 33CL VER Frequency</b> (Index 100)</div>",
+        "Référence index : <b>Beaufort 33CL VER Frequency</b> (Index 100)<br>"
+        "Référence secondaire : <b>THB Pilsener 65 cl VER</b></div>",
         unsafe_allow_html=True)
 
 
@@ -349,7 +336,10 @@ if df.empty:
     st.warning("Aucune référence à afficher avec ces filtres.")
     st.stop()
 
-# Édition des propositions
+
+# =============================================================================
+# ÉDITION DES PROPOSITIONS
+# =============================================================================
 st.markdown("### Éditeur de propositions 2027")
 st.caption("Modifiez le **PVF proposé** ou les prix **PVA / PV DS / PVC / PAP** — "
            "tous les index, marges et statuts se recalculent.")
@@ -385,13 +375,35 @@ edited = st.data_editor(
     key="prop_editor",
 )
 
+# --- RÉINJECTION de la colonne 'commentaire' (perdue par l'éditeur) ---
+edited = edited.reset_index(drop=True)
+edited['commentaire'] = df['commentaire'].reset_index(drop=True).fillna('').values
+
 d = compute(edited)
+
+
+# =============================================================================
+# VÉRIFICATION DES COLONNES
+# =============================================================================
+required_cols = ['marque', 'role', 'format', 'vol', 'pvf', 'p_litre',
+                 'idx_pvf', 'idx_pl', 'idx_pvf_thb65', 'idx_pl_thb65',
+                 'prop_pvf', 'prop_p_litre', 'idx_pvf_prop', 'idx_pl_prop',
+                 'hausse', 'hausse_pct',
+                 'pva', 'pv_ds', 'marge_ds', 'marge_ds_pct',
+                 'pvc', 'marge_pdv', 'marge_pdv_pct',
+                 'pva_2027', 'pv_ds_2027', 'marge_ds_2027', 'marge_ds_2027_pct',
+                 'pvc_2027', 'marge_pdv_2027_pct', 'role_simple',
+                 'statut', 'commentaire']
+missing = [c for c in required_cols if c not in d.columns]
+if missing:
+    st.error(f"Colonnes manquantes après calcul : {missing}")
+    st.stop()
 
 
 # =============================================================================
 # KPI BANDEAU
 # =============================================================================
-n_ok = (d['statut'] == 'OK').sum()
+n_ok = int((d['statut'] == 'OK').sum())
 n_total = len(d)
 taux = n_ok / n_total * 100 if n_total else 0
 hausse_moy = d['hausse_pct'].mean() * 100
@@ -427,11 +439,10 @@ st.markdown(f"""
 
 
 # =============================================================================
-# TABLEAU PRINCIPAL — reproduit la structure de la feuille PVC BI
+# TABLEAU PRINCIPAL
 # =============================================================================
 st.markdown("### Tableau OBPPC — PVC BI")
 
-# Construction HTML reproduisant la structure du fichier
 def build_main_table(d):
     html = ['<table class="obppc">']
 
@@ -471,7 +482,7 @@ def build_main_table(d):
     html.append('</thead><tbody>')
 
     for _, row in d.iterrows():
-        color = ROLE_COLORS[row['role']]
+        color = ROLE_COLORS.get(row['role'], '#64748b')
         statut_cls = 'ok' if row['statut'] == 'OK' else 'ko' if row['statut'] == 'KO' else 'muted'
 
         html.append(
@@ -506,18 +517,18 @@ def build_main_table(d):
             f'<td>{fmt(row["pva"])}</td>'
             f'<td>{fmt(row["pv_ds"])}</td>'
             f'<td>{fmt(row["marge_ds"])}</td>'
-            f'<td class="marge">{row["marge_ds_pct"]*100:.0f}%</td>'
+            f'<td class="marge">{safe_pct(row["marge_ds_pct"])}</td>'
             f'<td>{fmt(row["pvc"])}</td>'
             f'<td>{fmt(row["marge_pdv"])}</td>'
-            f'<td class="marge">{row["marge_pdv_pct"]*100:.0f}%</td>'
+            f'<td class="marge">{safe_pct(row["marge_pdv_pct"])}</td>'
 
             # 2027 margins
             f'<td>{fmt(row["pva_2027"])}</td>'
             f'<td>{fmt(row["pv_ds_2027"])}</td>'
             f'<td>{fmt(row["marge_ds_2027"])}</td>'
-            f'<td class="marge">{row["marge_ds_2027_pct"]*100:.0f}%</td>'
+            f'<td class="marge">{safe_pct(row["marge_ds_2027_pct"])}</td>'
             f'<td>{fmt(row["pvc_2027"])}</td>'
-            f'<td class="marge">{row["marge_pdv_2027_pct"]*100:.0f}%</td>'
+            f'<td class="marge">{safe_pct(row["marge_pdv_2027_pct"])}</td>'
 
             f'<td class="left muted">{row["commentaire"]}</td>'
             '</tr>'
@@ -529,7 +540,7 @@ st.markdown(build_main_table(d), unsafe_allow_html=True)
 
 
 # =============================================================================
-# EXPORT
+# EXPORT CSV
 # =============================================================================
 st.markdown("---")
 export = d[['marque', 'role', 'format', 'vol', 'pvf', 'p_litre',
