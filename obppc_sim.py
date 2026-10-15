@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import io
 import re
+import base64
+from pathlib import Path
 
 st.set_page_config(page_title="Simulateur OBPPC", layout="wide",
                    initial_sidebar_state="expanded")
@@ -32,14 +34,26 @@ st.markdown("""
     .brand-star { color: #f85149 !important; font-weight: 700; }
     .brand-comp { color: #e6edf3; font-weight: 700; }
 
-    /* ✅ Logo de marque (carré coloré avec initiale) */
+    /* ✅ Logo officiel (image PNG) */
     .brand-logo {
+        display: inline-block;
+        width: 22px; height: 22px;
+        border-radius: 4px;
+        margin-right: 7px;
+        vertical-align: middle;
+        object-fit: contain;
+        background: #ffffff;
+        padding: 1px;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.12);
+    }
+
+    /* Fallback : pastille colorée avec initiale si logo manquant */
+    .brand-logo-fallback {
         display: inline-flex; align-items: center; justify-content: center;
-        width: 20px; height: 20px; border-radius: 4px;
+        width: 22px; height: 22px; border-radius: 4px;
         font-size: 0.62rem; font-weight: 800; color: #fff;
         margin-right: 7px; vertical-align: middle;
-        text-transform: uppercase; letter-spacing: -0.02em;
-        box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset;
+        text-transform: uppercase;
     }
 
     /* Tags STAR / CONCUR */
@@ -84,9 +98,8 @@ st.markdown("""
 
 
 # =============================================================================
-# LOGOS DES MARQUES — couleur + initiale
+# LOGOS DES MARQUES — couleur + initiale (fallback uniquement)
 # =============================================================================
-# Chaque marque a une couleur et une initiale (ou texte court)
 BRAND_LOGOS = {
     # BI
     'Beaufort':     {'color': '#c9a227', 'init': 'B'},
@@ -117,15 +130,45 @@ BRAND_LOGOS = {
     'BOOST VITALITY': {'color': '#ca8a04', 'init': 'B'},
 }
 
-# Logo par défaut si marque inconnue
 DEFAULT_LOGO = {'color': '#64748b', 'init': '?'}
 
 
+# =============================================================================
+# CHARGEMENT DES LOGOS OFFICIELS (dossier logos/)
+# =============================================================================
+LOGOS_DIR = Path(__file__).parent / "logos"
+
+
+@st.cache_data(show_spinner=False)
+def _load_logo_b64(filename: str):
+    """Charge un PNG depuis logos/ et le retourne en base64 (mis en cache)."""
+    path = LOGOS_DIR / filename
+    if not path.exists():
+        return None
+    try:
+        return base64.b64encode(path.read_bytes()).decode()
+    except Exception:
+        return None
+
+
+def _logo_filename(marque: str) -> str:
+    """'Eau vive' → 'eau_vive.png' ; 'Red Bull' → 'red_bull.png' ; 'COCA' → 'coca.png'."""
+    base = marque.lower().strip().replace(' ', '_').replace("'", '')
+    return base + ".png"
+
+
 def brand_logo_html(marque):
-    """Retourne le HTML du carré coloré avec l'initiale de la marque."""
+    """Retourne <img> du logo officiel, ou fallback coloré avec initiale."""
+    b64 = _load_logo_b64(_logo_filename(marque))
+    if b64:
+        return (
+            f'<img class="brand-logo" '
+            f'src="data:image/png;base64,{b64}" '
+            f'alt="{marque}" />'
+        )
     info = BRAND_LOGOS.get(marque, DEFAULT_LOGO)
     return (
-        f'<span class="brand-logo" '
+        f'<span class="brand-logo-fallback" '
         f'style="background:{info["color"]};">{info["init"]}</span>'
     )
 
@@ -1112,9 +1155,7 @@ if cfg['has_competitors']:
     # =========================================================================
     st.markdown("---")
     st.markdown("##### Comparaison par contenance — tous formats confondus")
-    st.caption(
-        "Regroupement par volume (L), trié du PVF le plus bas au plus élevé."
-    )
+    st.caption("Regroupement par volume (L), trié du PVF le plus bas au plus élevé.")
 
     volumes = sorted(d['vol'].unique())
 
@@ -1174,7 +1215,6 @@ if cfg['has_competitors']:
                 '<th>Marge PDV/PAP max</th>',
                 '</tr></thead><tbody>']
 
-        # Tri par PVF croissant
         ordered = sub.sort_values('pvf', ascending=True)
 
         for _, row in ordered.iterrows():
