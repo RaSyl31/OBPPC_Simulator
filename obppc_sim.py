@@ -89,6 +89,26 @@ st.markdown("""
         border-radius: 6px; padding: 10px 14px; margin: 8px 0 14px 0;
         font-size: 0.78rem; color: #cbd5e1;
     }
+
+    /* ✅ Bandeaux 2026 / 2027 au-dessus du data_editor */
+    .year-band {
+        display: flex; gap: 6px; margin: 12px 0 4px 0;
+        font-size: 0.7rem; color: #8b949e; text-transform: uppercase;
+        letter-spacing: 0.08em; font-weight: 700;
+    }
+    .year-band .band-2026 {
+        background: #0d1b2a; border: 1px solid #1e4976;
+        color: #7dd3fc; padding: 4px 10px; border-radius: 4px;
+    }
+    .year-band .band-2027 {
+        background: #1a0d2a; border: 1px solid #5b21b6;
+        color: #c4b5fd; padding: 4px 10px; border-radius: 4px;
+    }
+    .year-band .band-comment {
+        background: #1a1f2b; border: 1px solid #30363d;
+        color: #cbd5e1; padding: 4px 10px; border-radius: 4px;
+        margin-left: auto;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1284,7 +1304,19 @@ tab1, tab2, tab3 = st.tabs(["Prix & Index", "Marges 2026", "Marges 2027"])
 
 with tab1:
     # =========================================================================
-    # ✅ Tableau éditable : seule la colonne Commentaire est modifiable
+    # ✅ Bandeau visuel de séparation 2026 / 2027 / Commentaire
+    # =========================================================================
+    st.markdown(
+        '<div class="year-band">'
+        '<span class="band-2026">📅 2026 — Référence</span>'
+        '<span class="band-2027">📅 2027 — Projection</span>'
+        '<span class="band-comment">✏️ Commentaire modifiable</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # =========================================================================
+    # Tableau éditable : seule la colonne Commentaire est modifiable
     # =========================================================================
     editor_rows = []
     for _, row in d.iterrows():
@@ -1295,14 +1327,14 @@ with tab1:
         editor_rows.append({
             'marque': row['marque'],
             'format': row['format'],
-            'pvf': int(row['pvf']),
-            'p_litre': int(round(row['p_litre'])),
-            'idx_pvf': int(row['idx_pvf']),
-            'idx_pl': int(row['idx_pl']),
-            'prop_pvf': int(row['prop_pvf']),
-            'prop_p_litre': int(round(row['prop_p_litre'])),
-            'idx_pl_prop': int(row['idx_pl_prop']),
-            'hausse_pct': float(row['hausse_pct']),
+            'PVF 2026': int(row['pvf']),
+            'P/L 2026': int(round(row['p_litre'])),
+            'Idx PVF 2026': int(row['idx_pvf']),
+            'Idx P/L 2026': int(row['idx_pl']),
+            'PVF 2027': int(row['prop_pvf']),
+            'P/L 2027': int(round(row['prop_p_litre'])),
+            'Idx P/L 2027': int(row['idx_pl_prop']),
+            'Hausse 2027': float(row['hausse_pct']),
             'commentaire': current_comment,
         })
     editor_df = pd.DataFrame(editor_rows)
@@ -1313,25 +1345,25 @@ with tab1:
             'marque': st.column_config.TextColumn(
                 "Marque", disabled=True, width=110),
             'format': st.column_config.TextColumn(
-                "Format", disabled=True, width=240),
-            'pvf': st.column_config.NumberColumn(
-                "PVF 2026", disabled=True, format="%d", width=90),
-            'p_litre': st.column_config.NumberColumn(
+                "Format", disabled=True, width=220),
+            'PVF 2026': st.column_config.NumberColumn(
+                "PVF 2026", disabled=True, format="%d", width=95),
+            'P/L 2026': st.column_config.NumberColumn(
                 "P/L 2026", disabled=True, format="%d", width=90),
-            'idx_pvf': st.column_config.NumberColumn(
-                "Idx PVF", disabled=True, format="%d", width=80),
-            'idx_pl': st.column_config.NumberColumn(
-                "Idx P/L", disabled=True, format="%d", width=80),
-            'prop_pvf': st.column_config.NumberColumn(
-                "PVF 2027", disabled=True, format="%d", width=90),
-            'prop_p_litre': st.column_config.NumberColumn(
+            'Idx PVF 2026': st.column_config.NumberColumn(
+                "Idx PVF", disabled=True, format="%d", width=75),
+            'Idx P/L 2026': st.column_config.NumberColumn(
+                "Idx P/L", disabled=True, format="%d", width=75),
+            'PVF 2027': st.column_config.NumberColumn(
+                "PVF 2027", disabled=True, format="%d", width=95),
+            'P/L 2027': st.column_config.NumberColumn(
                 "P/L 2027", disabled=True, format="%d", width=90),
-            'idx_pl_prop': st.column_config.NumberColumn(
+            'Idx P/L 2027': st.column_config.NumberColumn(
                 "Idx P/L 27", disabled=True, format="%d", width=80),
-            'hausse_pct': st.column_config.NumberColumn(
-                "Hausse", disabled=True, format="%.1f%%", width=80),
+            'Hausse 2027': st.column_config.NumberColumn(
+                "Hausse 27", disabled=True, format="%.1f%%", width=85),
             'commentaire': st.column_config.TextColumn(
-                "Commentaire", width=500,
+                "Commentaire", width=450,
                 help="Cliquez pour saisir ou modifier"),
         },
         hide_index=True,
@@ -1346,7 +1378,7 @@ with tab1:
         key = (r['marque'], r['format'])
         st.session_state.commentaires[key] = r['commentaire']
 
-    # Réinjection dans d (pour cohérence et export CSV)
+    # Réinjection dans d (cohérence + export CSV)
     d['commentaire'] = d.apply(
         lambda r: st.session_state.commentaires.get(
             (r['marque'], r['format']), r.get('commentaire', '')
@@ -1389,9 +1421,11 @@ with tab3:
             '<th class="left">Marque</th>',
             '<th class="left">Format</th>',
             '<th>PVA 27</th><th>DS 27</th><th>Marge 27</th><th>Taux DS</th>',
-            '<th>PVC 27</th>',
+            '<th>PVC 27</th><th>Marge PDV 27</th><th>Taux PDV 27</th>',
             '</tr></thead><tbody>']
     for _, row in d.iterrows():
+        marge_pdv_txt = fmt(row['marge_pdv_2027'])
+        taux_pdv_txt = safe_pct(row['marge_pdv_2027_pct'])
         html.append(
             '<tr>'
             f'<td class="left bold">{brand_name_html(row["marque"], cfg["star_brands"])}</td>'
@@ -1401,6 +1435,8 @@ with tab3:
             f'<td>{fmt(row["marge_ds_2027"])}</td>'
             f'<td class="muted">{safe_pct(row["marge_ds_2027_pct"])}</td>'
             f'<td>{fmt(row["pvc_2027"])}</td>'
+            f'<td>{marge_pdv_txt}</td>'
+            f'<td class="muted">{taux_pdv_txt}</td>'
             '</tr>'
         )
     html.append('</tbody></table>')
@@ -1423,7 +1459,8 @@ export = d[[
     'marge_pdv_pap_min', 'marge_pdv_pap_min_pct',
     'marge_pdv_pap_max', 'marge_pdv_pap_max_pct',
     'pva_2027', 'pv_ds_2027', 'marge_ds_2027', 'marge_ds_2027_pct',
-    'pvc_2027', 'statut', 'commentaire',
+    'pvc_2027', 'marge_pdv_2027', 'marge_pdv_2027_pct',
+    'statut', 'commentaire',
 ]].copy()
 
 export = export.rename(columns={
@@ -1446,6 +1483,8 @@ export = export.rename(columns={
     'pva_2027': 'PVA 2027', 'pv_ds_2027': 'PV DS 2027',
     'marge_ds_2027': 'Marge DS 2027', 'marge_ds_2027_pct': 'Taux DS 2027',
     'pvc_2027': 'PVC 2027',
+    'marge_pdv_2027': 'Marge PDV 2027',
+    'marge_pdv_2027_pct': 'Taux PDV 2027',
     'statut': 'Statut', 'commentaire': 'Commentaire',
 })
 
