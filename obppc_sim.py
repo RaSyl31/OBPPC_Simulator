@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import io
+import re
 
 st.set_page_config(page_title="Simulateur OBPPC", layout="wide",
                    initial_sidebar_state="expanded")
@@ -585,61 +586,147 @@ if df.empty:
 
 
 # =============================================================================
-# SECTION PAP — Import manuel / CSV
+# SECTION PAP — Import CR PANEL (Excel) / Saisie manuelle
 # =============================================================================
 st.markdown("### PAP — Prix d'Achat Produit")
 st.markdown(
     '<div class="pap-info">'
-    '<b style="color:#a5b4fc;">💡 Comment alimenter les PAP ?</b><br>'
-    'Les PAP (Prix Achat Produit) sont des prix B2B confidentiels, '
-    'non publiés sur bonmarche.mg ni sur aucun site public. '
-    'Utilisez l\'éditeur ci-dessous ou importez un CSV '
-    '(colonnes attendues : <code>marque, format, pap</code>).'
+    '<b style="color:#a5b4fc;">💡 Logique PAP</b><br>'
+    '• <b>PAP min</b> = <b>PVC</b> (donnée OBPPC existante)<br>'
+    '• <b>PAP max</b> = colonne <code>Prix de vente</code> du fichier '
+    '<b>CR PANEL</b> (feuille <code>Saisie</code>), agrégée par SKU.'
     '</div>',
     unsafe_allow_html=True)
 
-pap_tab1, pap_tab2 = st.tabs(["📥 Importer un CSV", "✏️ Saisie manuelle"])
+if 'pap_max_data' not in st.session_state:
+    st.session_state.pap_max_data = {}
 
-# --- Stockage des PAP en session
-if 'pap_data' not in st.session_state:
-    st.session_state.pap_data = {}
+
+# Mapping des marques OBPPC -> nom produit dans CR PANEL
+MAPPING_MARQUE = {
+    'WOCO': 'WORLD COLA',
+    'COCA': 'COCA COLA',
+    'FANTA': 'FANTA',
+    'CAPRICE': 'CAPRICE',
+    'TONIC': 'TONIC',
+    'CRISTAL': 'CRISTAL',
+    'CRISTALLINE': 'CRISTALLINE',
+    'EAU VIVE': 'EAU VIVE',
+    'RANOVISY': 'RANO VISY',
+    'VISY GASY': 'VISY GASY',
+    'OLYMPIKO': 'OLYMPIKO',
+    'NATUR EAU': "NATUR'EAU",
+    'BEAUFORT': 'BEAUFORT',
+    'GOLD': 'GOLD',
+    'THB': 'THB',
+    'QUEEN': 'QUEENS',
+    'FRESH': 'FRESH',
+}
+
+
+def _detect_emballage(format_str):
+    f = format_str.upper()
+    if 'PET' in f:
+        return 'PET'
+    if 'CAN' in f:
+        return 'CAN'
+    if 'VER' in f or 'VERRE' in f:
+        return 'VERRE'
+    if 'VC' in f or 'BRIQUE' in f:
+        return None
+    return None
+
+
+pap_tab1, pap_tab2 = st.tabs(["📥 Importer CR PANEL (Excel)", "✏️ Saisie manuelle"])
 
 with pap_tab1:
     uploaded = st.file_uploader(
-        "Charger un fichier CSV des PAP",
-        type=['csv'],
-        help="Colonnes : marque, format, pap (une ligne par SKU)")
+        "Charger le fichier CR PANEL (Excel)",
+        type=['xlsx', 'xls'],
+        help="Feuille 'Saisie' avec colonnes : Nom Produit, "
+             "Format (en cl), Emballage, Prix de vente")
+
     if uploaded is not None:
         try:
-            pap_df = pd.read_csv(uploaded)
-            # Normalisation des colonnes
-            pap_df.columns = [c.strip().lower() for c in pap_df.columns]
-            required = {'marque', 'format', 'pap'}
-            if not required.issubset(pap_df.columns):
-                st.error(f"Colonnes manquantes : {required - set(pap_df.columns)}")
+            df_cr = pd.read_excel(uploaded, sheet_name='Saisie')
+
+            # Vérification des colonnes
+            required_cols = ['Nom Produit', 'Format (en cl)', 'Emballage', 'Prix de vente']
+            missing = [c for c in required_cols if c not in df_cr.columns]
+            if missing:
+                st.error(f"Colonnes manquantes dans la feuille 'Saisie' : {missing}")
             else:
-                # Stockage dans session_state
-                for _, r in pap_df.iterrows():
-                    key = (str(r['marque']).strip(), str(r['format']).strip())
-                    st.session_state.pap_data[key] = float(r['pap'])
-                st.success(f"✅ {len(pap_df)} PAP importés avec succès.")
+                df_cr = df_cr[required_cols].copy()
+                df_cr.columns = ['nom_produit', 'format_cl', 'emballage', 'prix_vente']
+
+                # Normalisation
+                df_cr['nom_produit'] = (
+                    df_cr['nom_produit'].astype(str).str.upper().str.strip()
+                )
+                df_cr['emballage'] = (
+                    df_cr['emballage'].astype(str).str.upper().str.strip()
+                )
+                df_cr['format_cl'] = pd.to_numeric(df_cr['format_cl'], errors='coerce')
+                df_cr['prix_vente'] = pd.to_numeric(df_cr['prix_vente'], errors='coerce')
+                df_cr = df_cr.dropna(subset=['format_cl', 'prix_vente'])
+
+                pap_max_dict = {}
+                non_trouves = []
+
+                for _, row in df.iterrows():
+                    marque_obppc = str(row['marque']).upper().strip()
+                    format_obppc = row['format']
+                    vol_obppc = float(row['vol'])
+                    vol_cl = round(vol_obppc * 100)
+
+                    emb_obppc = _detect_emballage(format_obppc)
+
+                    nom_cr = MAPPING_MARQUE.get(marque_obppc, marque_obppc)
+
+                    mask = (
+                        df_cr['nom_produit'].str.contains(
+                            re.escape(nom_cr), case=False, na=False
+                        ) &
+                        (df_cr['format_cl'] == vol_cl)
+                    )
+                    if emb_obppc:
+                        mask &= (df_cr['emballage'] == emb_obppc)
+
+                    match = df_cr[mask]
+                    if not match.empty:
+                        pap_max = float(match['prix_vente'].max())
+                        pap_max_dict[(row['marque'], format_obppc)] = pap_max
+                    else:
+                        non_trouves.append(f"{row['marque']} | {format_obppc}")
+
+                st.session_state.pap_max_data = pap_max_dict
+
+                if pap_max_dict:
+                    st.success(f"✅ {len(pap_max_dict)} PAP max trouvés dans le CR PANEL.")
+                else:
+                    st.warning("Aucun PAP max trouvé. Vérifie les correspondances.")
+
+                if non_trouves:
+                    with st.expander(f"⚠️ {len(non_trouves)} SKU sans correspondance"):
+                        for s in non_trouves:
+                            st.text(s)
+
         except Exception as e:
-            st.error(f"Erreur de lecture : {e}")
+            st.error(f"Erreur de lecture du fichier Excel : {e}")
 
 with pap_tab2:
-    st.caption("Saisissez les PAP directement par SKU.")
-
+    st.caption("Saisissez les PAP max directement. Le PAP min est égal au PVC.")
     pap_edit_rows = []
     for _, row in df.iterrows():
         key = (row['marque'], row['format'])
-        current = st.session_state.pap_data.get(key, 0)
+        current_max = st.session_state.pap_max_data.get(key, row.get('pap_max', 0))
         pap_edit_rows.append({
             'marque': row['marque'],
             'format': row['format'],
-            'pvc_2026': row['pvf'],
-            'pap': int(current),
+            'pvc': row['pvc'],
+            'pap_min': row['pvc'],  # PAP min = PVC
+            'pap_max': int(current_max) if pd.notna(current_max) else 0,
         })
-
     pap_edit_df = pd.DataFrame(pap_edit_rows)
 
     pap_edited = st.data_editor(
@@ -647,10 +734,11 @@ with pap_tab2:
         column_config={
             'marque': st.column_config.TextColumn("Marque", disabled=True, width=100),
             'format': st.column_config.TextColumn("Format", disabled=True, width=220),
-            'pvc_2026': st.column_config.NumberColumn("PVC 2026", disabled=True,
-                                                      format="%d", width=110),
-            'pap': st.column_config.NumberColumn("PAP (Ar)", min_value=0, step=50,
-                                                 format="%d", width=130),
+            'pvc': st.column_config.NumberColumn("PVC", disabled=True, format="%d", width=100),
+            'pap_min': st.column_config.NumberColumn("PAP min (=PVC)", disabled=True,
+                                                     format="%d", width=120),
+            'pap_max': st.column_config.NumberColumn("PAP max (Ar)", min_value=0, step=50,
+                                                     format="%d", width=130),
         },
         hide_index=True,
         use_container_width=True,
@@ -659,18 +747,9 @@ with pap_tab2:
         key=f"pap_editor_{cat_key}",
     )
 
-    # Sauvegarde
     for _, r in pap_edited.iterrows():
         key = (r['marque'], r['format'])
-        st.session_state.pap_data[key] = float(r['pap'])
-
-# Enrichir le DataFrame principal avec les PAP
-d['pap'] = d.apply(
-    lambda r: st.session_state.pap_data.get((r['marque'], r['format']), 0), axis=1)
-
-# Calculs PAP
-d['marge_pdv_pap'] = d['pap'] - d['pvc']
-d['marge_pdv_pap_pct'] = d['marge_pdv_pap'] / d['pvc'].replace(0, pd.NA)
+        st.session_state.pap_max_data[key] = float(r['pap_max'])
 
 
 # =============================================================================
@@ -706,10 +785,18 @@ with st.expander("✏️ Éditer les prix", expanded=False):
 d = compute(edited, cfg)
 
 # Réinjection des PAP après compute (car compute recrée d)
-d['pap'] = edited.apply(
-    lambda r: st.session_state.pap_data.get((r['marque'], r['format']), 0), axis=1)
-d['marge_pdv_pap'] = d['pap'] - d['pvc']
-d['marge_pdv_pap_pct'] = d['marge_pdv_pap'] / d['pvc'].replace(0, pd.NA)
+d['pap_min'] = d['pvc']  # PAP min = PVC
+d['pap_max'] = d.apply(
+    lambda r: st.session_state.pap_max_data.get(
+        (r['marque'], r['format']), 0
+    ), axis=1)
+
+# Calculs PAP
+d['marge_pdv_pap_min'] = d['pap_min'] - d['pvc']
+d['marge_pdv_pap_min_pct'] = d['marge_pdv_pap_min'] / d['pvc'].replace(0, pd.NA)
+
+d['marge_pdv_pap_max'] = d['pap_max'] - d['pvc']
+d['marge_pdv_pap_max_pct'] = d['marge_pdv_pap_max'] / d['pvc'].replace(0, pd.NA)
 
 
 # =============================================================================
@@ -718,7 +805,7 @@ d['marge_pdv_pap_pct'] = d['marge_pdv_pap'] / d['pvc'].replace(0, pd.NA)
 n_ok = int((d['statut'] == 'OK').sum())
 n_total = len(d)
 taux = n_ok / n_total * 100 if n_total else 0
-n_pap = int((d['pap'] > 0).sum())
+n_pap = int((d['pap_max'] > 0).sum())
 
 if cfg['has_competitors']:
     n_star = int((d['type'] == 'STAR').sum())
@@ -769,8 +856,9 @@ html = ['<table class="obppc"><thead><tr>',
         '<th>Index P/L</th>',
         '<th>PVF 2027</th>',
         '<th>Hausse</th>',
-        '<th>PAP</th>',
-        '<th>Marge PDV/PAP</th>',
+        '<th>PAP min</th>',
+        '<th>PAP max</th>',
+        '<th>Marge PDV/PAP max</th>',
         '</tr></thead><tbody>']
 
 for _, row in d.iterrows():
@@ -779,15 +867,13 @@ for _, row in d.iterrows():
     hp = row['hausse_pct'] * 100
     hausse_color = '#3fb950' if hp > 0 else '#8b949e' if hp == 0 else '#f85149'
 
-    # PAP affichage
-    if row['pap'] > 0:
-        pap_txt = fmt(row['pap'])
-        marge_pap = safe_pct(row['marge_pdv_pap_pct'])
-        pap_style = ''
+    pap_min_txt = fmt(row['pap_min'])
+    if row['pap_max'] > 0:
+        pap_max_txt = fmt(row['pap_max'])
+        marge_pap = safe_pct(row['marge_pdv_pap_max_pct'])
     else:
-        pap_txt = '<span class="muted">—</span>'
+        pap_max_txt = '<span class="muted">—</span>'
         marge_pap = '<span class="muted">—</span>'
-        pap_style = ''
 
     html.append(
         '<tr>'
@@ -801,7 +887,8 @@ for _, row in d.iterrows():
         f'<td class="{statut_cls}">{row["idx_pl"]} ●</td>'
         f'<td class="bold">{fmt(row["prop_pvf"])}</td>'
         f'<td style="color:{hausse_color};">{fmt(row["hausse"])} ({hp:+.1f}%)</td>'
-        f'<td>{pap_txt}</td>'
+        f'<td>{pap_min_txt}</td>'
+        f'<td>{pap_max_txt}</td>'
         f'<td class="muted">{marge_pap}</td>'
         '</tr>'
     )
@@ -876,8 +963,8 @@ if cfg['has_competitors']:
 
     formats = sorted(d['format'].unique())
 
-    for fmt in formats:
-        sub = d[d['format'] == fmt]
+    for fmt_ in formats:
+        sub = d[d['format'] == fmt_]
         star_rows = sub[sub['type'] == 'STAR']
         comp_rows = sub[sub['type'] == 'Concurrent']
 
@@ -909,7 +996,7 @@ if cfg['has_competitors']:
             f"border-radius:6px; padding:8px 12px; margin:12px 0 6px 0; "
             f"display:flex; justify-content:space-between; align-items:center;'>"
             f"<div style='font-weight:700; color:#e6edf3; font-size:0.95rem;'>"
-            f"📦 {fmt}</div>"
+            f"📦 {fmt_}</div>"
             f"<div style='font-size:0.75rem; color:{ecart_color}; font-weight:600;'>"
             f"{ecart_label}</div></div>",
             unsafe_allow_html=True)
@@ -921,8 +1008,9 @@ if cfg['has_competitors']:
                 '<th>PVF 2026</th>',
                 '<th>P/L 2026</th>',
                 '<th>Index P/L</th>',
-                '<th>PAP</th>',
-                '<th>Marge PDV/PAP</th>',
+                '<th>PAP min</th>',
+                '<th>PAP max</th>',
+                '<th>Marge PDV/PAP max</th>',
                 '</tr></thead><tbody>']
 
         ordered = pd.concat([star_rows, comp_rows])
@@ -938,8 +1026,13 @@ if cfg['has_competitors']:
             statut_cls = 'ok' if row['statut'] == 'OK' else 'ko'
             role_color = ROLE_COLORS.get(row['role'], '#64748b')
 
-            pap_txt = fmt(row['pap']) if row['pap'] > 0 else '<span class="muted">—</span>'
-            marge_pap = safe_pct(row['marge_pdv_pap_pct']) if row['pap'] > 0 else '<span class="muted">—</span>'
+            pap_min_txt = fmt(row['pap_min'])
+            if row['pap_max'] > 0:
+                pap_max_txt = fmt(row['pap_max'])
+                marge_pap = safe_pct(row['marge_pdv_pap_max_pct'])
+            else:
+                pap_max_txt = '<span class="muted">—</span>'
+                marge_pap = '<span class="muted">—</span>'
 
             html.append(
                 f'<tr style="{type_bg}">'
@@ -951,7 +1044,8 @@ if cfg['has_competitors']:
                 f'<td class="bold">{fmt(row["pvf"])}</td>'
                 f'<td>{fmt(row["p_litre"])}</td>'
                 f'<td class="{statut_cls}">{row["idx_pl"]}</td>'
-                f'<td>{pap_txt}</td>'
+                f'<td>{pap_min_txt}</td>'
+                f'<td>{pap_max_txt}</td>'
                 f'<td class="muted">{marge_pap}</td>'
                 '</tr>'
             )
@@ -1004,11 +1098,16 @@ with tab2:
             '<th class="left">Marque</th>',
             '<th class="left">Format</th>',
             '<th>PVA</th><th>PV DS</th><th>Marge DS</th><th>Taux DS</th>',
-            '<th>PVC</th><th>PAP</th><th>Marge PDV/PAP</th>',
+            '<th>PVC</th><th>PAP min</th><th>PAP max</th><th>Marge PDV/PAP max</th>',
             '</tr></thead><tbody>']
     for _, row in d.iterrows():
-        pap_txt = fmt(row['pap']) if row['pap'] > 0 else '<span class="muted">—</span>'
-        marge_pap = safe_pct(row['marge_pdv_pap_pct']) if row['pap'] > 0 else '<span class="muted">—</span>'
+        pap_min_txt = fmt(row['pap_min'])
+        if row['pap_max'] > 0:
+            pap_max_txt = fmt(row['pap_max'])
+            marge_pap = safe_pct(row['marge_pdv_pap_max_pct'])
+        else:
+            pap_max_txt = '<span class="muted">—</span>'
+            marge_pap = '<span class="muted">—</span>'
         html.append(
             '<tr>'
             f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
@@ -1018,7 +1117,8 @@ with tab2:
             f'<td>{fmt(row["marge_ds"])}</td>'
             f'<td class="muted">{safe_pct(row["marge_ds_pct"])}</td>'
             f'<td>{fmt(row["pvc"])}</td>'
-            f'<td>{pap_txt}</td>'
+            f'<td>{pap_min_txt}</td>'
+            f'<td>{pap_max_txt}</td>'
             f'<td class="muted">{marge_pap}</td>'
             '</tr>'
         )
@@ -1059,7 +1159,10 @@ export = d[[
     'prop_pvf', 'prop_p_litre', 'idx_pl_prop',
     'hausse', 'hausse_pct',
     'pva', 'pv_ds', 'marge_ds', 'marge_ds_pct',
-    'pvc', 'pap', 'marge_pdv_pap', 'marge_pdv_pap_pct',
+    'pvc',
+    'pap_min', 'pap_max',
+    'marge_pdv_pap_min', 'marge_pdv_pap_min_pct',
+    'marge_pdv_pap_max', 'marge_pdv_pap_max_pct',
     'pva_2027', 'pv_ds_2027', 'marge_ds_2027', 'marge_ds_2027_pct',
     'pvc_2027', 'statut', 'commentaire',
 ]].copy()
@@ -1074,8 +1177,13 @@ export = export.rename(columns={
     'hausse': 'Hausse (Ar)', 'hausse_pct': 'Hausse %',
     'pva': 'PVA 2026', 'pv_ds': 'PV DS 2026',
     'marge_ds': 'Marge DS', 'marge_ds_pct': 'Taux DS',
-    'pvc': 'PVC 2026', 'pap': 'PAP',
-    'marge_pdv_pap': 'Marge PDV/PAP', 'marge_pdv_pap_pct': 'Taux PDV/PAP',
+    'pvc': 'PVC 2026',
+    'pap_min': 'PAP min',
+    'pap_max': 'PAP max',
+    'marge_pdv_pap_min': 'Marge PDV/PAP min',
+    'marge_pdv_pap_min_pct': 'Taux PDV/PAP min',
+    'marge_pdv_pap_max': 'Marge PDV/PAP max',
+    'marge_pdv_pap_max_pct': 'Taux PDV/PAP max',
     'pva_2027': 'PVA 2027', 'pv_ds_2027': 'PV DS 2027',
     'marge_ds_2027': 'Marge DS 2027', 'marge_ds_2027_pct': 'Taux DS 2027',
     'pvc_2027': 'PVC 2027',
