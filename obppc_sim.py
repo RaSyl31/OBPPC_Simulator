@@ -28,6 +28,21 @@ st.markdown("""
     .obppc td.muted { color: #8b949e; }
     .obppc tr:hover td { background: #161b22; }
 
+    /* ✅ Lignes STAR en rouge */
+    .obppc tr.star-row td {
+        background: #2d1215 !important;
+        border-top: 1px solid #5a1f24 !important;
+        border-bottom: 1px solid #5a1f24 !important;
+        color: #ffd7d7 !important;
+    }
+    .obppc tr.star-row td:first-child {
+        border-left: 3px solid #f85149 !important;
+    }
+    .obppc tr.star-row:hover td {
+        background: #3d181c !important;
+    }
+    .obppc tr.star-row td.muted { color: #ffb3b3 !important; }
+
     .role-dot { display: inline-block; width: 8px; height: 8px;
                 border-radius: 50%; margin-right: 6px; vertical-align: middle; }
 
@@ -921,7 +936,7 @@ st.markdown(kpi_html, unsafe_allow_html=True)
 
 
 # =============================================================================
-# TABLEAU PRINCIPAL
+# TABLEAU PRINCIPAL  (STAR en rouge)
 # =============================================================================
 st.markdown("### Vue d'ensemble")
 
@@ -946,6 +961,9 @@ for _, row in d.iterrows():
     hp = row['hausse_pct'] * 100
     hausse_color = '#3fb950' if hp > 0 else '#8b949e' if hp == 0 else '#f85149'
 
+    # ✅ Ligne STAR en rouge
+    row_cls = 'star-row' if row['type'] == 'STAR' else ''
+
     pap_min_txt = fmt(row['pap_min'])
     if row['pap_max'] > 0:
         pap_max_txt = fmt(row['pap_max'])
@@ -955,7 +973,7 @@ for _, row in d.iterrows():
         marge_pap = '<span class="muted">—</span>'
 
     html.append(
-        '<tr>'
+        f'<tr class="{row_cls}">'
         f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
         f'<td class="left"><span class="role-dot" style="background:{color};"></span>'
         f'{row["role"]}</td>'
@@ -1043,7 +1061,7 @@ if cfg['has_competitors']:
     st.markdown("##### Comparaison par contenance — tous formats confondus")
     st.caption(
         "Regroupement par volume (L), trié du PVF le plus bas au plus élevé. "
-        "STAR et Concurrents sont mélangés pour visualiser le positionnement prix."
+        "STAR (lignes rouges) et Concurrents sont mélangés."
     )
 
     volumes = sorted(d['vol'].unique())
@@ -1059,7 +1077,6 @@ if cfg['has_competitors']:
         star_pl = star_rows['p_litre'].mean() if not star_rows.empty else None
         comp_pl = comp_rows['p_litre'].mean() if not comp_rows.empty else None
 
-        # Détermination du badge d'écart
         if star_pl is not None and comp_pl is not None and comp_pl > 0:
             ecart = (star_pl - comp_pl) / comp_pl * 100
             if ecart > 15:
@@ -1105,15 +1122,16 @@ if cfg['has_competitors']:
                 '<th>Marge PDV/PAP max</th>',
                 '</tr></thead><tbody>']
 
-        # ✅ TRI PAR PVF CROISSANT (du moins cher au plus cher)
+        # Tri par PVF croissant
         ordered = sub.sort_values('pvf', ascending=True)
 
         for _, row in ordered.iterrows():
+            # ✅ Ligne STAR en rouge
             if row['type'] == 'STAR':
-                type_bg = 'background:#2a1f4f;'
+                row_cls = 'star-row'
                 type_label = '<span class="tag tag-star">STAR</span>'
             else:
-                type_bg = 'background:#1f242c;'
+                row_cls = ''
                 type_label = '<span class="tag tag-comp">CONCUR</span>'
 
             statut_cls = 'ok' if row['statut'] == 'OK' else 'ko'
@@ -1128,7 +1146,7 @@ if cfg['has_competitors']:
                 marge_pap = '<span class="muted">—</span>'
 
             html.append(
-                f'<tr style="{type_bg}">'
+                f'<tr class="{row_cls}">'
                 f'<td class="left">{type_label}</td>'
                 f'<td class="left bold">{row["marque"]}</td>'
                 f'<td class="left">{row["format"]}</td>'
@@ -1148,7 +1166,7 @@ if cfg['has_competitors']:
 
 
 # =============================================================================
-# DÉTAILS EN ONGLETS
+# DÉTAILS EN ONGLETS  (STAR en rouge)
 # =============================================================================
 st.markdown("### Détails par SKU")
 tab1, tab2, tab3 = st.tabs(["Prix & Index", "Marges 2026", "Marges 2027"])
@@ -1168,8 +1186,9 @@ with tab1:
             '</tr></thead><tbody>']
     for _, row in d.iterrows():
         statut_cls = 'ok' if row['statut'] == 'OK' else 'ko'
+        row_cls = 'star-row' if row['type'] == 'STAR' else ''
         html.append(
-            '<tr>'
+            f'<tr class="{row_cls}">'
             f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
             f'<td class="left">{row["format"]}</td>'
             f'<td>{fmt(row["pvf"])}</td>'
@@ -1194,6 +1213,7 @@ with tab2:
             '<th>PVC</th><th>PAP min</th><th>PAP max</th><th>Marge PDV/PAP max</th>',
             '</tr></thead><tbody>']
     for _, row in d.iterrows():
+        row_cls = 'star-row' if row['type'] == 'STAR' else ''
         pap_min_txt = fmt(row['pap_min'])
         if row['pap_max'] > 0:
             pap_max_txt = fmt(row['pap_max'])
@@ -1202,7 +1222,7 @@ with tab2:
             pap_max_txt = '<span class="muted">—</span>'
             marge_pap = '<span class="muted">—</span>'
         html.append(
-            '<tr>'
+            f'<tr class="{row_cls}">'
             f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
             f'<td class="left">{row["format"]}</td>'
             f'<td>{fmt(row["pva"])}</td>'
@@ -1226,8 +1246,9 @@ with tab3:
             '<th>PVC 27</th>',
             '</tr></thead><tbody>']
     for _, row in d.iterrows():
+        row_cls = 'star-row' if row['type'] == 'STAR' else ''
         html.append(
-            '<tr>'
+            f'<tr class="{row_cls}">'
             f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
             f'<td class="left">{row["format"]}</td>'
             f'<td>{fmt(row["pva_2027"])}</td>'
