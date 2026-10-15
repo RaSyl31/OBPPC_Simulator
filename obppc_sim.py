@@ -98,43 +98,70 @@ st.markdown("""
 
 
 # =============================================================================
-# LOGOS DES MARQUES — couleur + initiale (fallback uniquement)
+# ✅ MAPPING MARQUE → FICHIER LOGO (nom exact dans le dossier logos/)
 # =============================================================================
-BRAND_LOGOS = {
+# Clé = valeur de 'marque' dans les DATA_*, Valeur = nom du fichier PNG
+LOGO_FILES = {
     # BI
-    'Beaufort':     {'color': '#c9a227', 'init': 'B'},
-    'Gold':         {'color': '#d4a017', 'init': 'G'},
-    'THB':          {'color': '#0e7490', 'init': 'T'},
-    'Queen':        {'color': '#9d174d', 'init': 'Q'},
-    'Fresh':        {'color': '#16a34a', 'init': 'F'},
+    'Beaufort':       'beaufort.png',
+    'Gold':           'gold.png',
+    'THB':            'thb.png',
+    'Queen':          'queen.png',
+    'Fresh':          'fresh.png',
     # BG
-    'COCA':         {'color': '#dc2626', 'init': 'C'},
-    'WOCO':         {'color': '#7c3aed', 'init': 'W'},
-    'FANTA':        {'color': '#ea580c', 'init': 'F'},
-    'CAPRICE':      {'color': '#db2777', 'init': 'C'},
-    'TONIC':        {'color': '#0891b2', 'init': 'T'},
+    'COCA':           'coca.png',
+    'WOCO':           'woco.png',
+    'FANTA':          'fanta.png',
+    'CAPRICE':        'caprice.png',
+    'TONIC':          'tonic.png',
     # EAUX
-    'Cristal':      {'color': '#0284c7', 'init': 'C'},
-    'RANOVISY':     {'color': '#2563eb', 'init': 'R'},
-    'VISY GASY':    {'color': '#059669', 'init': 'V'},
-    'Eau vive':     {'color': '#0ea5e9', 'init': 'E'},
-    'Cristalline':  {'color': '#38bdf8', 'init': 'C'},
-    'OLYMPIKO':     {'color': '#1d4ed8', 'init': 'O'},
-    'NATUR EAU':    {'color': '#65a30d', 'init': 'N'},
+    'Cristal':        'cristal.png',
+    'RANOVISY':       'ranovisy.png',
+    'VISY GASY':      'visy_gasy.png',
+    'Eau vive':       'eau_vive.png',
+    'Cristalline':    'cristalline.png',
+    'OLYMPIKO':       'olympiko.png',
+    'NATUR EAU':      'natur_eau.png',
     # ENERGY
-    'Red Bull':     {'color': '#1e3a8a', 'init': 'RB'},
-    'Monster':      {'color': '#166534', 'init': 'M'},
-    'FOSA':         {'color': '#b91c1c', 'init': 'F'},
-    'XXL':          {'color': '#7c2d12', 'init': 'X'},
-    'DYNAMIC':      {'color': '#a21caf', 'init': 'D'},
-    'BOOST VITALITY': {'color': '#ca8a04', 'init': 'B'},
+    'Red Bull':       'red_bull.png',
+    'Monster':        'monster.png',
+    'FOSA':           'fosa.png',
+    'XXL':            'xxl.png',
+    'DYNAMIC':        'dynamic.png',
+    'BOOST VITALITY': 'boost_vitality.png',
 }
 
+# Fallback (pastille colorée) si logo manquant
+BRAND_LOGOS = {
+    'Beaufort':       {'color': '#c9a227', 'init': 'B'},
+    'Gold':           {'color': '#d4a017', 'init': 'G'},
+    'THB':            {'color': '#0e7490', 'init': 'T'},
+    'Queen':          {'color': '#9d174d', 'init': 'Q'},
+    'Fresh':          {'color': '#16a34a', 'init': 'F'},
+    'COCA':           {'color': '#dc2626', 'init': 'C'},
+    'WOCO':           {'color': '#7c3aed', 'init': 'W'},
+    'FANTA':          {'color': '#ea580c', 'init': 'F'},
+    'CAPRICE':        {'color': '#db2777', 'init': 'C'},
+    'TONIC':          {'color': '#0891b2', 'init': 'T'},
+    'Cristal':        {'color': '#0284c7', 'init': 'C'},
+    'RANOVISY':       {'color': '#2563eb', 'init': 'R'},
+    'VISY GASY':      {'color': '#059669', 'init': 'V'},
+    'Eau vive':       {'color': '#0ea5e9', 'init': 'E'},
+    'Cristalline':    {'color': '#38bdf8', 'init': 'C'},
+    'OLYMPIKO':       {'color': '#1d4ed8', 'init': 'O'},
+    'NATUR EAU':      {'color': '#65a30d', 'init': 'N'},
+    'Red Bull':       {'color': '#1e3a8a', 'init': 'RB'},
+    'Monster':        {'color': '#166534', 'init': 'M'},
+    'FOSA':           {'color': '#b91c1c', 'init': 'F'},
+    'XXL':            {'color': '#7c2d12', 'init': 'X'},
+    'DYNAMIC':        {'color': '#a21caf', 'init': 'D'},
+    'BOOST VITALITY': {'color': '#ca8a04', 'init': 'B'},
+}
 DEFAULT_LOGO = {'color': '#64748b', 'init': '?'}
 
 
 # =============================================================================
-# CHARGEMENT DES LOGOS OFFICIELS (dossier logos/)
+# CHARGEMENT DES LOGOS (dossier logos/)
 # =============================================================================
 LOGOS_DIR = Path(__file__).parent / "logos"
 
@@ -142,6 +169,8 @@ LOGOS_DIR = Path(__file__).parent / "logos"
 @st.cache_data(show_spinner=False)
 def _load_logo_b64(filename: str):
     """Charge un PNG depuis logos/ et le retourne en base64 (mis en cache)."""
+    if not filename:
+        return None
     path = LOGOS_DIR / filename
     if not path.exists():
         return None
@@ -151,15 +180,10 @@ def _load_logo_b64(filename: str):
         return None
 
 
-def _logo_filename(marque: str) -> str:
-    """'Eau vive' → 'eau_vive.png' ; 'Red Bull' → 'red_bull.png' ; 'COCA' → 'coca.png'."""
-    base = marque.lower().strip().replace(' ', '_').replace("'", '')
-    return base + ".png"
-
-
 def brand_logo_html(marque):
     """Retourne <img> du logo officiel, ou fallback coloré avec initiale."""
-    b64 = _load_logo_b64(_logo_filename(marque))
+    filename = LOGO_FILES.get(marque)
+    b64 = _load_logo_b64(filename) if filename else None
     if b64:
         return (
             f'<img class="brand-logo" '
