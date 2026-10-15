@@ -34,7 +34,7 @@ st.markdown("""
     .brand-star { color: #f85149 !important; font-weight: 700; }
     .brand-comp { color: #e6edf3; font-weight: 700; }
 
-    /* ✅ Logo officiel (image PNG) */
+    /* Logo officiel (image PNG) */
     .brand-logo {
         display: inline-block;
         width: 22px; height: 22px;
@@ -98,9 +98,8 @@ st.markdown("""
 
 
 # =============================================================================
-# ✅ MAPPING MARQUE → FICHIER LOGO (nom exact dans le dossier logos/)
+# MAPPING MARQUE → FICHIER LOGO (nom exact dans le dossier logos/)
 # =============================================================================
-# Clé = valeur de 'marque' dans les DATA_*, Valeur = nom du fichier PNG
 LOGO_FILES = {
     # BI
     'Beaufort':       'beaufort.png',
@@ -131,7 +130,6 @@ LOGO_FILES = {
     'BOOST VITALITY': 'boost_vitality.png',
 }
 
-# Fallback (pastille colorée) si logo manquant
 BRAND_LOGOS = {
     'Beaufort':       {'color': '#c9a227', 'init': 'B'},
     'Gold':           {'color': '#d4a017', 'init': 'G'},
@@ -168,7 +166,6 @@ LOGOS_DIR = Path(__file__).parent / "logos"
 
 @st.cache_data(show_spinner=False)
 def _load_logo_b64(filename: str):
-    """Charge un PNG depuis logos/ et le retourne en base64 (mis en cache)."""
     if not filename:
         return None
     path = LOGOS_DIR / filename
@@ -181,7 +178,6 @@ def _load_logo_b64(filename: str):
 
 
 def brand_logo_html(marque):
-    """Retourne <img> du logo officiel, ou fallback coloré avec initiale."""
     filename = LOGO_FILES.get(marque)
     b64 = _load_logo_b64(filename) if filename else None
     if b64:
@@ -650,7 +646,6 @@ def safe_pct(v, d=0):
 
 
 def brand_name_html(marque, star_brands):
-    """Logo + nom de marque (nom en rouge si STAR)."""
     logo = brand_logo_html(marque)
     if star_brands is None or marque in star_brands:
         name = f'<span class="brand-star">{marque}</span>'
@@ -660,7 +655,6 @@ def brand_name_html(marque, star_brands):
 
 
 def brand_tag(marque, star_brands):
-    """Tag STAR (fond rouge) / CONCUR (fond gris)."""
     if star_brands is None or marque in star_brands:
         return '<span class="tag tag-star">STAR</span>'
     return '<span class="tag tag-comp">CONCUR</span>'
@@ -739,6 +733,16 @@ def compute(df, cfg):
 
 
 # =============================================================================
+# SESSION STATE INIT
+# =============================================================================
+if 'pap_max_data' not in st.session_state:
+    st.session_state.pap_max_data = {}
+
+if 'commentaires' not in st.session_state:
+    st.session_state.commentaires = {}
+
+
+# =============================================================================
 # SIDEBAR
 # =============================================================================
 with st.sidebar:
@@ -766,7 +770,10 @@ with st.sidebar:
     st.markdown("---")
     if st.button("Réinitialiser", use_container_width=True):
         for k in list(st.session_state.keys()):
-            if k.startswith('prop_editor') or k.startswith('pap_editor'):
+            if (k.startswith('prop_editor')
+                or k.startswith('pap_editor')
+                or k.startswith('comment_editor')
+                or k == 'commentaires'):
                 del st.session_state[k]
         st.rerun()
 
@@ -825,9 +832,6 @@ st.markdown(
     '<b>CR PANEL</b> (feuille <code>Saisie</code>), agrégée par SKU.'
     '</div>',
     unsafe_allow_html=True)
-
-if 'pap_max_data' not in st.session_state:
-    st.session_state.pap_max_data = {}
 
 
 MAPPING_MARQUE = {
@@ -1014,6 +1018,12 @@ d['marge_pdv_pap_min'] = d['pap_min'] - d['pvc']
 d['marge_pdv_pap_min_pct'] = d['marge_pdv_pap_min'] / d['pvc'].replace(0, pd.NA)
 d['marge_pdv_pap_max'] = d['pap_max'] - d['pvc']
 d['marge_pdv_pap_max_pct'] = d['marge_pdv_pap_max'] / d['pvc'].replace(0, pd.NA)
+
+# Réinjection commentaires édités (session_state prioritaire)
+d['commentaire'] = d.apply(
+    lambda r: st.session_state.commentaires.get(
+        (r['marque'], r['format']), r.get('commentaire', '')
+    ), axis=1)
 
 
 # =============================================================================
@@ -1275,7 +1285,7 @@ if cfg['has_competitors']:
 
 
 # =============================================================================
-# DÉTAILS EN ONGLETS  (logo + nom STAR en rouge)
+# DÉTAILS EN ONGLETS
 # =============================================================================
 st.markdown("### Détails par SKU")
 tab1, tab2, tab3 = st.tabs(["Prix & Index", "Marges 2026", "Marges 2027"])
@@ -1286,12 +1296,10 @@ with tab1:
             '<th class="left">Format</th>',
             '<th colspan="4">2026</th>',
             '<th colspan="4">2027</th>',
-            '<th class="left">Commentaire</th>',
             '</tr><tr>',
             '<th></th><th></th>',
             '<th>PVF</th><th>P/L</th><th>Idx PVF</th><th>Idx P/L</th>',
             '<th>PVF</th><th>P/L</th><th>Idx P/L</th><th>Hausse</th>',
-            '<th></th>',
             '</tr></thead><tbody>']
     for _, row in d.iterrows():
         statut_cls = 'ok' if row['statut'] == 'OK' else 'ko'
@@ -1307,11 +1315,58 @@ with tab1:
             f'<td>{fmt(row["prop_p_litre"])}</td>'
             f'<td class="muted">{row["idx_pl_prop"]}</td>'
             f'<td>{row["hausse_pct"]*100:+.1f}%</td>'
-            f'<td class="left muted">{row["commentaire"]}</td>'
             '</tr>'
         )
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
+
+    # =========================================================================
+    # ✅ COLONNE COMMENTAIRE ÉDITABLE
+    # =========================================================================
+    st.markdown("##### ✏️ Commentaires (modifiables)")
+    st.caption("Cliquez dans une cellule pour saisir ou modifier un commentaire.")
+
+    comment_rows = []
+    for _, row in d.iterrows():
+        key = (row['marque'], row['format'])
+        current = st.session_state.commentaires.get(
+            key, row.get('commentaire', '')
+        )
+        comment_rows.append({
+            'marque': row['marque'],
+            'format': row['format'],
+            'commentaire': current,
+        })
+
+    comment_df = pd.DataFrame(comment_rows)
+
+    edited_comments = st.data_editor(
+        comment_df,
+        column_config={
+            'marque': st.column_config.TextColumn(
+                "Marque", disabled=True, width=120),
+            'format': st.column_config.TextColumn(
+                "Format", disabled=True, width=260),
+            'commentaire': st.column_config.TextColumn(
+                "Commentaire", width=600,
+                help="Saisir une note libre (ex : PVC +500 / PVA +400)"),
+        },
+        hide_index=True,
+        use_container_width=True,
+        num_rows="fixed",
+        height=min(500, 80 + 36 * len(comment_df)),
+        key=f"comment_editor_{cat_key}",
+    )
+
+    for _, r in edited_comments.iterrows():
+        key = (r['marque'], r['format'])
+        st.session_state.commentaires[key] = r['commentaire']
+
+    # Réinjection dans le DataFrame principal
+    d['commentaire'] = d.apply(
+        lambda r: st.session_state.commentaires.get(
+            (r['marque'], r['format']), r.get('commentaire', '')
+        ), axis=1)
 
 with tab2:
     html = ['<table class="obppc"><thead><tr>',
