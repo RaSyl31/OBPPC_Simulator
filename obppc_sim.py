@@ -30,7 +30,6 @@ st.markdown("""
     .obppc td.muted { color: #8b949e; }
     .obppc tr:hover td { background: #161b22; }
 
-    /* En-têtes fusionnés 2026 / 2027 */
     .obppc th.group-2026 {
         background: #0d1b2a; color: #7dd3fc;
         border-bottom: 2px solid #1e4976;
@@ -105,6 +104,42 @@ st.markdown("""
         border-radius: 6px; padding: 10px 14px; margin: 8px 0 14px 0;
         font-size: 0.78rem; color: #cbd5e1;
     }
+
+    /* Matrice tarifs */
+    .tarif-table {
+        width: 100%; border-collapse: collapse;
+        font-size: 0.78rem; background: #0e1117; color: #e6edf3;
+    }
+    .tarif-table th, .tarif-table td {
+        border: 1px solid #30363d; padding: 8px;
+        font-variant-numeric: tabular-nums;
+    }
+    .tarif-table thead th {
+        background: #1a1f2b; color: #f85149; text-align: center;
+        font-weight: 700; font-size: 0.72rem;
+        text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .tarif-table thead th.corner {
+        text-align: left; color: #8b949e; font-size: 0.7rem;
+    }
+    .tarif-table thead th .sub {
+        color: #f85149; font-weight: 800;
+    }
+    .tarif-table .brand-cell {
+        text-align: left; font-weight: 700; min-width: 110px;
+    }
+    .tarif-table .price-cell { text-align: center; }
+    .tarif-table .old-price {
+        color: #8b949e; text-decoration: line-through;
+        font-size: 0.75rem;
+    }
+    .tarif-table .new-price {
+        color: #3fb950; font-weight: 700; font-size: 0.85rem;
+    }
+    .tarif-table .same-price {
+        color: #e6edf3; font-weight: 700; font-size: 0.85rem;
+    }
+    .tarif-table .empty { color: #30363d; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1296,11 +1331,13 @@ if cfg['has_competitors']:
 # DÉTAILS EN ONGLETS
 # =============================================================================
 st.markdown("### Détails par SKU")
-tab1, tab2, tab3 = st.tabs(["Prix & Index", "Marges 2026", "Marges 2027"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "Prix & Index", "Marges 2026", "Marges 2027", "📊 Tarifs 2026/2027"
+])
 
 with tab1:
     # =========================================================================
-    # ✅ Tableau HTML avec EN-TÊTES FUSIONNÉS 2026 / 2027
+    # Tableau HTML avec EN-TÊTES FUSIONNÉS 2026 / 2027
     # =========================================================================
     html = ['<table class="obppc"><thead>',
             '<tr>',
@@ -1338,7 +1375,7 @@ with tab1:
     st.markdown(''.join(html), unsafe_allow_html=True)
 
     # =========================================================================
-    # ✅ Éditeur compact pour modifier les commentaires
+    # Éditeur compact pour modifier les commentaires
     # =========================================================================
     st.markdown("###### ✏️ Modifier les commentaires")
     st.caption("Cliquez dans la colonne Commentaire pour saisir ou modifier.")
@@ -1378,7 +1415,6 @@ with tab1:
         key = (r['Marque'], r['Format'])
         st.session_state.commentaires[key] = r['Commentaire']
 
-    # Réinjection
     d['commentaire'] = d.apply(
         lambda r: st.session_state.commentaires.get(
             (r['marque'], r['format']), r.get('commentaire', '')
@@ -1441,6 +1477,131 @@ with tab3:
         )
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
+
+# =============================================================================
+# ✅ ONGLET 4 : MATRICE TARIFS 2026/2027 (ancien barré / nouveau en bas)
+# =============================================================================
+with tab4:
+    st.markdown("##### 📊 Tarifs — Matrice Marque × Format")
+    st.caption("Date de la dernière modification générale des tarifs : **Décembre 2025**")
+    st.caption("Prix 2026 ~~barré~~ en haut · Prix 2027 en bas · Montants en **milliers d'Ar (k Ar)** — ex. **5.5** = 5 500 Ar.")
+
+    # -------------------------------------------------------------------------
+    # Configuration des lignes et colonnes
+    # -------------------------------------------------------------------------
+    BRAND_ORDER = ['Beaufort', 'Gold', 'BOOSTER', 'THB', 'Queen', 'Fresh']
+
+    COLUMNS = [
+        ('20L',  'FUT', 20.0),
+        ('65cl', 'VER', 0.65),
+        ('50cl', 'CAN', 0.50),
+        ('50cl', 'VC',  0.50),
+        ('33cl', 'CAN', 0.33),
+        ('33cl', 'VC',  0.33),
+    ]
+
+    # Mapping marque affichée -> marque dans d
+    BRAND_TO_DATA = {
+        'Beaufort': 'Beaufort',
+        'Gold':     'Gold',
+        'BOOSTER':  None,
+        'THB':      'THB',
+        'Queen':    'Queen',
+        'Fresh':    'Fresh',
+    }
+
+    def find_price(marque_data, vol, emballage):
+        """Retourne (pvf, prop_pvf) pour une marque/volume/emballage donnés."""
+        if marque_data is None:
+            return None, None
+        sub = d[(d['marque'] == marque_data) & (d['vol'] == vol)]
+        for _, row in sub.iterrows():
+            f = str(row['format']).upper()
+            if emballage == 'FUT' and 'FUT' in f:
+                return int(row['pvf']), int(row['prop_pvf'])
+            if emballage == 'CAN' and 'CAN' in f:
+                return int(row['pvf']), int(row['prop_pvf'])
+            if emballage == 'VC' and 'VC' in f:
+                return int(row['pvf']), int(row['prop_pvf'])
+            if emballage == 'VER' and ('VER' in f or 'VERRE' in f):
+                return int(row['pvf']), int(row['prop_pvf'])
+        return None, None
+
+    # Couleurs de fond par marque
+    BRAND_BG = {
+        'Beaufort': '#1a3a2e',
+        'Gold':     '#1a1f2b',
+        'BOOSTER':  '#3d1f1f',
+        'THB':      '#5c1a1a',
+        'Queen':    '#1a4a2e',
+        'Fresh':    '#3d3520',
+    }
+
+    # -------------------------------------------------------------------------
+    # Rendu HTML
+    # -------------------------------------------------------------------------
+    html = ['<table class="tarif-table"><thead>']
+    html.append(
+        '<tr>'
+        '<th class="corner">en MGA</th>'
+    )
+    for label, emb, vol in COLUMNS:
+        html.append(
+            f'<th>{label}<br><span class="sub">{emb}</span></th>'
+        )
+    html.append('</tr></thead><tbody>')
+
+    for brand_display in BRAND_ORDER:
+        brand_data = BRAND_TO_DATA.get(brand_display)
+        bg = BRAND_BG.get(brand_display, '#1a1f2b')
+
+        html.append('<tr>')
+
+        logo_html = ''
+        if brand_data:
+            logo_html = brand_logo_html(brand_data)
+        html.append(
+            f'<td class="brand-cell" style="background:{bg};">'
+            f'{logo_html}<span style="color:#e6edf3;">{brand_display}</span>'
+            f'</td>'
+        )
+
+        for label, emb, vol in COLUMNS:
+            pvf, prop_pvf = find_price(brand_data, vol, emb)
+            if pvf is None:
+                cell = '<span class="empty">—</span>'
+            else:
+                pvf_k = pvf / 1000
+                prop_k = prop_pvf / 1000
+                pvf_txt = f"{pvf_k:.1f}".rstrip('0').rstrip('.') if pvf_k != int(pvf_k) else f"{int(pvf_k)}"
+                prop_txt = f"{prop_k:.1f}".rstrip('0').rstrip('.') if prop_k != int(prop_k) else f"{int(prop_k)}"
+
+                if pvf == prop_pvf:
+                    cell = f'<div class="same-price">{pvf_txt}</div>'
+                else:
+                    cell = (
+                        f'<div class="old-price">{pvf_txt}</div>'
+                        f'<div class="new-price">{prop_txt}</div>'
+                    )
+
+            html.append(
+                f'<td class="price-cell" style="background:{bg};">{cell}</td>'
+            )
+
+        html.append('</tr>')
+
+    html.append('</tbody></table>')
+    st.markdown(''.join(html), unsafe_allow_html=True)
+
+    # Légende
+    st.markdown(
+        '<div style="margin-top:14px; font-size:0.72rem; color:#8b949e;">'
+        '<b style="color:#e6edf3;">Légende :</b> '
+        '<span style="color:#8b949e; text-decoration:line-through;">ancien prix 2026</span> '
+        '→ <span style="color:#3fb950; font-weight:700;">nouveau prix 2027</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 
 # =============================================================================
