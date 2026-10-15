@@ -1036,23 +1036,30 @@ if cfg['has_competitors']:
             f"(STAR {s:,.0f} vs Concur. {c:,.0f} Ar/L)</span></div>",
             unsafe_allow_html=True)
 
+    # =========================================================================
+    # COMPARAISON PAR CONTENANCE — trié du PVF le plus bas au plus élevé
+    # =========================================================================
     st.markdown("---")
-    st.markdown("##### Comparaison par format — même contenance")
-    st.caption("Regroupement par volume (L) pour comparer STAR et Concurrents à contenance égale.")
+    st.markdown("##### Comparaison par contenance — tous formats confondus")
+    st.caption(
+        "Regroupement par volume (L), trié du PVF le plus bas au plus élevé. "
+        "STAR et Concurrents sont mélangés pour visualiser le positionnement prix."
+    )
 
     volumes = sorted(d['vol'].unique())
 
     for vol_ in volumes:
         sub = d[d['vol'] == vol_]
+        if sub.empty:
+            continue
+
         star_rows = sub[sub['type'] == 'STAR']
         comp_rows = sub[sub['type'] == 'Concurrent']
-
-        if star_rows.empty and comp_rows.empty:
-            continue
 
         star_pl = star_rows['p_litre'].mean() if not star_rows.empty else None
         comp_pl = comp_rows['p_litre'].mean() if not comp_rows.empty else None
 
+        # Détermination du badge d'écart
         if star_pl is not None and comp_pl is not None and comp_pl > 0:
             ecart = (star_pl - comp_pl) / comp_pl * 100
             if ecart > 15:
@@ -1071,13 +1078,16 @@ if cfg['has_competitors']:
             ecart_color, ecart_label = '#8b949e', "—"
 
         vol_cl = int(round(vol_ * 100))
+        n_sku = len(sub)
 
         st.markdown(
             f"<div style='background:#1a1f2b; border:1px solid #30363d; "
-            f"border-radius:6px; padding:8px 12px; margin:12px 0 6px 0; "
+            f"border-radius:6px; padding:8px 12px; margin:14px 0 6px 0; "
             f"display:flex; justify-content:space-between; align-items:center;'>"
             f"<div style='font-weight:700; color:#e6edf3; font-size:0.95rem;'>"
-            f"📦 {vol_cl} cl</div>"
+            f"📦 {vol_cl} cl "
+            f"<span style='color:#8b949e; font-weight:400; font-size:0.8rem;'>"
+            f"· {n_sku} SKU</span></div>"
             f"<div style='font-size:0.75rem; color:{ecart_color}; font-weight:600;'>"
             f"{ecart_label}</div></div>",
             unsafe_allow_html=True)
@@ -1086,7 +1096,7 @@ if cfg['has_competitors']:
                 '<th class="left">Type</th>',
                 '<th class="left">Marque</th>',
                 '<th class="left">Format</th>',
-                '<th>Vol (L)</th>',
+                '<th class="left">Rôle</th>',
                 '<th>PVF 2026</th>',
                 '<th>P/L 2026</th>',
                 '<th>Index P/L</th>',
@@ -1095,7 +1105,8 @@ if cfg['has_competitors']:
                 '<th>Marge PDV/PAP max</th>',
                 '</tr></thead><tbody>']
 
-        ordered = pd.concat([star_rows, comp_rows])
+        # ✅ TRI PAR PVF CROISSANT (du moins cher au plus cher)
+        ordered = sub.sort_values('pvf', ascending=True)
 
         for _, row in ordered.iterrows():
             if row['type'] == 'STAR':
@@ -1119,11 +1130,10 @@ if cfg['has_competitors']:
             html.append(
                 f'<tr style="{type_bg}">'
                 f'<td class="left">{type_label}</td>'
-                f'<td class="left bold">'
-                f'<span class="role-dot" style="background:{role_color};"></span>'
-                f'{row["marque"]}</td>'
+                f'<td class="left bold">{row["marque"]}</td>'
                 f'<td class="left">{row["format"]}</td>'
-                f'<td class="center">{row["vol"]:.2f}</td>'
+                f'<td class="left"><span class="role-dot" '
+                f'style="background:{role_color};"></span>{row["role"]}</td>'
                 f'<td class="bold">{fmt(row["pvf"])}</td>'
                 f'<td>{fmt(row["p_litre"])}</td>'
                 f'<td class="{statut_cls}">{row["idx_pl"]}</td>'
