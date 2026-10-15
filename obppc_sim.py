@@ -105,14 +105,14 @@ st.markdown("""
         font-size: 0.78rem; color: #cbd5e1;
     }
 
-    /* Matrice tarifs */
     .tarif-table {
         width: 100%; border-collapse: collapse;
-        font-size: 0.78rem; background: #0e1117; color: #e6edf3;
+        font-size: 0.85rem; background: #0e1117; color: #e6edf3;
     }
     .tarif-table th, .tarif-table td {
-        border: 1px solid #30363d; padding: 8px;
+        border: 1px solid #30363d; padding: 10px 12px;
         font-variant-numeric: tabular-nums;
+        background: #0e1117;
     }
     .tarif-table thead th {
         background: #1a1f2b; color: #f85149; text-align: center;
@@ -126,18 +126,21 @@ st.markdown("""
         color: #f85149; font-weight: 800;
     }
     .tarif-table .brand-cell {
-        text-align: left; font-weight: 700; min-width: 110px;
+        text-align: left; font-weight: 700; min-width: 130px;
+        color: #e6edf3;
     }
-    .tarif-table .price-cell { text-align: center; }
+    .tarif-table .price-cell {
+        text-align: center; line-height: 1.4;
+    }
     .tarif-table .old-price {
         color: #8b949e; text-decoration: line-through;
-        font-size: 0.75rem;
+        font-size: 0.8rem;
     }
     .tarif-table .new-price {
-        color: #3fb950; font-weight: 700; font-size: 0.85rem;
+        color: #3fb950; font-weight: 700; font-size: 0.9rem;
     }
     .tarif-table .same-price {
-        color: #e6edf3; font-weight: 700; font-size: 0.85rem;
+        color: #e6edf3; font-weight: 600; font-size: 0.85rem;
     }
     .tarif-table .empty { color: #30363d; }
 </style>
@@ -1336,9 +1339,6 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 with tab1:
-    # =========================================================================
-    # Tableau HTML avec EN-TÊTES FUSIONNÉS 2026 / 2027
-    # =========================================================================
     html = ['<table class="obppc"><thead>',
             '<tr>',
             '<th class="left" rowspan="2">Marque</th>',
@@ -1374,9 +1374,6 @@ with tab1:
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
 
-    # =========================================================================
-    # Éditeur compact pour modifier les commentaires
-    # =========================================================================
     st.markdown("###### ✏️ Modifier les commentaires")
     st.caption("Cliquez dans la colonne Commentaire pour saisir ou modifier.")
 
@@ -1478,103 +1475,69 @@ with tab3:
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
 
+
 # =============================================================================
-# ✅ ONGLET 4 : MATRICE TARIFS 2026/2027 (ancien barré / nouveau en bas)
+# ✅ ONGLET 4 : MATRICE TARIFS DYNAMIQUE
 # =============================================================================
 with tab4:
     st.markdown("##### 📊 Tarifs — Matrice Marque × Format")
     st.caption("Date de la dernière modification générale des tarifs : **Décembre 2025**")
-    st.caption("Prix 2026 ~~barré~~ en haut · Prix 2027 en bas · Montants en **milliers d'Ar (k Ar)** — ex. **5.5** = 5 500 Ar.")
+    st.caption("Ancien prix ~~barré~~ en haut · Nouveau prix 2027 en bas · Montants en **Ariary (Ar)**")
 
-    # -------------------------------------------------------------------------
-    # Configuration des lignes et colonnes
-    # -------------------------------------------------------------------------
-    BRAND_ORDER = ['Beaufort', 'Gold', 'BOOSTER', 'THB', 'Queen', 'Fresh']
+    # Marques présentes dans la catégorie filtrée
+    brands_in_cat = sorted(df['marque'].unique())
 
-    COLUMNS = [
-        ('20L',  'FUT', 20.0),
-        ('65cl', 'VER', 0.65),
-        ('50cl', 'CAN', 0.50),
-        ('50cl', 'VC',  0.50),
-        ('33cl', 'CAN', 0.33),
-        ('33cl', 'VC',  0.33),
-    ]
+    # Détection emballage
+    def _emb_of(fmt_str):
+        f = str(fmt_str).upper()
+        if 'FUT' in f: return 'FUT'
+        if 'CAN' in f: return 'CAN'
+        if 'VC' in f:  return 'VC'
+        if 'PET' in f: return 'PET'
+        if 'VER' in f or 'VERRE' in f: return 'VER'
+        return '?'
 
-    # Mapping marque affichée -> marque dans d
-    BRAND_TO_DATA = {
-        'Beaufort': 'Beaufort',
-        'Gold':     'Gold',
-        'BOOSTER':  None,
-        'THB':      'THB',
-        'Queen':    'Queen',
-        'Fresh':    'Fresh',
-    }
+    # Colonnes uniques (vol, emballage) présentes dans la catégorie
+    col_pairs = set()
+    for _, row in df.iterrows():
+        col_pairs.add((round(float(row['vol']), 2), _emb_of(row['format'])))
+    col_pairs = sorted(col_pairs, key=lambda x: (-x[0], x[1]))
 
-    def find_price(marque_data, vol, emballage):
-        """Retourne (pvf, prop_pvf) pour une marque/volume/emballage donnés."""
-        if marque_data is None:
-            return None, None
-        sub = d[(d['marque'] == marque_data) & (d['vol'] == vol)]
-        for _, row in sub.iterrows():
-            f = str(row['format']).upper()
-            if emballage == 'FUT' and 'FUT' in f:
-                return int(row['pvf']), int(row['prop_pvf'])
-            if emballage == 'CAN' and 'CAN' in f:
-                return int(row['pvf']), int(row['prop_pvf'])
-            if emballage == 'VC' and 'VC' in f:
-                return int(row['pvf']), int(row['prop_pvf'])
-            if emballage == 'VER' and ('VER' in f or 'VERRE' in f):
-                return int(row['pvf']), int(row['prop_pvf'])
-        return None, None
-
-    # Couleurs de fond par marque
-    BRAND_BG = {
-        'Beaufort': '#1a3a2e',
-        'Gold':     '#1a1f2b',
-        'BOOSTER':  '#3d1f1f',
-        'THB':      '#5c1a1a',
-        'Queen':    '#1a4a2e',
-        'Fresh':    '#3d3520',
-    }
-
-    # -------------------------------------------------------------------------
     # Rendu HTML
-    # -------------------------------------------------------------------------
     html = ['<table class="tarif-table"><thead>']
-    html.append(
-        '<tr>'
-        '<th class="corner">en MGA</th>'
-    )
-    for label, emb, vol in COLUMNS:
-        html.append(
-            f'<th>{label}<br><span class="sub">{emb}</span></th>'
-        )
+    html.append('<tr><th class="corner">en Ariary</th>')
+    for vol, emb in col_pairs:
+        if vol >= 1:
+            label = f"{int(vol)}L"
+        else:
+            label = f"{int(round(vol * 100))}cl"
+        html.append(f'<th>{label}<br><span class="sub">{emb}</span></th>')
     html.append('</tr></thead><tbody>')
 
-    for brand_display in BRAND_ORDER:
-        brand_data = BRAND_TO_DATA.get(brand_display)
-        bg = BRAND_BG.get(brand_display, '#1a1f2b')
-
+    for brand in brands_in_cat:
         html.append('<tr>')
 
-        logo_html = ''
-        if brand_data:
-            logo_html = brand_logo_html(brand_data)
-        html.append(
-            f'<td class="brand-cell" style="background:{bg};">'
-            f'{logo_html}<span style="color:#e6edf3;">{brand_display}</span>'
-            f'</td>'
-        )
+        logo_html = brand_logo_html(brand)
+        if cfg['star_brands'] is not None and brand in cfg['star_brands']:
+            name_html = f'<span style="color:#f85149; font-weight:700;">{brand}</span>'
+        else:
+            name_html = f'<span style="color:#e6edf3; font-weight:700;">{brand}</span>'
 
-        for label, emb, vol in COLUMNS:
-            pvf, prop_pvf = find_price(brand_data, vol, emb)
-            if pvf is None:
+        html.append(f'<td class="brand-cell">{logo_html}{name_html}</td>')
+
+        for vol, emb in col_pairs:
+            match = df[
+                (df['marque'] == brand) &
+                (df['vol'].round(2) == vol) &
+                (df['format'].apply(_emb_of) == emb)
+            ]
+            if match.empty:
                 cell = '<span class="empty">—</span>'
             else:
-                pvf_k = pvf / 1000
-                prop_k = prop_pvf / 1000
-                pvf_txt = f"{pvf_k:.1f}".rstrip('0').rstrip('.') if pvf_k != int(pvf_k) else f"{int(pvf_k)}"
-                prop_txt = f"{prop_k:.1f}".rstrip('0').rstrip('.') if prop_k != int(prop_k) else f"{int(prop_k)}"
+                pvf = int(match.iloc[0]['pvf'])
+                prop_pvf = int(match.iloc[0]['prop_pvf'])
+                pvf_txt = f"{pvf:,}".replace(',', ' ')
+                prop_txt = f"{prop_pvf:,}".replace(',', ' ')
 
                 if pvf == prop_pvf:
                     cell = f'<div class="same-price">{pvf_txt}</div>'
@@ -1584,21 +1547,19 @@ with tab4:
                         f'<div class="new-price">{prop_txt}</div>'
                     )
 
-            html.append(
-                f'<td class="price-cell" style="background:{bg};">{cell}</td>'
-            )
+            html.append(f'<td class="price-cell">{cell}</td>')
 
         html.append('</tr>')
 
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
 
-    # Légende
     st.markdown(
         '<div style="margin-top:14px; font-size:0.72rem; color:#8b949e;">'
         '<b style="color:#e6edf3;">Légende :</b> '
         '<span style="color:#8b949e; text-decoration:line-through;">ancien prix 2026</span> '
-        '→ <span style="color:#3fb950; font-weight:700;">nouveau prix 2027</span>'
+        '→ <span style="color:#3fb950; font-weight:700;">nouveau prix 2027</span> '
+        '· Montants en <b>Ariary</b>.'
         '</div>',
         unsafe_allow_html=True,
     )
