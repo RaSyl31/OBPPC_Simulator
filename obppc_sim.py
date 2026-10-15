@@ -32,14 +32,14 @@ st.markdown("""
     .brand-star { color: #f85149 !important; font-weight: 700; }
     .brand-comp { color: #e6edf3; font-weight: 700; }
 
-    /* Tag STAR / Concurrent */
+    /* Tags STAR / CONCUR — même style, seule la couleur du fond change */
     .tag {
         display: inline-block; padding: 1px 6px; border-radius: 3px;
         font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
         text-transform: uppercase;
     }
-    .tag-star { background: #7c3aed; color: #fff; }
-    .tag-comp { background: #484f58; color: #e6edf3; }
+    .tag-star { background: #f85149; color: #fff; }   /* ✅ rouge */
+    .tag-comp { background: #484f58; color: #e6edf3; } /* inchangé */
 
     .role-dot { display: inline-block; width: 8px; height: 8px;
                 border-radius: 50%; margin-right: 6px; vertical-align: middle; }
@@ -526,19 +526,15 @@ def safe_pct(v, d=0):
 
 
 def brand_name_html(marque, star_brands):
-    """Retourne le nom de marque coloré en rouge si STAR, sinon normal."""
-    if star_brands is None:
-        return f'<span class="brand-star">{marque}</span>'
-    if marque in star_brands:
+    """Nom de marque STAR en rouge, Concurrent en blanc."""
+    if star_brands is None or marque in star_brands:
         return f'<span class="brand-star">{marque}</span>'
     return f'<span class="brand-comp">{marque}</span>'
 
 
 def brand_tag(marque, star_brands):
-    """Tag STAR / CONCUR (utilisé dans la comparaison par contenance)."""
-    if star_brands is None:
-        return '<span class="tag tag-star">STAR</span>'
-    if marque in star_brands:
+    """Tag STAR (fond rouge) / CONCUR (fond gris) — même style."""
+    if star_brands is None or marque in star_brands:
         return '<span class="tag tag-star">STAR</span>'
     return '<span class="tag tag-comp">CONCUR</span>'
 
@@ -1058,7 +1054,7 @@ if cfg['has_competitors']:
     st.markdown("##### Comparaison par contenance — tous formats confondus")
     st.caption(
         "Regroupement par volume (L), trié du PVF le plus bas au plus élevé. "
-        "Nom STAR en rouge."
+        "Tag STAR en rouge."
     )
 
     volumes = sorted(d['vol'].unique())
