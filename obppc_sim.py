@@ -28,18 +28,28 @@ st.markdown("""
     .obppc td.muted { color: #8b949e; }
     .obppc tr:hover td { background: #161b22; }
 
-    /* ✅ Nom de marque STAR en rouge */
+    /* Nom de marque STAR en rouge */
     .brand-star { color: #f85149 !important; font-weight: 700; }
     .brand-comp { color: #e6edf3; font-weight: 700; }
 
-    /* Tags STAR / CONCUR — même style, seule la couleur du fond change */
+    /* ✅ Logo de marque (carré coloré avec initiale) */
+    .brand-logo {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 20px; height: 20px; border-radius: 4px;
+        font-size: 0.62rem; font-weight: 800; color: #fff;
+        margin-right: 7px; vertical-align: middle;
+        text-transform: uppercase; letter-spacing: -0.02em;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset;
+    }
+
+    /* Tags STAR / CONCUR */
     .tag {
         display: inline-block; padding: 1px 6px; border-radius: 3px;
         font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
         text-transform: uppercase;
     }
-    .tag-star { background: #f85149; color: #fff; }   /* ✅ rouge */
-    .tag-comp { background: #484f58; color: #e6edf3; } /* inchangé */
+    .tag-star { background: #f85149; color: #fff; }
+    .tag-comp { background: #484f58; color: #e6edf3; }
 
     .role-dot { display: inline-block; width: 8px; height: 8px;
                 border-radius: 50%; margin-right: 6px; vertical-align: middle; }
@@ -71,6 +81,53 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+
+# =============================================================================
+# LOGOS DES MARQUES — couleur + initiale
+# =============================================================================
+# Chaque marque a une couleur et une initiale (ou texte court)
+BRAND_LOGOS = {
+    # BI
+    'Beaufort':     {'color': '#c9a227', 'init': 'B'},
+    'Gold':         {'color': '#d4a017', 'init': 'G'},
+    'THB':          {'color': '#0e7490', 'init': 'T'},
+    'Queen':        {'color': '#9d174d', 'init': 'Q'},
+    'Fresh':        {'color': '#16a34a', 'init': 'F'},
+    # BG
+    'COCA':         {'color': '#dc2626', 'init': 'C'},
+    'WOCO':         {'color': '#7c3aed', 'init': 'W'},
+    'FANTA':        {'color': '#ea580c', 'init': 'F'},
+    'CAPRICE':      {'color': '#db2777', 'init': 'C'},
+    'TONIC':        {'color': '#0891b2', 'init': 'T'},
+    # EAUX
+    'Cristal':      {'color': '#0284c7', 'init': 'C'},
+    'RANOVISY':     {'color': '#2563eb', 'init': 'R'},
+    'VISY GASY':    {'color': '#059669', 'init': 'V'},
+    'Eau vive':     {'color': '#0ea5e9', 'init': 'E'},
+    'Cristalline':  {'color': '#38bdf8', 'init': 'C'},
+    'OLYMPIKO':     {'color': '#1d4ed8', 'init': 'O'},
+    'NATUR EAU':    {'color': '#65a30d', 'init': 'N'},
+    # ENERGY
+    'Red Bull':     {'color': '#1e3a8a', 'init': 'RB'},
+    'Monster':      {'color': '#166534', 'init': 'M'},
+    'FOSA':         {'color': '#b91c1c', 'init': 'F'},
+    'XXL':          {'color': '#7c2d12', 'init': 'X'},
+    'DYNAMIC':      {'color': '#a21caf', 'init': 'D'},
+    'BOOST VITALITY': {'color': '#ca8a04', 'init': 'B'},
+}
+
+# Logo par défaut si marque inconnue
+DEFAULT_LOGO = {'color': '#64748b', 'init': '?'}
+
+
+def brand_logo_html(marque):
+    """Retourne le HTML du carré coloré avec l'initiale de la marque."""
+    info = BRAND_LOGOS.get(marque, DEFAULT_LOGO)
+    return (
+        f'<span class="brand-logo" '
+        f'style="background:{info["color"]};">{info["init"]}</span>'
+    )
 
 
 # =============================================================================
@@ -526,14 +583,17 @@ def safe_pct(v, d=0):
 
 
 def brand_name_html(marque, star_brands):
-    """Nom de marque STAR en rouge, Concurrent en blanc."""
+    """Logo + nom de marque (nom en rouge si STAR)."""
+    logo = brand_logo_html(marque)
     if star_brands is None or marque in star_brands:
-        return f'<span class="brand-star">{marque}</span>'
-    return f'<span class="brand-comp">{marque}</span>'
+        name = f'<span class="brand-star">{marque}</span>'
+    else:
+        name = f'<span class="brand-comp">{marque}</span>'
+    return f'{logo}{name}'
 
 
 def brand_tag(marque, star_brands):
-    """Tag STAR (fond rouge) / CONCUR (fond gris) — même style."""
+    """Tag STAR (fond rouge) / CONCUR (fond gris)."""
     if star_brands is None or marque in star_brands:
         return '<span class="tag tag-star">STAR</span>'
     return '<span class="tag tag-comp">CONCUR</span>'
@@ -932,7 +992,7 @@ st.markdown(kpi_html, unsafe_allow_html=True)
 
 
 # =============================================================================
-# TABLEAU PRINCIPAL  (nom STAR en rouge)
+# TABLEAU PRINCIPAL  (logo + nom STAR en rouge)
 # =============================================================================
 st.markdown("### Vue d'ensemble")
 
@@ -1053,8 +1113,7 @@ if cfg['has_competitors']:
     st.markdown("---")
     st.markdown("##### Comparaison par contenance — tous formats confondus")
     st.caption(
-        "Regroupement par volume (L), trié du PVF le plus bas au plus élevé. "
-        "Tag STAR en rouge."
+        "Regroupement par volume (L), trié du PVF le plus bas au plus élevé."
     )
 
     volumes = sorted(d['vol'].unique())
@@ -1152,7 +1211,7 @@ if cfg['has_competitors']:
 
 
 # =============================================================================
-# DÉTAILS EN ONGLETS  (nom STAR en rouge)
+# DÉTAILS EN ONGLETS  (logo + nom STAR en rouge)
 # =============================================================================
 st.markdown("### Détails par SKU")
 tab1, tab2, tab3 = st.tabs(["Prix & Index", "Marges 2026", "Marges 2027"])
