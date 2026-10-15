@@ -8,7 +8,6 @@ st.markdown("""
 <style>
     .main .block-container { padding-top: 1.25rem; max-width: 100%; }
 
-    /* --- Tableau principal simplifié --- */
     .obppc { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     .obppc th {
         background: #1a1f2b; color: #8b949e; padding: 10px 10px;
@@ -34,7 +33,6 @@ st.markdown("""
     .ko { color: #f85149; font-weight: 700; }
     .warn { color: #d29922; font-weight: 700; }
 
-    /* KPI bandeau */
     .kpi-band {
         display: grid; grid-template-columns: repeat(5, 1fr);
         gap: 0.6rem; margin: 0.5rem 0 1rem 0;
@@ -156,8 +154,15 @@ DATA_BI = [
 
 df_raw = pd.DataFrame(DATA_BI)
 
-REF_PVF_INDEX = 4000
-REF_PL_INDEX = 4000 / 0.33
+# =============================================================================
+# RÉFÉRENCES D'INDEX
+#   Index PVF         → Beaufort 33CL VER Frequency (4000 Ar)
+#   Index P/L         → THB Pilsener 65 cl VER Frequency (4500 / 0.65 = 6923.08 Ar/L)
+# =============================================================================
+REF_PVF_INDEX = 4000                       # Beaufort 33CL VER Frequency
+REF_PL_INDEX  = 4500 / 0.65                # THB Pilsener 65 cl VER Frequency
+REF_LABEL_PVF = "Beaufort 33CL VER (Frequency)"
+REF_LABEL_PL  = "THB Pilsener 65 cl VER (Frequency)"
 
 
 # =============================================================================
@@ -207,18 +212,24 @@ def compute(df):
     d['p_litre'] = d['pvf'] / d['vol']
     d['prop_p_litre'] = d['prop_pvf'] / d['vol']
 
+    # Index PVF → Beaufort 33CL VER Frequency
     d['idx_pvf'] = (d['pvf'] / REF_PVF_INDEX * 100).round(0).astype(int)
+
+    # Index P/L → THB Pilsener 65 cl VER Frequency  ← NOUVEAU
     d['idx_pl']  = (d['p_litre'] / REF_PL_INDEX * 100).round(0).astype(int)
     d['idx_pl_prop'] = (d['prop_p_litre'] / REF_PL_INDEX * 100).round(0).astype(int)
 
+    # Marges
     d['marge_ds'] = d['pv_ds'] - d['pva']
     d['marge_ds_pct'] = d['marge_ds'] / d['pva']
     d['marge_pdv'] = d['pvc'] - d['pv_ds']
     d['marge_pdv_pct'] = d['marge_pdv'] / d['pv_ds']
 
+    # Hausse
     d['hausse'] = d['prop_pvf'] - d['pvf']
     d['hausse_pct'] = d['hausse'] / d['pvf']
 
+    # PAP 2027
     d['pva_2027'] = d['pva'] + d['hausse']
     d['pv_ds_2027'] = d['pv_ds'] + d['hausse']
     d['marge_ds_2027'] = d['pv_ds_2027'] - d['pva_2027']
@@ -227,6 +238,7 @@ def compute(df):
     d['marge_pdv_2027'] = d['pvc_2027'] - d['pv_ds_2027']
     d['marge_pdv_2027_pct'] = d['marge_pdv_2027'] / d['pv_ds_2027'].replace(0, pd.NA)
 
+    # Statut
     d['role_simple'] = d['role'].apply(role_simple)
     d['statut'] = d.apply(
         lambda r: status_from_idx(r['idx_pl'], r['role_simple']), axis=1)
@@ -268,12 +280,24 @@ with st.sidebar:
             f"<b>{r}</b> — {target}</div>",
             unsafe_allow_html=True)
 
+    st.markdown("---")
+    st.markdown(
+        "<div style='font-size:0.68rem; color:#6e7681; line-height:1.6;'>"
+        "<b style='color:#a5b4fc;'>Références d'index</b><br>"
+        "• Index <b>PVF</b> : Beaufort 33CL VER (4 000 Ar)<br>"
+        "• Index <b>P/L</b> : THB Pilsener 65 cl (6 923 Ar/L)"
+        "</div>",
+        unsafe_allow_html=True)
+
 
 # =============================================================================
 # HEADER
 # =============================================================================
 st.markdown("## Simulateur OBPPC — BI")
-st.caption("Référence index : **Beaufort 33CL VER Frequency = 100**")
+st.caption(
+    f"**Index PVF** → {REF_LABEL_PVF} &nbsp;·&nbsp; "
+    f"**Index P/L** → {REF_LABEL_PL}"
+)
 
 
 # =============================================================================
@@ -314,7 +338,6 @@ with st.expander("✏️ Éditer les prix", expanded=False):
         height=min(500, 80 + 36 * len(editable)),
         key="prop_editor",
     )
-    # réinjection des colonnes perdues
     for col in ['role', 'vol', 'pap_min', 'pap_max', 'commentaire']:
         edited[col] = df[col].reset_index(drop=True).values
 
@@ -345,7 +368,7 @@ st.markdown(f"""
 
 
 # =============================================================================
-# TABLEAU PRINCIPAL SIMPLIFIÉ
+# TABLEAU PRINCIPAL
 # =============================================================================
 st.markdown("### Vue d'ensemble")
 
@@ -356,7 +379,7 @@ html = ['<table class="obppc"><thead><tr>',
         '<th>Vol (L)</th>',
         '<th>PVF 2026</th>',
         '<th>P/L 2026</th>',
-        '<th>Index P/L</th>',
+        '<th>Index P/L<br><span style="color:#6e7681; font-weight:400;">(réf. THB 65)</span></th>',
         '<th>PVF 2027</th>',
         '<th>Hausse</th>',
         '<th>Marge DS</th>',
@@ -367,8 +390,6 @@ for _, row in d.iterrows():
     color = ROLE_COLORS.get(row['role'], '#64748b')
     statut_cls = 'ok' if row['statut'] == 'OK' else 'ko'
     statut_dot = '●' if row['statut'] == 'OK' else '●'
-
-    # Couleur de la hausse
     hp = row['hausse_pct'] * 100
     hausse_color = '#3fb950' if hp > 0 else '#8b949e' if hp == 0 else '#f85149'
 
@@ -404,12 +425,12 @@ with tab1:
             '<th class="left">Marque</th>',
             '<th class="left">Format</th>',
             '<th colspan="4">2026</th>',
-            '<th colspan="3">2027</th>',
+            '<th colspan="4">2027</th>',
             '<th class="left">Commentaire</th>',
             '</tr><tr>',
             '<th></th><th></th>',
             '<th>PVF</th><th>P/L</th><th>Idx PVF</th><th>Idx P/L</th>',
-            '<th>PVF</th><th>P/L</th><th>Hausse</th>',
+            '<th>PVF</th><th>P/L</th><th>Idx P/L</th><th>Hausse</th>',
             '<th></th>',
             '</tr></thead><tbody>']
     for _, row in d.iterrows():
@@ -420,16 +441,19 @@ with tab1:
             f'<td class="left">{row["format"]}</td>'
             f'<td>{fmt(row["pvf"])}</td>'
             f'<td>{fmt(row["p_litre"])}</td>'
-            f'<td>{row["idx_pvf"]}</td>'
+            f'<td class="muted">{row["idx_pvf"]}</td>'
             f'<td class="{statut_cls}">{row["idx_pl"]}</td>'
             f'<td>{fmt(row["prop_pvf"])}</td>'
             f'<td>{fmt(row["prop_p_litre"])}</td>'
+            f'<td class="muted">{row["idx_pl_prop"]}</td>'
             f'<td>{row["hausse_pct"]*100:+.1f}%</td>'
             f'<td class="left muted">{row["commentaire"]}</td>'
             '</tr>'
         )
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
+    st.caption("**Idx PVF** référencé sur Beaufort 33CL VER · "
+               "**Idx P/L** référencé sur THB Pilsener 65 cl VER")
 
 # --- TAB 2 : Marges 2026
 with tab2:
@@ -501,8 +525,10 @@ export = d[[
 export = export.rename(columns={
     'marque': 'Marque', 'role': 'Rôle OBPPC', 'format': 'Format', 'vol': 'Volume (L)',
     'pvf': 'PVF 2026', 'p_litre': 'P/L 2026',
-    'idx_pvf': 'Idx PVF', 'idx_pl': 'Idx P/L',
-    'prop_pvf': 'PVF 2027', 'prop_p_litre': 'P/L 2027', 'idx_pl_prop': 'Idx P/L 2027',
+    'idx_pvf': 'Idx PVF (réf Beaufort)',
+    'idx_pl': 'Idx P/L (réf THB 65)',
+    'prop_pvf': 'PVF 2027', 'prop_p_litre': 'P/L 2027',
+    'idx_pl_prop': 'Idx P/L 2027 (réf THB 65)',
     'hausse': 'Hausse (Ar)', 'hausse_pct': 'Hausse %',
     'pva': 'PVA 2026', 'pv_ds': 'PV DS 2026',
     'marge_ds': 'Marge DS', 'marge_ds_pct': 'Taux DS',
