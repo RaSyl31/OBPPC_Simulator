@@ -206,8 +206,6 @@ st.markdown("""
 @st.cache_data
 def load_data():
     rows = [
-        # (Entreprise, Segment, Marque, Occasion, Rôle, Format, Volume_L, PVF_Ar)
-        # --- ENERGIE ---
         ('Concurrent', 'Energie', 'Red Bull', 'IC', 'Upscale', 'CAN 25', 0.25, 9900),
         ('Concurrent', 'Energie', 'Monster', 'IC', 'Upscale', 'CAN 50', 0.50, 9900),
         ('STAR', 'Energie', 'FOSA', 'IC', 'Upscale', 'CAN 50', 0.50, 5000),
@@ -218,7 +216,6 @@ def load_data():
         ('Concurrent', 'Energie', 'DYNAMIC', 'IC', 'Upscale', 'CAN 25', 0.25, 3500),
         ('Concurrent', 'Energie', 'BOOST VITALITY', 'IC', 'Upscale', 'CAN 33', 0.33, 4000),
 
-        # --- BOISSON GAZEUSE ---
         ('Concurrent', 'Boisson Gazeuse', 'COCA', 'IC', 'Entry', 'PET 35', 0.35, 1500),
         ('Concurrent', 'Boisson Gazeuse', 'COCA', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
         ('Concurrent', 'Boisson Gazeuse', 'COCA', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
@@ -232,7 +229,7 @@ def load_data():
         ('Concurrent', 'Boisson Gazeuse', 'FANTA', 'IC', 'Entry', 'PET 35', 0.35, 1500),
         ('Concurrent', 'Boisson Gazeuse', 'FANTA', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
         ('Concurrent', 'Boisson Gazeuse', 'FANTA', 'FC', 'Upsize', 'PET 150', 1.50, 5000),
-        ('STAR', 'Boisson Gazeuse', 'CAPRICE', 'IC', 'Frequency', 'PET 35', 0.35, 1500),  # RÉFÉRENCE BG
+        ('STAR', 'Boisson Gazeuse', 'CAPRICE', 'IC', 'Frequency', 'PET 35', 0.35, 1500),
         ('STAR', 'Boisson Gazeuse', 'CAPRICE', 'IC', 'Frequency', 'PET 50', 0.50, 2000),
         ('STAR', 'Boisson Gazeuse', 'CAPRICE', 'IC', 'Upscale', 'CAN 33', 0.33, 2500),
         ('STAR', 'Boisson Gazeuse', 'CAPRICE', 'IC', 'Entry', 'VC 30', 0.30, 1200),
@@ -241,7 +238,6 @@ def load_data():
         ('STAR', 'Boisson Gazeuse', 'TONIC', 'IC', 'Entry', 'VC 30', 0.30, 1200),
         ('STAR', 'Boisson Gazeuse', 'TONIC', 'FC', 'Upsize', 'VC 100', 1.00, 3000),
 
-        # --- EAUX ---
         ('STAR', 'Eaux', 'Cristal', 'IC', 'Entry', 'Cristal 30 VER', 0.30, 1500),
         ('STAR', 'Eaux', 'Cristal', 'IC', 'Frequency', 'Cristal 50 VER', 0.50, 2200),
         ('STAR', 'Eaux', 'Cristal', 'FC', 'Upsize', 'Cristal 100 VER', 1.00, 3800),
@@ -254,7 +250,7 @@ def load_data():
         ('STAR', 'Eaux', 'Eau vive', 'IC', 'Entry', 'Eau vive 50 PET', 0.50, 1600),
         ('STAR', 'Eaux', 'Eau vive', 'FC', 'Upsize', 'Eau vive 150 PET', 1.50, 3300),
         ('STAR', 'Eaux', 'Eau vive', 'IC', 'Frequency', 'Eau vive 50 VER', 0.50, 2200),
-        ('STAR', 'Eaux', 'Cristalline', 'FC', 'Frequency', 'Cristalline 100 PET', 1.00, 2100),  # RÉFÉRENCE EAUX
+        ('STAR', 'Eaux', 'Cristalline', 'FC', 'Frequency', 'Cristalline 100 PET', 1.00, 2100),
         ('STAR', 'Eaux', 'Cristalline', 'FC', 'Upsize', 'Cristalline 200 PET', 2.00, 3600),
         ('Concurrent', 'Eaux', 'OLYMPIKO', 'IC', 'Entry', 'OLYMPIKO 50', 0.50, 1500),
         ('Concurrent', 'Eaux', 'OLYMPIKO', 'FC', 'Frequency', 'OLYMPIKO 100', 1.00, 2000),
@@ -263,7 +259,6 @@ def load_data():
         ('Concurrent', 'Eaux', 'NATUR EAU', 'FC', 'Frequency', 'NATUR EAU 100', 1.00, 2000),
         ('Concurrent', 'Eaux', 'NATUR EAU', 'FC', 'Upsize', 'NATUR EAU 150', 1.50, 2500),
 
-        # --- BIERE ---
         ('STAR', 'Bière', 'Beaufort', 'IC', 'Frequency', 'Beaufort 33 VER', 0.33, 4000),
         ('STAR', 'Bière', 'Beaufort', 'IC', 'Upscale', 'Beaufort 33 CAN', 0.33, 5000),
         ('STAR', 'Bière', 'Gold', 'IC', 'Entry', 'Gold Blanche 33 VER', 0.33, 3500),
@@ -275,7 +270,7 @@ def load_data():
         ('STAR', 'Bière', 'Gold', 'IC', 'Upscale', 'Gold Blanche 50 CAN', 0.50, 6000),
         ('STAR', 'Bière', 'Gold', 'IC', 'Upscale', 'Gold Blonde 50 CAN', 0.50, 6000),
         ('STAR', 'Bière', 'THB', 'IC', 'Entry', 'THB Pilsener 33 VER', 0.33, 2500),
-        ('STAR', 'Bière', 'THB', 'IC', 'Frequency', 'THB Pilsener 65 VER', 0.65, 4500),  # RÉFÉRENCE BIERE
+        ('STAR', 'Bière', 'THB', 'IC', 'Frequency', 'THB Pilsener 65 VER', 0.65, 4500),
         ('STAR', 'Bière', 'THB', 'IC', 'Upscale', 'THB Pilsener 50 CAN', 0.50, 5000),
         ('STAR', 'Bière', 'Queen', 'FC', 'Entry', 'Queen s 65 VER', 0.65, 4000),
         ('STAR', 'Bière', 'Fresh', 'IC', 'Entry', 'Fresh 33 VER', 0.33, 2500),
@@ -306,9 +301,6 @@ ROLE_INDEX_RANGE = {
     'Upscale':   (111, 999),
 }
 
-# =============================================================================
-# RÉFÉRENCE PAR SEGMENT (produits STAR uniquement)
-# =============================================================================
 REFERENCE_PRODUCTS = {
     'Energie':         ('XXL',         'PET 50'),
     'Boisson Gazeuse': ('CAPRICE',     'PET 35'),
@@ -412,10 +404,11 @@ def style_proposition(series):
 
 
 def style_entreprise(series):
+    """STAR en rouge, Concurrent en ambre."""
     out = []
     for v in series:
         if v == 'STAR':
-            out.append('color: #4a9eff; font-weight: 700;')
+            out.append('color: #ff6b6b; font-weight: 700;')
         elif v == 'Concurrent':
             out.append('color: #fbbf24; font-weight: 600;')
         else:
@@ -502,7 +495,6 @@ if d.empty:
 d['PVF_Ajusté'] = (d['PVF_Ar'] * coef).round(0).astype(int)
 d['Prix_Litre_Ajusté'] = (d['Prix_Litre'] * coef).round(0).astype(int)
 
-# Références calculées sur le portefeuille COMPLET (pas seulement filtré)
 ref_source = df[df['Entreprise'].isin(entreprises)].copy() if entreprises else df.copy()
 ref_source['Prix_Litre_Ajusté'] = (ref_source['Prix_Litre'] * coef).round(0).astype(int)
 
@@ -657,18 +649,14 @@ with tab1:
         column_config={
             'Entreprise': st.column_config.TextColumn(
                 "Entreprise",
-                help="STAR = notre portefeuille · Concurrent = benchmark marché",
+                help="STAR (rouge) = notre portefeuille · Concurrent (ambre) = benchmark marché",
                 width="small",
             ),
             'Prix actuel (Ar)': st.column_config.NumberColumn(
-                "Prix actuel (Ar)",
-                help="Prix de vente (PVF) saisi dans le tableau d'édition",
-                format="%d",
+                "Prix actuel (Ar)", format="%d",
             ),
             'Prix / L (Ar)': st.column_config.NumberColumn(
-                "Prix / L (Ar)",
-                help="Prix au litre ajusté selon le canal sélectionné",
-                format="%d",
+                "Prix / L (Ar)", format="%d",
             ),
             'Index': st.column_config.NumberColumn(format="%d"),
             '💡 Proposition': st.column_config.TextColumn(
@@ -696,7 +684,6 @@ with tab1:
 with tab2:
     st.markdown("## 📊 Vue d'ensemble du portefeuille")
 
-    # --- Répartition STAR vs Concurrent par segment
     st.markdown("### Répartition STAR vs Concurrent par segment")
     st.caption(
         "Nombre de SKU par entreprise et par segment, avec part de portefeuille STAR."
@@ -746,7 +733,6 @@ with tab2:
         },
     )
 
-    # --- Couverture des rôles (STAR uniquement)
     st.markdown("### Couverture des rôles par marque STAR")
     st.caption(
         "Ce tableau indique quels rôles tarifaires chaque marque STAR occupe. "
@@ -785,7 +771,6 @@ with tab2:
             hide_index=True,
         )
 
-    # --- Tous les produits
     st.markdown("### Tous les produits du périmètre")
 
     view2 = d.copy()
@@ -818,7 +803,11 @@ with tab2:
         height=min(700, 80 + 35 * len(view2_final)),
         hide_index=True,
         column_config={
-            'Entreprise': st.column_config.TextColumn("Entreprise", width="small"),
+            'Entreprise': st.column_config.TextColumn(
+                "Entreprise",
+                help="STAR (rouge) = notre portefeuille · Concurrent (ambre) = benchmark marché",
+                width="small",
+            ),
             'Volume (L)': st.column_config.NumberColumn(format="%.2f"),
             'Prix (Ar)': st.column_config.NumberColumn(format="%d"),
             'Prix / L (Ar)': st.column_config.NumberColumn(format="%d"),
@@ -838,11 +827,9 @@ with tab3:
     st.markdown("## 🎯 Diagnostic OBPPC")
     st.markdown(
         "Liste des produits **non conformes** avec l'intervalle de prix à la hausse. "
-        "⚠️ Aucune proposition de baisse n'est faite. "
-        "Filtre par défaut sur **STAR** uniquement."
+        "⚠️ Aucune proposition de baisse n'est faite."
     )
 
-    # Filtre : ne garder que STAR par défaut, mais laisser l'utilisateur choisir
     ent_diag = st.radio(
         "Périmètre du diagnostic",
         ["STAR uniquement", "Concurrents uniquement", "Tout"],
@@ -916,6 +903,7 @@ with tab3:
                 height=min(600, 80 + 40 * len(diag)),
                 hide_index=True,
                 column_config={
+                    'Entreprise':       st.column_config.TextColumn("Entreprise", width="small"),
                     'PVF actuel':       st.column_config.NumberColumn(format="%d Ar"),
                     'Prix / L actuel':  st.column_config.NumberColumn(format="%d Ar"),
                     'Index actuel':     st.column_config.NumberColumn(format="%d"),
@@ -958,6 +946,7 @@ with tab3:
                 height=min(500, 80 + 40 * len(diag_above)),
                 hide_index=True,
                 column_config={
+                    'Entreprise':       st.column_config.TextColumn("Entreprise", width="small"),
                     'PVF actuel':       st.column_config.NumberColumn(format="%d Ar"),
                     'Prix / L actuel':  st.column_config.NumberColumn(format="%d Ar"),
                     'Index actuel':     st.column_config.NumberColumn(format="%d"),
