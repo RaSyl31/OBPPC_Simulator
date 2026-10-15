@@ -30,6 +30,22 @@ st.markdown("""
     .obppc td.muted { color: #8b949e; }
     .obppc tr:hover td { background: #161b22; }
 
+    /* En-têtes fusionnés 2026 / 2027 */
+    .obppc th.group-2026 {
+        background: #0d1b2a; color: #7dd3fc;
+        border-bottom: 2px solid #1e4976;
+        font-size: 0.72rem; letter-spacing: 0.1em;
+    }
+    .obppc th.group-2027 {
+        background: #1a0d2a; color: #c4b5fd;
+        border-bottom: 2px solid #5b21b6;
+        font-size: 0.72rem; letter-spacing: 0.1em;
+    }
+    .obppc th.group-comment {
+        background: #1a1f2b; color: #cbd5e1;
+        font-size: 0.72rem; letter-spacing: 0.1em;
+    }
+
     .brand-star { color: #f85149 !important; font-weight: 700; }
     .brand-comp { color: #e6edf3; font-weight: 700; }
 
@@ -88,26 +104,6 @@ st.markdown("""
         background: #0c1a24; border: 1px solid #0e7490;
         border-radius: 6px; padding: 10px 14px; margin: 8px 0 14px 0;
         font-size: 0.78rem; color: #cbd5e1;
-    }
-
-    /* ✅ Bandeaux 2026 / 2027 au-dessus du data_editor */
-    .year-band {
-        display: flex; gap: 6px; margin: 12px 0 4px 0;
-        font-size: 0.7rem; color: #8b949e; text-transform: uppercase;
-        letter-spacing: 0.08em; font-weight: 700;
-    }
-    .year-band .band-2026 {
-        background: #0d1b2a; border: 1px solid #1e4976;
-        color: #7dd3fc; padding: 4px 10px; border-radius: 4px;
-    }
-    .year-band .band-2027 {
-        background: #1a0d2a; border: 1px solid #5b21b6;
-        color: #c4b5fd; padding: 4px 10px; border-radius: 4px;
-    }
-    .year-band .band-comment {
-        background: #1a1f2b; border: 1px solid #30363d;
-        color: #cbd5e1; padding: 4px 10px; border-radius: 4px;
-        margin-left: auto;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -784,7 +780,7 @@ with st.sidebar:
         for k in list(st.session_state.keys()):
             if (k.startswith('prop_editor')
                 or k.startswith('pap_editor')
-                or k.startswith('prix_index_editor')
+                or k.startswith('comment_editor')
                 or k == 'commentaires'):
                 del st.session_state[k]
         st.rerun()
@@ -1304,81 +1300,85 @@ tab1, tab2, tab3 = st.tabs(["Prix & Index", "Marges 2026", "Marges 2027"])
 
 with tab1:
     # =========================================================================
-    # ✅ Bandeau visuel de séparation 2026 / 2027 / Commentaire
+    # ✅ Tableau HTML avec EN-TÊTES FUSIONNÉS 2026 / 2027
     # =========================================================================
-    st.markdown(
-        '<div class="year-band">'
-        '<span class="band-2026">📅 2026 — Référence</span>'
-        '<span class="band-2027">📅 2027 — Projection</span>'
-        '<span class="band-comment">✏️ Commentaire modifiable</span>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+    html = ['<table class="obppc"><thead>',
+            '<tr>',
+            '<th class="left" rowspan="2">Marque</th>',
+            '<th class="left" rowspan="2">Format</th>',
+            '<th class="group-2026" colspan="4">2026 — Référence</th>',
+            '<th class="group-2027" colspan="4">2027 — Projection</th>',
+            '<th class="group-comment" rowspan="2">Commentaire</th>',
+            '</tr>',
+            '<tr>',
+            '<th>PVF</th><th>P/L</th><th>Idx PVF</th><th>Idx P/L</th>',
+            '<th>PVF</th><th>P/L</th><th>Idx P/L</th><th>Hausse</th>',
+            '</tr>',
+            '</thead><tbody>']
+
+    for _, row in d.iterrows():
+        statut_cls = 'ok' if row['statut'] == 'OK' else 'ko'
+        hp = row['hausse_pct'] * 100
+        html.append(
+            '<tr>'
+            f'<td class="left bold">{brand_name_html(row["marque"], cfg["star_brands"])}</td>'
+            f'<td class="left">{row["format"]}</td>'
+            f'<td>{fmt(row["pvf"])}</td>'
+            f'<td>{fmt(row["p_litre"])}</td>'
+            f'<td class="muted">{row["idx_pvf"]}</td>'
+            f'<td class="{statut_cls}">{row["idx_pl"]}</td>'
+            f'<td>{fmt(row["prop_pvf"])}</td>'
+            f'<td>{fmt(row["prop_p_litre"])}</td>'
+            f'<td class="muted">{row["idx_pl_prop"]}</td>'
+            f'<td>{hp:+.1f}%</td>'
+            f'<td class="left muted">{row["commentaire"]}</td>'
+            '</tr>'
+        )
+    html.append('</tbody></table>')
+    st.markdown(''.join(html), unsafe_allow_html=True)
 
     # =========================================================================
-    # Tableau éditable : seule la colonne Commentaire est modifiable
+    # ✅ Éditeur compact pour modifier les commentaires
     # =========================================================================
-    editor_rows = []
+    st.markdown("###### ✏️ Modifier les commentaires")
+    st.caption("Cliquez dans la colonne Commentaire pour saisir ou modifier.")
+
+    comment_rows = []
     for _, row in d.iterrows():
         key = (row['marque'], row['format'])
-        current_comment = st.session_state.commentaires.get(
+        current = st.session_state.commentaires.get(
             key, row.get('commentaire', '')
         )
-        editor_rows.append({
-            'marque': row['marque'],
-            'format': row['format'],
-            'PVF 2026': int(row['pvf']),
-            'P/L 2026': int(round(row['p_litre'])),
-            'Idx PVF 2026': int(row['idx_pvf']),
-            'Idx P/L 2026': int(row['idx_pl']),
-            'PVF 2027': int(row['prop_pvf']),
-            'P/L 2027': int(round(row['prop_p_litre'])),
-            'Idx P/L 2027': int(row['idx_pl_prop']),
-            'Hausse 2027': float(row['hausse_pct']),
-            'commentaire': current_comment,
+        comment_rows.append({
+            'Marque': row['marque'],
+            'Format': row['format'],
+            'Commentaire': current,
         })
-    editor_df = pd.DataFrame(editor_rows)
+    comment_df = pd.DataFrame(comment_rows)
 
-    edited_pi = st.data_editor(
-        editor_df,
+    edited_comments = st.data_editor(
+        comment_df,
         column_config={
-            'marque': st.column_config.TextColumn(
-                "Marque", disabled=True, width=110),
-            'format': st.column_config.TextColumn(
-                "Format", disabled=True, width=220),
-            'PVF 2026': st.column_config.NumberColumn(
-                "PVF 2026", disabled=True, format="%d", width=95),
-            'P/L 2026': st.column_config.NumberColumn(
-                "P/L 2026", disabled=True, format="%d", width=90),
-            'Idx PVF 2026': st.column_config.NumberColumn(
-                "Idx PVF", disabled=True, format="%d", width=75),
-            'Idx P/L 2026': st.column_config.NumberColumn(
-                "Idx P/L", disabled=True, format="%d", width=75),
-            'PVF 2027': st.column_config.NumberColumn(
-                "PVF 2027", disabled=True, format="%d", width=95),
-            'P/L 2027': st.column_config.NumberColumn(
-                "P/L 2027", disabled=True, format="%d", width=90),
-            'Idx P/L 2027': st.column_config.NumberColumn(
-                "Idx P/L 27", disabled=True, format="%d", width=80),
-            'Hausse 2027': st.column_config.NumberColumn(
-                "Hausse 27", disabled=True, format="%.1f%%", width=85),
-            'commentaire': st.column_config.TextColumn(
-                "Commentaire", width=450,
+            'Marque': st.column_config.TextColumn(
+                "Marque", disabled=True, width=120),
+            'Format': st.column_config.TextColumn(
+                "Format", disabled=True, width=280),
+            'Commentaire': st.column_config.TextColumn(
+                "Commentaire", width=650,
                 help="Cliquez pour saisir ou modifier"),
         },
         hide_index=True,
         use_container_width=True,
         num_rows="fixed",
-        height=min(600, 80 + 36 * len(editor_df)),
-        key=f"prix_index_editor_{cat_key}",
+        height=min(500, 80 + 36 * len(comment_df)),
+        key=f"comment_editor_{cat_key}",
     )
 
-    # Sauvegarde des commentaires édités
-    for _, r in edited_pi.iterrows():
-        key = (r['marque'], r['format'])
-        st.session_state.commentaires[key] = r['commentaire']
+    for _, r in edited_comments.iterrows():
+        key = (r['Marque'], r['Format'])
+        st.session_state.commentaires[key] = r['Commentaire']
 
-    # Réinjection dans d (cohérence + export CSV)
+    # Réinjection
     d['commentaire'] = d.apply(
         lambda r: st.session_state.commentaires.get(
             (r['marque'], r['format']), r.get('commentaire', '')
