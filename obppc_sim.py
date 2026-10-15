@@ -433,7 +433,6 @@ CATEGORIES = {
     'BI': {
         'label': 'BI — Bière',
         'data': DATA_BI,
-        # Référence unique : THB Pilsener 65 cl VER
         'ref_pvf': 4500,
         'ref_pl': 4500 / 0.65,
         'ref_label_pvf': 'THB Pilsener 65 cl VER',
@@ -444,7 +443,6 @@ CATEGORIES = {
     'BG': {
         'label': 'BG — Boissons Gazeuses',
         'data': DATA_BG,
-        # Référence unique : CAPRICE PET 50 cl
         'ref_pvf': 2000,
         'ref_pl': 2000 / 0.50,
         'ref_label_pvf': 'CAPRICE PET 50 cl',
@@ -455,7 +453,6 @@ CATEGORIES = {
     'EAUX': {
         'label': 'EAUX — Eaux',
         'data': DATA_EAUX,
-        # Référence unique : Cristalline 100 cl PET
         'ref_pvf': 2100,
         'ref_pl': 2100 / 1.00,
         'ref_label_pvf': 'Cristalline 100 cl PET',
@@ -466,7 +463,6 @@ CATEGORIES = {
     'ENERGY': {
         'label': 'ENERGY — Boissons Énergisantes',
         'data': DATA_ENERGY,
-        # Référence unique : XXL PET 35 cl
         'ref_pvf': 3500,
         'ref_pl': 3500 / 0.35,
         'ref_label_pvf': 'XXL PET 35 cl',
@@ -542,7 +538,6 @@ def _detect_emballage(format_str):
 
 
 def _normalize(s):
-    """Retire espaces, apostrophes, tirets, accents pour comparaison souple."""
     s = str(s).upper().strip()
     s = (s.replace(' ', '')
           .replace("'", '')
@@ -697,15 +692,12 @@ if 'pap_max_data' not in st.session_state:
     st.session_state.pap_max_data = {}
 
 
-# Mapping des marques OBPPC -> nom produit dans CR PANEL
 MAPPING_MARQUE = {
-    # BG
     'WOCO': 'WORLD COLA',
     'COCA': 'COCA COLA',
     'FANTA': 'FANTA',
     'CAPRICE': 'CAPRICE',
     'TONIC': 'TONIC',
-    # EAUX
     'CRISTAL': 'CRISTAL',
     'CRISTALLINE': 'CRISTALLINE',
     'EAU VIVE': 'EAU VIVE',
@@ -713,13 +705,11 @@ MAPPING_MARQUE = {
     'VISY GASY': 'VISY GASY',
     'OLYMPIKO': 'OLYMPIKO',
     'NATUR EAU': "NATUR'EAU",
-    # BI
     'BEAUFORT': 'BEAUFORT',
     'GOLD': 'GOLD',
     'THB': 'THB',
     'QUEEN': 'QUEENS',
     'FRESH': 'FRESH',
-    # ENERGY
     'XXL': 'XXL',
     'FOSA': 'FOSA',
     'BOOST VITALITY': 'BOOST',
@@ -760,7 +750,6 @@ with pap_tab1:
                 df_cr['prix_vente'] = pd.to_numeric(df_cr['prix_vente'], errors='coerce')
                 df_cr = df_cr.dropna(subset=['format_cl', 'prix_vente'])
 
-                # Pré-calcul des noms normalisés
                 df_cr['nom_norm'] = df_cr['nom_produit'].apply(_normalize)
 
                 pap_max_dict = {}
@@ -1049,11 +1038,12 @@ if cfg['has_competitors']:
 
     st.markdown("---")
     st.markdown("##### Comparaison par format — même contenance")
+    st.caption("Regroupement par volume (L) pour comparer STAR et Concurrents à contenance égale.")
 
-    formats = sorted(d['format'].unique())
+    volumes = sorted(d['vol'].unique())
 
-    for fmt_ in formats:
-        sub = d[d['format'] == fmt_]
+    for vol_ in volumes:
+        sub = d[d['vol'] == vol_]
         star_rows = sub[sub['type'] == 'STAR']
         comp_rows = sub[sub['type'] == 'Concurrent']
 
@@ -1074,18 +1064,20 @@ if cfg['has_competitors']:
             else:
                 ecart_color, ecart_label = '#8b949e', "Positionnement aligné"
         elif star_pl is not None and comp_pl is None:
-            ecart_color, ecart_label = '#a5b4fc', "Pas de concurrent sur ce format"
+            ecart_color, ecart_label = '#a5b4fc', "Pas de concurrent sur cette contenance"
         elif star_pl is None and comp_pl is not None:
-            ecart_color, ecart_label = '#6e7681', "STAR absent sur ce format"
+            ecart_color, ecart_label = '#6e7681', "STAR absent sur cette contenance"
         else:
             ecart_color, ecart_label = '#8b949e', "—"
+
+        vol_cl = int(round(vol_ * 100))
 
         st.markdown(
             f"<div style='background:#1a1f2b; border:1px solid #30363d; "
             f"border-radius:6px; padding:8px 12px; margin:12px 0 6px 0; "
             f"display:flex; justify-content:space-between; align-items:center;'>"
             f"<div style='font-weight:700; color:#e6edf3; font-size:0.95rem;'>"
-            f"📦 {fmt_}</div>"
+            f"📦 {vol_cl} cl</div>"
             f"<div style='font-size:0.75rem; color:{ecart_color}; font-weight:600;'>"
             f"{ecart_label}</div></div>",
             unsafe_allow_html=True)
@@ -1093,6 +1085,7 @@ if cfg['has_competitors']:
         html = ['<table class="obppc"><thead><tr>',
                 '<th class="left">Type</th>',
                 '<th class="left">Marque</th>',
+                '<th class="left">Format</th>',
                 '<th>Vol (L)</th>',
                 '<th>PVF 2026</th>',
                 '<th>P/L 2026</th>',
@@ -1129,6 +1122,7 @@ if cfg['has_competitors']:
                 f'<td class="left bold">'
                 f'<span class="role-dot" style="background:{role_color};"></span>'
                 f'{row["marque"]}</td>'
+                f'<td class="left">{row["format"]}</td>'
                 f'<td class="center">{row["vol"]:.2f}</td>'
                 f'<td class="bold">{fmt(row["pvf"])}</td>'
                 f'<td>{fmt(row["p_litre"])}</td>'
