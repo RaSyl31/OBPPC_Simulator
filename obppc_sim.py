@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Simulateur OBPPC — BI", layout="wide",
+st.set_page_config(page_title="Simulateur OBPPC", layout="wide",
                    initial_sidebar_state="expanded")
 
 st.markdown("""
@@ -31,7 +31,14 @@ st.markdown("""
 
     .ok { color: #3fb950; font-weight: 700; }
     .ko { color: #f85149; font-weight: 700; }
-    .warn { color: #d29922; font-weight: 700; }
+
+    .tag {
+        display: inline-block; padding: 1px 6px; border-radius: 3px;
+        font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+    .tag-star { background: #7c3aed; color: #fff; }
+    .tag-comp { background: #484f58; color: #e6edf3; }
 
     .kpi-band {
         display: grid; grid-template-columns: repeat(5, 1fr);
@@ -54,21 +61,19 @@ st.markdown("""
 
 
 # =============================================================================
-# DONNÉES
+# DONNÉES — BI
 # =============================================================================
 DATA_BI = [
     {'marque': 'Beaufort', 'role': 'Frequency (Cœur de gamme)',
      'format': 'Beaufort 33CL VER', 'vol': 0.33,
      'pvf': 4000, 'prop_pvf': 4500,
      'pva': 2900, 'pv_ds': 3500, 'pvc': 4000,
-     'pap_min': 4000, 'pap_max': 5000,
-     'commentaire': 'PVC +500 / PVA +400'},
+     'pap_min': 4000, 'pap_max': 5000, 'commentaire': 'PVC +500 / PVA +400'},
     {'marque': 'Beaufort', 'role': 'Upscale (Super-Premium Niche)',
      'format': 'Beaufort 33 CL CAN', 'vol': 0.33,
      'pvf': 5000, 'prop_pvf': 5500,
      'pva': 3800, 'pv_ds': 4600, 'pvc': 5000,
-     'pap_min': 5000, 'pap_max': 6500,
-     'commentaire': 'PVC Vs P/L Upscale & FRE'},
+     'pap_min': 5000, 'pap_max': 6500, 'commentaire': 'PVC Vs P/L Upscale & FRE'},
     {'marque': 'Gold', 'role': 'Entry (Entrée de gamme)',
      'format': 'Gold Blanche 33cl VER', 'vol': 0.33,
      'pvf': 3500, 'prop_pvf': 3500,
@@ -83,8 +88,7 @@ DATA_BI = [
      'format': 'Gold Blanche 50 cl VER', 'vol': 0.50,
      'pvf': 4500, 'prop_pvf': 4800,
      'pva': 3200, 'pv_ds': 3900, 'pvc': 4500,
-     'pap_min': 4500, 'pap_max': 5000,
-     'commentaire': 'PVC Vs PVF THB 65'},
+     'pap_min': 4500, 'pap_max': 5000, 'commentaire': 'PVC Vs PVF THB 65'},
     {'marque': 'Gold', 'role': 'Frequency (Cœur de gamme)',
      'format': 'Gold Blonde 50 cl VER', 'vol': 0.50,
      'pvf': 4500, 'prop_pvf': 4800,
@@ -104,8 +108,7 @@ DATA_BI = [
      'format': 'Gold Blanche 50 cl CAN', 'vol': 0.50,
      'pvf': 6000, 'prop_pvf': 6500,
      'pva': 4500, 'pv_ds': 5400, 'pvc': 6000,
-     'pap_min': 6000, 'pap_max': 6500,
-     'commentaire': 'PVC Vs P/L Upscale & FRE'},
+     'pap_min': 6000, 'pap_max': 6500, 'commentaire': 'PVC Vs P/L Upscale & FRE'},
     {'marque': 'Gold', 'role': 'Upscale (Premium)',
      'format': 'Gold Blonde 50 cl CAN', 'vol': 0.50,
      'pvf': 6000, 'prop_pvf': 6500,
@@ -120,14 +123,12 @@ DATA_BI = [
      'format': 'THB Pilsener 65 cl VER', 'vol': 0.65,
      'pvf': 4500, 'prop_pvf': 4700,
      'pva': 3250, 'pv_ds': 3900, 'pvc': 4500,
-     'pap_min': 4500, 'pap_max': 5000,
-     'commentaire': 'PVA Vs Marge PDV'},
+     'pap_min': 4500, 'pap_max': 5000, 'commentaire': 'PVA Vs Marge PDV'},
     {'marque': 'THB', 'role': 'Upscale (Premium)',
      'format': 'THB Pilsener 50 cl CAN', 'vol': 0.50,
      'pvf': 5000, 'prop_pvf': 5200,
      'pva': 3800, 'pv_ds': 4560, 'pvc': 5000,
-     'pap_min': 5000, 'pap_max': 6000,
-     'commentaire': 'PVC +200 / PVA +300'},
+     'pap_min': 5000, 'pap_max': 6000, 'commentaire': 'PVC +200 / PVA +300'},
     {'marque': 'Queen', 'role': 'Entry (Entrée de gamme)',
      'format': "Queen s 65 cl VER", 'vol': 0.65,
      'pvf': 4000, 'prop_pvf': 4200,
@@ -142,27 +143,161 @@ DATA_BI = [
      'format': 'THB Fresh 65 cl VER', 'vol': 0.65,
      'pvf': 4000, 'prop_pvf': 4200,
      'pva': 3000, 'pv_ds': 3600, 'pvc': 4000,
-     'pap_min': 4000, 'pap_max': 5000,
-     'commentaire': 'PVC Vs P/L Entry'},
+     'pap_min': 4000, 'pap_max': 5000, 'commentaire': 'PVC Vs P/L Entry'},
     {'marque': 'Fresh', 'role': 'Upscale (Premium)',
      'format': 'FRESH 33 cl CAN', 'vol': 0.33,
      'pvf': 3500, 'prop_pvf': 3500,
      'pva': 2650, 'pv_ds': 3200, 'pvc': 3500,
-     'pap_min': 3500, 'pap_max': 4000,
-     'commentaire': 'Réduct° prix Vs Perf marque'},
+     'pap_min': 3500, 'pap_max': 4000, 'commentaire': 'Réduct° prix Vs Perf marque'},
 ]
 
-df_raw = pd.DataFrame(DATA_BI)
 
 # =============================================================================
-# RÉFÉRENCES D'INDEX
-#   Index PVF         → Beaufort 33CL VER Frequency (4000 Ar)
-#   Index P/L         → THB Pilsener 65 cl VER Frequency (4500 / 0.65 = 6923.08 Ar/L)
+# DONNÉES — BG
 # =============================================================================
-REF_PVF_INDEX = 4000                       # Beaufort 33CL VER Frequency
-REF_PL_INDEX  = 4500 / 0.65                # THB Pilsener 65 cl VER Frequency
-REF_LABEL_PVF = "Beaufort 33CL VER (Frequency)"
-REF_LABEL_PL  = "THB Pilsener 65 cl VER (Frequency)"
+DATA_BG = [
+    # --- COCA (Concurrent) ---
+    {'marque': 'COCA', 'role': 'Entry (Entrée de gamme)',
+     'format': 'PET 35 (N°1 vente en col)', 'vol': 0.35,
+     'pvf': 1500, 'prop_pvf': 1500,
+     'pva': 1380, 'pv_ds': 1380, 'pvc': 1500,
+     'pap_min': 1500, 'pap_max': 2000, 'commentaire': ''},
+    {'marque': 'COCA', 'role': 'Frequency (Cœur de gamme)',
+     'format': 'PET 50', 'vol': 0.50,
+     'pvf': 2000, 'prop_pvf': 2000,
+     'pva': 0, 'pv_ds': 0, 'pvc': 2000,
+     'pap_min': 2000, 'pap_max': 2500, 'commentaire': ''},
+    {'marque': 'COCA', 'role': 'Upscale (Premium)',
+     'format': 'CAN 33', 'vol': 0.33,
+     'pvf': 2500, 'prop_pvf': 2500,
+     'pva': 0, 'pv_ds': 0, 'pvc': 2500,
+     'pap_min': 2500, 'pap_max': 4000, 'commentaire': ''},
+    {'marque': 'COCA', 'role': 'Entry (Entrée de gamme)',
+     'format': 'PET 150', 'vol': 1.50,
+     'pvf': 5000, 'prop_pvf': 5000,
+     'pva': 4480, 'pv_ds': 4480, 'pvc': 5000,
+     'pap_min': 5000, 'pap_max': 5500, 'commentaire': ''},
+
+    # --- WOCO (STAR) ---
+    {'marque': 'WOCO', 'role': 'Entry (Entrée de gamme)',
+     'format': 'PET 35', 'vol': 0.35,
+     'pvf': 1500, 'prop_pvf': 1500,
+     'pva': 1080, 'pv_ds': 1300, 'pvc': 1500,
+     'pap_min': 1500, 'pap_max': 2000, 'commentaire': ''},
+    {'marque': 'WOCO', 'role': 'Frequency (Cœur de gamme)',
+     'format': 'PET 50', 'vol': 0.50,
+     'pvf': 2000, 'prop_pvf': 2000,
+     'pva': 1465, 'pv_ds': 1758, 'pvc': 2000,
+     'pap_min': 2000, 'pap_max': 2500, 'commentaire': ''},
+    {'marque': 'WOCO', 'role': 'Upscale (Premium)',
+     'format': 'CAN 33', 'vol': 0.33,
+     'pvf': 2500, 'prop_pvf': 2500,
+     'pva': 1850, 'pv_ds': 2220, 'pvc': 2500,
+     'pap_min': 2500, 'pap_max': 3500, 'commentaire': 'PVA +150 / PVC inchangé'},
+    {'marque': 'WOCO', 'role': 'Entry (Entrée de gamme)',
+     'format': 'VC 30', 'vol': 0.30,
+     'pvf': 1200, 'prop_pvf': 1200,
+     'pva': 875, 'pv_ds': 1050, 'pvc': 1200,
+     'pap_min': 1200, 'pap_max': 1500, 'commentaire': ''},
+    {'marque': 'WOCO', 'role': 'Entry (Entrée de gamme)',
+     'format': 'PET 150', 'vol': 1.50,
+     'pvf': 5000, 'prop_pvf': 5000,
+     'pva': 3650, 'pv_ds': 4380, 'pvc': 5000,
+     'pap_min': 5000, 'pap_max': 5500, 'commentaire': ''},
+    {'marque': 'WOCO', 'role': 'Entry (Entrée de gamme)',
+     'format': 'VC 100', 'vol': 1.00,
+     'pvf': 3000, 'prop_pvf': 3000,
+     'pva': 2180, 'pv_ds': 2616, 'pvc': 3000,
+     'pap_min': 3000, 'pap_max': 3500, 'commentaire': ''},
+
+    # --- FANTA (Concurrent) ---
+    {'marque': 'FANTA', 'role': 'Entry (Entrée de gamme)',
+     'format': 'PET 35 (N°1 vente en col)', 'vol': 0.35,
+     'pvf': 1500, 'prop_pvf': 1500,
+     'pva': 1370, 'pv_ds': 1370, 'pvc': 1500,
+     'pap_min': 1500, 'pap_max': 2000, 'commentaire': ''},
+    {'marque': 'FANTA', 'role': 'Frequency (Cœur de gamme)',
+     'format': 'PET 50', 'vol': 0.50,
+     'pvf': 2000, 'prop_pvf': 2000,
+     'pva': 0, 'pv_ds': 0, 'pvc': 2000,
+     'pap_min': 2000, 'pap_max': 2500, 'commentaire': ''},
+    {'marque': 'FANTA', 'role': 'Entry (Entrée de gamme)',
+     'format': 'PET 150', 'vol': 1.50,
+     'pvf': 5000, 'prop_pvf': 5000,
+     'pva': 4410, 'pv_ds': 4410, 'pvc': 5000,
+     'pap_min': 5000, 'pap_max': 5500, 'commentaire': ''},
+
+    # --- CAPRICE (STAR) ---
+    {'marque': 'CAPRICE', 'role': 'Entry (Entrée de gamme)',
+     'format': 'PET 35', 'vol': 0.35,
+     'pvf': 1500, 'prop_pvf': 1500,
+     'pva': 1080, 'pv_ds': 1300, 'pvc': 1500,
+     'pap_min': 1500, 'pap_max': 2000, 'commentaire': ''},
+    {'marque': 'CAPRICE', 'role': 'Frequency (Cœur de gamme)',
+     'format': 'PET 50', 'vol': 0.50,
+     'pvf': 2000, 'prop_pvf': 2000,
+     'pva': 1465, 'pv_ds': 1758, 'pvc': 2000,
+     'pap_min': 2000, 'pap_max': 2500, 'commentaire': ''},
+    {'marque': 'CAPRICE', 'role': 'Upscale (Premium)',
+     'format': 'CAN 33', 'vol': 0.33,
+     'pvf': 2500, 'prop_pvf': 2500,
+     'pva': 1850, 'pv_ds': 2220, 'pvc': 2500,
+     'pap_min': 2500, 'pap_max': 3500, 'commentaire': 'PVA +150 / PVC inchangé'},
+    {'marque': 'CAPRICE', 'role': 'Entry (Entrée de gamme)',
+     'format': 'VC 30', 'vol': 0.30,
+     'pvf': 1200, 'prop_pvf': 1200,
+     'pva': 875, 'pv_ds': 1050, 'pvc': 1200,
+     'pap_min': 1200, 'pap_max': 1500, 'commentaire': ''},
+    {'marque': 'CAPRICE', 'role': 'Entry (Entrée de gamme)',
+     'format': 'PET 150', 'vol': 1.50,
+     'pvf': 5000, 'prop_pvf': 5000,
+     'pva': 3650, 'pv_ds': 4380, 'pvc': 5000,
+     'pap_min': 5000, 'pap_max': 5500, 'commentaire': ''},
+    {'marque': 'CAPRICE', 'role': 'Entry (Entrée de gamme)',
+     'format': 'VC 100', 'vol': 1.00,
+     'pvf': 3000, 'prop_pvf': 3000,
+     'pva': 2180, 'pv_ds': 2616, 'pvc': 3000,
+     'pap_min': 3000, 'pap_max': 3500, 'commentaire': ''},
+
+    # --- TONIC (STAR) ---
+    {'marque': 'TONIC', 'role': 'Entry (Entrée de gamme)',
+     'format': 'VC 30', 'vol': 0.30,
+     'pvf': 1200, 'prop_pvf': 1800,
+     'pva': 875, 'pv_ds': 1050, 'pvc': 1200,
+     'pap_min': 1200, 'pap_max': 1200, 'commentaire': ''},
+    {'marque': 'TONIC', 'role': 'Entry (Entrée de gamme)',
+     'format': 'VC 100', 'vol': 1.00,
+     'pvf': 3000, 'prop_pvf': 3500,
+     'pva': 2180, 'pv_ds': 2616, 'pvc': 3000,
+     'pap_min': 3000, 'pap_max': 4000, 'commentaire': ''},
+]
+
+
+# =============================================================================
+# CONFIGURATION PAR CATÉGORIE
+# =============================================================================
+CATEGORIES = {
+    'BI': {
+        'label': 'BI — Bière',
+        'data': DATA_BI,
+        'ref_pvf': 4000,
+        'ref_pl': 4500 / 0.65,
+        'ref_label_pvf': 'Beaufort 33CL VER (Frequency)',
+        'ref_label_pl': 'THB Pilsener 65 cl VER (Frequency)',
+        'star_brands': None,   # toutes STAR (pas de concurrent)
+        'has_competitors': False,
+    },
+    'BG': {
+        'label': 'BG — Boissons Gazeuses',
+        'data': DATA_BG,
+        'ref_pvf': 2000,
+        'ref_pl': 2000 / 0.50,
+        'ref_label_pvf': 'PET 50 (Frequency)',
+        'ref_label_pl': 'PET 50 (Frequency)',
+        'star_brands': {'WOCO', 'CAPRICE', 'TONIC'},
+        'has_competitors': True,
+    },
+}
 
 
 # =============================================================================
@@ -200,30 +335,42 @@ def fmt(v):
     return f"{v:,.0f}".replace(',', ' ')
 
 def safe_pct(v, d=0):
-    try: return f"{float(v)*100:.{d}f}%"
-    except (TypeError, ValueError): return '—'
+    try:
+        f = float(v)
+        if pd.isna(f): return '—'
+        return f"{f*100:.{d}f}%"
+    except (TypeError, ValueError):
+        return '—'
+
+def brand_tag(marque, star_brands):
+    """Retourne HTML du badge STAR / Concurrent / rien."""
+    if star_brands is None:
+        return f'<span class="tag tag-star">{marque}</span>'
+    if marque in star_brands:
+        return f'<span class="tag tag-star">{marque}</span>'
+    return f'<span class="tag tag-comp">{marque}</span>'
 
 
 # =============================================================================
 # CALCUL
 # =============================================================================
-def compute(df):
+def compute(df, cfg):
     d = df.copy()
     d['p_litre'] = d['pvf'] / d['vol']
     d['prop_p_litre'] = d['prop_pvf'] / d['vol']
 
-    # Index PVF → Beaufort 33CL VER Frequency
-    d['idx_pvf'] = (d['pvf'] / REF_PVF_INDEX * 100).round(0).astype(int)
+    ref_pvf = cfg['ref_pvf']
+    ref_pl = cfg['ref_pl']
 
-    # Index P/L → THB Pilsener 65 cl VER Frequency  ← NOUVEAU
-    d['idx_pl']  = (d['p_litre'] / REF_PL_INDEX * 100).round(0).astype(int)
-    d['idx_pl_prop'] = (d['prop_p_litre'] / REF_PL_INDEX * 100).round(0).astype(int)
+    d['idx_pvf'] = (d['pvf'] / ref_pvf * 100).round(0).astype(int)
+    d['idx_pl']  = (d['p_litre'] / ref_pl * 100).round(0).astype(int)
+    d['idx_pl_prop'] = (d['prop_p_litre'] / ref_pl * 100).round(0).astype(int)
 
-    # Marges
+    # Marges 2026
     d['marge_ds'] = d['pv_ds'] - d['pva']
-    d['marge_ds_pct'] = d['marge_ds'] / d['pva']
+    d['marge_ds_pct'] = d['marge_ds'] / d['pva'].replace(0, pd.NA)
     d['marge_pdv'] = d['pvc'] - d['pv_ds']
-    d['marge_pdv_pct'] = d['marge_pdv'] / d['pv_ds']
+    d['marge_pdv_pct'] = d['marge_pdv'] / d['pv_ds'].replace(0, pd.NA)
 
     # Hausse
     d['hausse'] = d['prop_pvf'] - d['pvf']
@@ -242,6 +389,13 @@ def compute(df):
     d['role_simple'] = d['role'].apply(role_simple)
     d['statut'] = d.apply(
         lambda r: status_from_idx(r['idx_pl'], r['role_simple']), axis=1)
+
+    # STAR/Concurrent
+    if cfg['star_brands'] is None:
+        d['type'] = 'STAR'
+    else:
+        d['type'] = d['marque'].apply(
+            lambda m: 'STAR' if m in cfg['star_brands'] else 'Concurrent')
     return d
 
 
@@ -249,9 +403,17 @@ def compute(df):
 # SIDEBAR
 # =============================================================================
 with st.sidebar:
-    st.markdown("### Simulateur OBPPC — BI")
-    st.caption("Beer · PVC 2026 → 2027")
+    st.markdown("### Simulateur OBPPC")
+    st.caption("Occasion · Brand · Package · Price · Channel")
     st.markdown("---")
+
+    cat_key = st.selectbox(
+        "Catégorie",
+        options=list(CATEGORIES.keys()),
+        format_func=lambda k: CATEGORIES[k]['label'],
+    )
+    cfg = CATEGORIES[cat_key]
+    df_raw = pd.DataFrame(cfg['data'])
 
     marques = st.multiselect(
         "Marques",
@@ -282,21 +444,21 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(
-        "<div style='font-size:0.68rem; color:#6e7681; line-height:1.6;'>"
-        "<b style='color:#a5b4fc;'>Références d'index</b><br>"
-        "• Index <b>PVF</b> : Beaufort 33CL VER (4 000 Ar)<br>"
-        "• Index <b>P/L</b> : THB Pilsener 65 cl (6 923 Ar/L)"
-        "</div>",
+        f"<div style='font-size:0.68rem; color:#6e7681; line-height:1.6;'>"
+        f"<b style='color:#a5b4fc;'>Références d'index</b><br>"
+        f"• Index <b>PVF</b> : {cfg['ref_label_pvf']}<br>"
+        f"• Index <b>P/L</b> : {cfg['ref_label_pl']}"
+        f"</div>",
         unsafe_allow_html=True)
 
 
 # =============================================================================
 # HEADER
 # =============================================================================
-st.markdown("## Simulateur OBPPC — BI")
+st.markdown(f"## Simulateur OBPPC — {cfg['label']}")
 st.caption(
-    f"**Index PVF** → {REF_LABEL_PVF} &nbsp;·&nbsp; "
-    f"**Index P/L** → {REF_LABEL_PL}"
+    f"Index PVF → {cfg['ref_label_pvf']} &nbsp;·&nbsp; "
+    f"Index P/L → {cfg['ref_label_pl']}"
 )
 
 
@@ -322,7 +484,8 @@ with st.expander("✏️ Éditer les prix", expanded=False):
         column_config={
             'marque': st.column_config.TextColumn("Marque", disabled=True, width=100),
             'format': st.column_config.TextColumn("Format", disabled=True, width=220),
-            'pvf': st.column_config.NumberColumn("PVF 2026", disabled=True, format="%d", width=100),
+            'pvf': st.column_config.NumberColumn("PVF 2026", disabled=True,
+                                                 format="%d", width=100),
             'prop_pvf': st.column_config.NumberColumn("PVF 2027", min_value=0, step=100,
                                                       format="%d", width=110),
             'pva': st.column_config.NumberColumn("PVA HT", min_value=0, step=10,
@@ -336,12 +499,12 @@ with st.expander("✏️ Éditer les prix", expanded=False):
         use_container_width=True,
         num_rows="fixed",
         height=min(500, 80 + 36 * len(editable)),
-        key="prop_editor",
+        key=f"prop_editor_{cat_key}",
     )
     for col in ['role', 'vol', 'pap_min', 'pap_max', 'commentaire']:
         edited[col] = df[col].reset_index(drop=True).values
 
-d = compute(edited)
+d = compute(edited, cfg)
 
 
 # =============================================================================
@@ -351,20 +514,40 @@ n_ok = int((d['statut'] == 'OK').sum())
 n_total = len(d)
 taux = n_ok / n_total * 100 if n_total else 0
 
-st.markdown(f"""
-<div class="kpi-band">
-    <div class="kpi-tile"><div class="lab">Références</div><div class="val">{n_total}</div></div>
-    <div class="kpi-tile"><div class="lab">Conformes</div>
-        <div class="val" style="color:{'#3fb950' if taux>=70 else '#d29922' if taux>=40 else '#f85149'};">
-            {n_ok}/{n_total}</div></div>
-    <div class="kpi-tile"><div class="lab">Hausse moyenne</div>
-        <div class="val">{d['hausse_pct'].mean()*100:+.1f}%</div></div>
-    <div class="kpi-tile"><div class="lab">Marge DS moy.</div>
-        <div class="val">{d['marge_ds_pct'].mean()*100:.1f}%</div></div>
-    <div class="kpi-tile"><div class="lab">Marge PDV moy.</div>
-        <div class="val">{d['marge_pdv_pct'].mean()*100:.1f}%</div></div>
-</div>
-""", unsafe_allow_html=True)
+# KPI supplémentaire : nb concurrents (uniquement BG)
+n_star = int((d['type'] == 'STAR').sum())
+n_comp = int((d['type'] == 'Concurrent').sum())
+
+if cfg['has_competitors']:
+    kpi_html = f"""
+    <div class="kpi-band">
+        <div class="kpi-tile"><div class="lab">SKU STAR</div><div class="val">{n_star}</div></div>
+        <div class="kpi-tile"><div class="lab">SKU Concurrents</div><div class="val">{n_comp}</div></div>
+        <div class="kpi-tile"><div class="lab">Conformes</div>
+            <div class="val" style="color:{'#3fb950' if taux>=70 else '#d29922' if taux>=40 else '#f85149'};">
+                {n_ok}/{n_total}</div></div>
+        <div class="kpi-tile"><div class="lab">Hausse moyenne</div>
+            <div class="val">{d['hausse_pct'].mean()*100:+.1f}%</div></div>
+        <div class="kpi-tile"><div class="lab">Marge DS moy.</div>
+            <div class="val">{d['marge_ds_pct'].mean()*100:.1f}%</div></div>
+    </div>
+    """
+else:
+    kpi_html = f"""
+    <div class="kpi-band">
+        <div class="kpi-tile"><div class="lab">Références</div><div class="val">{n_total}</div></div>
+        <div class="kpi-tile"><div class="lab">Conformes</div>
+            <div class="val" style="color:{'#3fb950' if taux>=70 else '#d29922' if taux>=40 else '#f85149'};">
+                {n_ok}/{n_total}</div></div>
+        <div class="kpi-tile"><div class="lab">Hausse moyenne</div>
+            <div class="val">{d['hausse_pct'].mean()*100:+.1f}%</div></div>
+        <div class="kpi-tile"><div class="lab">Marge DS moy.</div>
+            <div class="val">{d['marge_ds_pct'].mean()*100:.1f}%</div></div>
+        <div class="kpi-tile"><div class="lab">Marge PDV moy.</div>
+            <div class="val">{d['marge_pdv_pct'].mean()*100:.1f}%</div></div>
+    </div>
+    """
+st.markdown(kpi_html, unsafe_allow_html=True)
 
 
 # =============================================================================
@@ -379,7 +562,7 @@ html = ['<table class="obppc"><thead><tr>',
         '<th>Vol (L)</th>',
         '<th>PVF 2026</th>',
         '<th>P/L 2026</th>',
-        '<th>Index P/L<br><span style="color:#6e7681; font-weight:400;">(réf. THB 65)</span></th>',
+        '<th>Index P/L</th>',
         '<th>PVF 2027</th>',
         '<th>Hausse</th>',
         '<th>Marge DS</th>',
@@ -389,13 +572,13 @@ html = ['<table class="obppc"><thead><tr>',
 for _, row in d.iterrows():
     color = ROLE_COLORS.get(row['role'], '#64748b')
     statut_cls = 'ok' if row['statut'] == 'OK' else 'ko'
-    statut_dot = '●' if row['statut'] == 'OK' else '●'
+    statut_dot = '●'
     hp = row['hausse_pct'] * 100
     hausse_color = '#3fb950' if hp > 0 else '#8b949e' if hp == 0 else '#f85149'
 
     html.append(
         '<tr>'
-        f'<td class="left bold">{row["marque"]}</td>'
+        f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
         f'<td class="left"><span class="role-dot" style="background:{color};"></span>'
         f'{row["role"]}</td>'
         f'<td class="left">{row["format"]}</td>'
@@ -414,10 +597,72 @@ st.markdown(''.join(html), unsafe_allow_html=True)
 
 
 # =============================================================================
+# ANALYSE CONCURRENTIELLE (uniquement BG)
+# =============================================================================
+if cfg['has_competitors']:
+    st.markdown("### Analyse concurrentielle")
+    st.caption("Comparaison STAR vs Concurrents sur le prix au litre moyen.")
+
+    ref_pl = cfg['ref_pl']
+    agg = d.groupby('type')['p_litre'].mean().round(0)
+
+    c1, c2 = st.columns(2)
+    with c1:
+        star_val = agg.get('STAR', 0)
+        comp_val = agg.get('Concurrent', 0)
+        st.markdown(f"""
+        <div class="kpi-tile" style="padding:1rem 1.2rem;">
+            <div class="lab">Prix / L moyen STAR</div>
+            <div class="val" style="font-size:1.6rem; color:#a5b4fc;">
+                {star_val:,.0f} Ar
+            </div>
+            <div style="font-size:0.75rem; color:#8b949e; margin-top:6px;">
+                Index vs référence : {(star_val/ref_pl*100):.0f}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"""
+        <div class="kpi-tile" style="padding:1rem 1.2rem;">
+            <div class="lab">Prix / L moyen Concurrents</div>
+            <div class="val" style="font-size:1.6rem; color:#cbd5e1;">
+                {comp_val:,.0f} Ar
+            </div>
+            <div style="font-size:0.75rem; color:#8b949e; margin-top:6px;">
+                Index vs référence : {(comp_val/ref_pl*100):.0f}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Écart par rôle
+    st.markdown("##### Écart de positionnement par rôle")
+    roles_present = [r for r in ['Entry', 'Frequency', 'Upsize', 'Upscale']
+                     if r in d['role_simple'].unique()]
+    for role in roles_present:
+        sub = d[d['role_simple'] == role]
+        s = sub[sub['type'] == 'STAR']['p_litre'].mean()
+        c = sub[sub['type'] == 'Concurrent']['p_litre'].mean()
+        if pd.isna(s) or pd.isna(c) or c == 0:
+            continue
+        ecart = (s - c) / c * 100
+        color = '#f85149' if ecart > 15 else '#d29922' if ecart > 5 else '#3fb950'
+        sign = 'plus cher' if ecart > 0 else 'moins cher'
+        st.markdown(
+            f"<div style='padding:8px 12px; background:#161b22; "
+            f"border-left:3px solid {color}; border-radius:6px; margin-bottom:6px;'>"
+            f"<b style='color:#e6edf3;'>{role}</b> — STAR est "
+            f"<span style='color:{color}; font-weight:600;'>"
+            f"{abs(ecart):.0f}% {sign}</span> que la concurrence "
+            f"<span style='color:#8b949e; font-size:0.8rem;'>"
+            f"(STAR {s:,.0f} vs Concur. {c:,.0f} Ar/L)</span></div>",
+            unsafe_allow_html=True)
+
+
+# =============================================================================
 # DÉTAILS EN ONGLETS
 # =============================================================================
 st.markdown("### Détails par SKU")
-tab1, tab2, tab3 = st.tabs(["Prix & Index (2026 → 2027)", "Marges 2026", "Marges 2027"])
+tab1, tab2, tab3 = st.tabs(["Prix & Index", "Marges 2026", "Marges 2027"])
 
 # --- TAB 1 : Prix & Index
 with tab1:
@@ -437,7 +682,7 @@ with tab1:
         statut_cls = 'ok' if row['statut'] == 'OK' else 'ko'
         html.append(
             '<tr>'
-            f'<td class="left bold">{row["marque"]}</td>'
+            f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
             f'<td class="left">{row["format"]}</td>'
             f'<td>{fmt(row["pvf"])}</td>'
             f'<td>{fmt(row["p_litre"])}</td>'
@@ -452,8 +697,8 @@ with tab1:
         )
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
-    st.caption("**Idx PVF** référencé sur Beaufort 33CL VER · "
-               "**Idx P/L** référencé sur THB Pilsener 65 cl VER")
+    st.caption(f"**Idx PVF** réf. {cfg['ref_label_pvf']} · "
+               f"**Idx P/L** réf. {cfg['ref_label_pl']}")
 
 # --- TAB 2 : Marges 2026
 with tab2:
@@ -466,7 +711,7 @@ with tab2:
     for _, row in d.iterrows():
         html.append(
             '<tr>'
-            f'<td class="left bold">{row["marque"]}</td>'
+            f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
             f'<td class="left">{row["format"]}</td>'
             f'<td>{fmt(row["pva"])}</td>'
             f'<td>{fmt(row["pv_ds"])}</td>'
@@ -491,7 +736,7 @@ with tab3:
     for _, row in d.iterrows():
         html.append(
             '<tr>'
-            f'<td class="left bold">{row["marque"]}</td>'
+            f'<td class="left bold">{brand_tag(row["marque"], cfg["star_brands"])}</td>'
             f'<td class="left">{row["format"]}</td>'
             f'<td>{fmt(row["pva_2027"])}</td>'
             f'<td>{fmt(row["pv_ds_2027"])}</td>'
@@ -511,7 +756,7 @@ with tab3:
 st.markdown("---")
 
 export = d[[
-    'marque', 'role', 'format', 'vol',
+    'marque', 'type', 'role', 'format', 'vol',
     'pvf', 'p_litre', 'idx_pvf', 'idx_pl',
     'prop_pvf', 'prop_p_litre', 'idx_pl_prop',
     'hausse', 'hausse_pct',
@@ -523,12 +768,12 @@ export = d[[
 ]].copy()
 
 export = export.rename(columns={
-    'marque': 'Marque', 'role': 'Rôle OBPPC', 'format': 'Format', 'vol': 'Volume (L)',
+    'marque': 'Marque', 'type': 'Type', 'role': 'Rôle OBPPC',
+    'format': 'Format', 'vol': 'Volume (L)',
     'pvf': 'PVF 2026', 'p_litre': 'P/L 2026',
-    'idx_pvf': 'Idx PVF (réf Beaufort)',
-    'idx_pl': 'Idx P/L (réf THB 65)',
+    'idx_pvf': 'Idx PVF', 'idx_pl': 'Idx P/L',
     'prop_pvf': 'PVF 2027', 'prop_p_litre': 'P/L 2027',
-    'idx_pl_prop': 'Idx P/L 2027 (réf THB 65)',
+    'idx_pl_prop': 'Idx P/L 2027',
     'hausse': 'Hausse (Ar)', 'hausse_pct': 'Hausse %',
     'pva': 'PVA 2026', 'pv_ds': 'PV DS 2026',
     'marge_ds': 'Marge DS', 'marge_ds_pct': 'Taux DS',
@@ -541,8 +786,8 @@ export = export.rename(columns={
 })
 
 st.download_button(
-    "📥 Télécharger le tableau complet (CSV)",
+    f"📥 Télécharger {cat_key} (CSV)",
     data=export.to_csv(index=False).encode('utf-8'),
-    file_name="simulateur_obppc_bi.csv",
+    file_name=f"simulateur_obppc_{cat_key.lower()}.csv",
     mime="text/csv",
 )
