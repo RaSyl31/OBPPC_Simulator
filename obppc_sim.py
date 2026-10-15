@@ -41,7 +41,6 @@ st.markdown("""
     }
     .tag-star { background: #7c3aed; color: #fff; }
     .tag-comp { background: #484f58; color: #e6edf3; }
-    .tag-pap { background: #0e7490; color: #fff; }
 
     .kpi-band {
         display: grid; grid-template-columns: repeat(5, 1fr);
@@ -77,87 +76,87 @@ DATA_BI = [
      'format': 'Beaufort 33CL VER', 'vol': 0.33,
      'pvf': 4000, 'prop_pvf': 4500,
      'pva': 2900, 'pv_ds': 3500, 'pvc': 4000,
-     'pap_min': 4000, 'pap_max': 5000, 'commentaire': 'PVC +500 / PVA +400'},
+     'commentaire': 'PVC +500 / PVA +400'},
     {'marque': 'Beaufort', 'role': 'Upscale (Super-Premium Niche)',
      'format': 'Beaufort 33 CL CAN', 'vol': 0.33,
      'pvf': 5000, 'prop_pvf': 5500,
      'pva': 3800, 'pv_ds': 4600, 'pvc': 5000,
-     'pap_min': 5000, 'pap_max': 6500, 'commentaire': 'PVC Vs P/L Upscale & FRE'},
+     'commentaire': 'PVC Vs P/L Upscale & FRE'},
     {'marque': 'Gold', 'role': 'Entry (Entrée de gamme)',
      'format': 'Gold Blanche 33cl VER', 'vol': 0.33,
      'pvf': 3500, 'prop_pvf': 3500,
      'pva': 2580, 'pv_ds': 3100, 'pvc': 3500,
-     'pap_min': 3500, 'pap_max': 4000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Gold', 'role': 'Entry (Entrée de gamme)',
      'format': 'Gold 8 50 cl VER', 'vol': 0.50,
      'pvf': 4500, 'prop_pvf': 4800,
      'pva': 3200, 'pv_ds': 3900, 'pvc': 4500,
-     'pap_min': 4500, 'pap_max': 5000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Gold', 'role': 'Frequency (Cœur de gamme)',
      'format': 'Gold Blanche 50 cl VER', 'vol': 0.50,
      'pvf': 4500, 'prop_pvf': 4800,
      'pva': 3200, 'pv_ds': 3900, 'pvc': 4500,
-     'pap_min': 4500, 'pap_max': 5000, 'commentaire': 'PVC Vs PVF THB 65'},
+     'commentaire': 'PVC Vs PVF THB 65'},
     {'marque': 'Gold', 'role': 'Frequency (Cœur de gamme)',
      'format': 'Gold Blonde 50 cl VER', 'vol': 0.50,
      'pvf': 4500, 'prop_pvf': 4800,
      'pva': 3200, 'pv_ds': 3900, 'pvc': 4500,
-     'pap_min': 4500, 'pap_max': 5000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Gold', 'role': 'Frequency (Cœur de gamme)',
      'format': 'Gold Blonde 65 cl VER', 'vol': 0.65,
      'pvf': 5000, 'prop_pvf': 5300,
      'pva': 3600, 'pv_ds': 4320, 'pvc': 5000,
-     'pap_min': 5000, 'pap_max': 5500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Gold', 'role': 'Upscale (Premium)',
      'format': 'Gold 8 50 cl CAN', 'vol': 0.50,
      'pvf': 6000, 'prop_pvf': 6500,
      'pva': 4500, 'pv_ds': 5400, 'pvc': 6000,
-     'pap_min': 6000, 'pap_max': 6500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Gold', 'role': 'Upscale (Premium)',
      'format': 'Gold Blanche 50 cl CAN', 'vol': 0.50,
      'pvf': 6000, 'prop_pvf': 6500,
      'pva': 4500, 'pv_ds': 5400, 'pvc': 6000,
-     'pap_min': 6000, 'pap_max': 6500, 'commentaire': 'PVC Vs P/L Upscale & FRE'},
+     'commentaire': 'PVC Vs P/L Upscale & FRE'},
     {'marque': 'Gold', 'role': 'Upscale (Premium)',
      'format': 'Gold Blonde 50 cl CAN', 'vol': 0.50,
      'pvf': 6000, 'prop_pvf': 6500,
      'pva': 4500, 'pv_ds': 5400, 'pvc': 6000,
-     'pap_min': 6000, 'pap_max': 6500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'THB', 'role': 'Entry (Entrée de gamme)',
      'format': 'THB Pilsener 33 cl VER', 'vol': 0.33,
      'pvf': 2500, 'prop_pvf': 2500,
      'pva': 1900, 'pv_ds': 2280, 'pvc': 2500,
-     'pap_min': 2500, 'pap_max': 3000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'THB', 'role': 'Frequency (Cœur de gamme)',
      'format': 'THB Pilsener 65 cl VER', 'vol': 0.65,
      'pvf': 4500, 'prop_pvf': 4700,
      'pva': 3250, 'pv_ds': 3900, 'pvc': 4500,
-     'pap_min': 4500, 'pap_max': 5000, 'commentaire': 'PVA Vs Marge PDV'},
+     'commentaire': 'PVA Vs Marge PDV'},
     {'marque': 'THB', 'role': 'Upscale (Premium)',
      'format': 'THB Pilsener 50 cl CAN', 'vol': 0.50,
      'pvf': 5000, 'prop_pvf': 5200,
      'pva': 3800, 'pv_ds': 4560, 'pvc': 5000,
-     'pap_min': 5000, 'pap_max': 6000, 'commentaire': 'PVC +200 / PVA +300'},
+     'commentaire': 'PVC +200 / PVA +300'},
     {'marque': 'Queen', 'role': 'Entry (Entrée de gamme)',
      'format': "Queen s 65 cl VER", 'vol': 0.65,
      'pvf': 4000, 'prop_pvf': 4200,
      'pva': 3000, 'pv_ds': 3600, 'pvc': 4000,
-     'pap_min': 4000, 'pap_max': 4000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Fresh', 'role': 'Entry (Entrée de gamme)',
      'format': 'THB Fresh 33 cl VER', 'vol': 0.33,
      'pvf': 2500, 'prop_pvf': 2500,
      'pva': 1900, 'pv_ds': 2280, 'pvc': 2500,
-     'pap_min': 2500, 'pap_max': 3000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Fresh', 'role': 'Frequency (Cœur de gamme)',
      'format': 'THB Fresh 65 cl VER', 'vol': 0.65,
      'pvf': 4000, 'prop_pvf': 4200,
      'pva': 3000, 'pv_ds': 3600, 'pvc': 4000,
-     'pap_min': 4000, 'pap_max': 5000, 'commentaire': 'PVC Vs P/L Entry'},
+     'commentaire': 'PVC Vs P/L Entry'},
     {'marque': 'Fresh', 'role': 'Upscale (Premium)',
      'format': 'FRESH 33 cl CAN', 'vol': 0.33,
      'pvf': 3500, 'prop_pvf': 3500,
      'pva': 2650, 'pv_ds': 3200, 'pvc': 3500,
-     'pap_min': 3500, 'pap_max': 4000, 'commentaire': 'Réduct° prix Vs Perf marque'},
+     'commentaire': 'Réduct° prix Vs Perf marque'},
 ]
 
 
@@ -169,107 +168,107 @@ DATA_BG = [
      'format': 'PET 35 (N°1 vente en col)', 'vol': 0.35,
      'pvf': 1500, 'prop_pvf': 1500,
      'pva': 1380, 'pv_ds': 1380, 'pvc': 1500,
-     'pap_min': 1500, 'pap_max': 2000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'COCA', 'role': 'Frequency (Cœur de gamme)',
      'format': 'PET 50', 'vol': 0.50,
      'pvf': 2000, 'prop_pvf': 2000,
      'pva': 0, 'pv_ds': 0, 'pvc': 2000,
-     'pap_min': 2000, 'pap_max': 2500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'COCA', 'role': 'Upscale (Premium)',
      'format': 'CAN 33', 'vol': 0.33,
      'pvf': 2500, 'prop_pvf': 2500,
      'pva': 0, 'pv_ds': 0, 'pvc': 2500,
-     'pap_min': 2500, 'pap_max': 4000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'COCA', 'role': 'Entry (Entrée de gamme)',
      'format': 'PET 150', 'vol': 1.50,
      'pvf': 5000, 'prop_pvf': 5000,
      'pva': 4480, 'pv_ds': 4480, 'pvc': 5000,
-     'pap_min': 5000, 'pap_max': 5500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'WOCO', 'role': 'Entry (Entrée de gamme)',
      'format': 'PET 35', 'vol': 0.35,
      'pvf': 1500, 'prop_pvf': 1500,
      'pva': 1080, 'pv_ds': 1300, 'pvc': 1500,
-     'pap_min': 1500, 'pap_max': 2000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'WOCO', 'role': 'Frequency (Cœur de gamme)',
      'format': 'PET 50', 'vol': 0.50,
      'pvf': 2000, 'prop_pvf': 2000,
      'pva': 1465, 'pv_ds': 1758, 'pvc': 2000,
-     'pap_min': 2000, 'pap_max': 2500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'WOCO', 'role': 'Upscale (Premium)',
      'format': 'CAN 33', 'vol': 0.33,
      'pvf': 2500, 'prop_pvf': 2500,
      'pva': 1850, 'pv_ds': 2220, 'pvc': 2500,
-     'pap_min': 2500, 'pap_max': 3500, 'commentaire': 'PVA +150 / PVC inchangé'},
+     'commentaire': 'PVA +150 / PVC inchangé'},
     {'marque': 'WOCO', 'role': 'Entry (Entrée de gamme)',
      'format': 'VC 30', 'vol': 0.30,
      'pvf': 1200, 'prop_pvf': 1200,
      'pva': 875, 'pv_ds': 1050, 'pvc': 1200,
-     'pap_min': 1200, 'pap_max': 1500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'WOCO', 'role': 'Entry (Entrée de gamme)',
      'format': 'PET 150', 'vol': 1.50,
      'pvf': 5000, 'prop_pvf': 5000,
      'pva': 3650, 'pv_ds': 4380, 'pvc': 5000,
-     'pap_min': 5000, 'pap_max': 5500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'WOCO', 'role': 'Entry (Entrée de gamme)',
      'format': 'VC 100', 'vol': 1.00,
      'pvf': 3000, 'prop_pvf': 3000,
      'pva': 2180, 'pv_ds': 2616, 'pvc': 3000,
-     'pap_min': 3000, 'pap_max': 3500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'FANTA', 'role': 'Entry (Entrée de gamme)',
      'format': 'PET 35 (N°1 vente en col)', 'vol': 0.35,
      'pvf': 1500, 'prop_pvf': 1500,
      'pva': 1370, 'pv_ds': 1370, 'pvc': 1500,
-     'pap_min': 1500, 'pap_max': 2000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'FANTA', 'role': 'Frequency (Cœur de gamme)',
      'format': 'PET 50', 'vol': 0.50,
      'pvf': 2000, 'prop_pvf': 2000,
      'pva': 0, 'pv_ds': 0, 'pvc': 2000,
-     'pap_min': 2000, 'pap_max': 2500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'FANTA', 'role': 'Entry (Entrée de gamme)',
      'format': 'PET 150', 'vol': 1.50,
      'pvf': 5000, 'prop_pvf': 5000,
      'pva': 4410, 'pv_ds': 4410, 'pvc': 5000,
-     'pap_min': 5000, 'pap_max': 5500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'CAPRICE', 'role': 'Entry (Entrée de gamme)',
      'format': 'PET 35', 'vol': 0.35,
      'pvf': 1500, 'prop_pvf': 1500,
      'pva': 1080, 'pv_ds': 1300, 'pvc': 1500,
-     'pap_min': 1500, 'pap_max': 2000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'CAPRICE', 'role': 'Frequency (Cœur de gamme)',
      'format': 'PET 50', 'vol': 0.50,
      'pvf': 2000, 'prop_pvf': 2000,
      'pva': 1465, 'pv_ds': 1758, 'pvc': 2000,
-     'pap_min': 2000, 'pap_max': 2500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'CAPRICE', 'role': 'Upscale (Premium)',
      'format': 'CAN 33', 'vol': 0.33,
      'pvf': 2500, 'prop_pvf': 2500,
      'pva': 1850, 'pv_ds': 2220, 'pvc': 2500,
-     'pap_min': 2500, 'pap_max': 3500, 'commentaire': 'PVA +150 / PVC inchangé'},
+     'commentaire': 'PVA +150 / PVC inchangé'},
     {'marque': 'CAPRICE', 'role': 'Entry (Entrée de gamme)',
      'format': 'VC 30', 'vol': 0.30,
      'pvf': 1200, 'prop_pvf': 1200,
      'pva': 875, 'pv_ds': 1050, 'pvc': 1200,
-     'pap_min': 1200, 'pap_max': 1500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'CAPRICE', 'role': 'Entry (Entrée de gamme)',
      'format': 'PET 150', 'vol': 1.50,
      'pvf': 5000, 'prop_pvf': 5000,
      'pva': 3650, 'pv_ds': 4380, 'pvc': 5000,
-     'pap_min': 5000, 'pap_max': 5500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'CAPRICE', 'role': 'Entry (Entrée de gamme)',
      'format': 'VC 100', 'vol': 1.00,
      'pvf': 3000, 'prop_pvf': 3000,
      'pva': 2180, 'pv_ds': 2616, 'pvc': 3000,
-     'pap_min': 3000, 'pap_max': 3500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'TONIC', 'role': 'Entry (Entrée de gamme)',
      'format': 'VC 30', 'vol': 0.30,
      'pvf': 1200, 'prop_pvf': 1800,
      'pva': 875, 'pv_ds': 1050, 'pvc': 1200,
-     'pap_min': 1200, 'pap_max': 1200, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'TONIC', 'role': 'Entry (Entrée de gamme)',
      'format': 'VC 100', 'vol': 1.00,
      'pvf': 3000, 'prop_pvf': 3500,
      'pva': 2180, 'pv_ds': 2616, 'pvc': 3000,
-     'pap_min': 3000, 'pap_max': 4000, 'commentaire': ''},
+     'commentaire': ''},
 ]
 
 
@@ -281,102 +280,149 @@ DATA_EAUX = [
      'format': 'Cristal 30 cl VER', 'vol': 0.30,
      'pvf': 1500, 'prop_pvf': 2000,
      'pva': 1130, 'pv_ds': 1350, 'pvc': 1500,
-     'pap_min': 1500, 'pap_max': 2000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Cristal', 'role': 'Frequency (Cœur de gamme)',
      'format': 'Cristal 50 cl VER', 'vol': 0.50,
      'pvf': 2200, 'prop_pvf': 3000,
      'pva': 1600, 'pv_ds': 1752, 'pvc': 2200,
-     'pap_min': 2200, 'pap_max': 2500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Cristal', 'role': 'Upscale (Premium)',
      'format': 'Cristal 100 cl VER', 'vol': 1.00,
      'pvf': 3800, 'prop_pvf': 5000,
      'pva': 2750, 'pv_ds': 3270, 'pvc': 3800,
-     'pap_min': 3800, 'pap_max': 4500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Cristal', 'role': 'Frequency (Cœur de gamme)',
      'format': 'Cristal 150 cl PET', 'vol': 1.50,
      'pvf': 5500, 'prop_pvf': 6500,
      'pva': 4265, 'pv_ds': 5080, 'pvc': 5500,
-     'pap_min': 5500, 'pap_max': 6000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'RANOVISY', 'role': 'Entry (Entrée de gamme)',
      'format': 'RANOVISY 33 PET', 'vol': 0.33,
      'pvf': 1000, 'prop_pvf': 1000,
      'pva': 570, 'pv_ds': 700, 'pvc': 1000,
-     'pap_min': 1000, 'pap_max': 1000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'RANOVISY', 'role': 'Frequency (Cœur de gamme)',
      'format': 'RANOVISY 50 CL PET', 'vol': 0.50,
      'pvf': 2300, 'prop_pvf': 2300,
      'pva': 1800, 'pv_ds': 2000, 'pvc': 2300,
-     'pap_min': 2300, 'pap_max': 2300, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'RANOVISY', 'role': 'Upsize (Grand format)',
      'format': 'RANOVISY 75 PET', 'vol': 0.75,
      'pvf': 1800, 'prop_pvf': 1800,
      'pva': 1260, 'pv_ds': 1700, 'pvc': 1800,
-     'pap_min': 1800, 'pap_max': 3500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'VISY GASY', 'role': 'Entry (Entrée de gamme)',
      'format': 'VISY GASY 60 PET', 'vol': 0.60,
      'pvf': 2500, 'prop_pvf': 2500,
      'pva': 1920, 'pv_ds': 2000, 'pvc': 2500,
-     'pap_min': 2500, 'pap_max': 2500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'VISY GASY', 'role': 'Entry (Entrée de gamme)',
      'format': 'VISY GASY 100 PET', 'vol': 1.00,
      'pvf': 3000, 'prop_pvf': 3000,
      'pva': 2640, 'pv_ds': 2750, 'pvc': 3000,
-     'pap_min': 3000, 'pap_max': 3500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Eau vive', 'role': 'Entry (Entrée de gamme)',
      'format': 'Eau vive 50 cl PET', 'vol': 0.50,
      'pvf': 1600, 'prop_pvf': 1600,
      'pva': 1235, 'pv_ds': 1492, 'pvc': 1600,
-     'pap_min': 1600, 'pap_max': 2000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Eau vive', 'role': 'Frequency (Cœur de gamme)',
      'format': 'Eau vive 150 cl PET', 'vol': 1.50,
      'pvf': 3300, 'prop_pvf': 3300,
      'pva': 2465, 'pv_ds': 2979, 'pvc': 3300,
-     'pap_min': 3300, 'pap_max': 3500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Eau vive', 'role': 'Frequency (Cœur de gamme)',
      'format': 'Eau vive 50 cl VER', 'vol': 0.50,
      'pvf': 2200, 'prop_pvf': 3000,
      'pva': 1600, 'pv_ds': 1950, 'pvc': 2200,
-     'pap_min': 2200, 'pap_max': 2200, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'Cristalline', 'role': 'Frequency (Cœur de gamme)',
      'format': 'Cristalline 100 cl PET', 'vol': 1.00,
      'pvf': 2100, 'prop_pvf': 2200,
      'pva': 1550, 'pv_ds': 1876, 'pvc': 2100,
-     'pap_min': 2100, 'pap_max': 2500, 'commentaire': '+ 100 PVC / + 150 PVQ'},
+     'commentaire': '+ 100 PVC / + 150 PVQ'},
     {'marque': 'Cristalline', 'role': 'Upsize (Grand format)',
      'format': 'Cristalline 200 cl PET', 'vol': 2.00,
      'pvf': 3600, 'prop_pvf': 3800,
      'pva': 2680, 'pv_ds': 3240, 'pvc': 3600,
-     'pap_min': 3600, 'pap_max': 4000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'OLYMPIKO', 'role': 'Entry (Entrée de gamme)',
      'format': 'OLYMPIKO 50', 'vol': 0.50,
      'pvf': 1200, 'prop_pvf': 1200,
      'pva': 0, 'pv_ds': 1090, 'pvc': 1200,
-     'pap_min': 1200, 'pap_max': 1200, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'OLYMPIKO', 'role': 'Frequency (Cœur de gamme)',
      'format': 'OLYMPIKO 100', 'vol': 1.00,
      'pvf': 1900, 'prop_pvf': 1900,
      'pva': 1050, 'pv_ds': 1300, 'pvc': 1900,
-     'pap_min': 1900, 'pap_max': 3000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'OLYMPIKO', 'role': 'Upsize (Grand format)',
      'format': 'OLYMPIKO 150', 'vol': 1.50,
      'pvf': 2400, 'prop_pvf': 2400,
      'pva': 1800, 'pv_ds': 2000, 'pvc': 2400,
-     'pap_min': 2400, 'pap_max': 2400, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'NATUR EAU', 'role': 'Entry (Entrée de gamme)',
      'format': 'NATUR EAU 50', 'vol': 0.50,
      'pvf': 1300, 'prop_pvf': 1300,
      'pva': 1040, 'pv_ds': 1208, 'pvc': 1300,
-     'pap_min': 1300, 'pap_max': 2000, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'NATUR EAU', 'role': 'Frequency (Cœur de gamme)',
      'format': 'NATUR EAU 100', 'vol': 1.00,
      'pvf': 1800, 'prop_pvf': 1800,
      'pva': 1380, 'pv_ds': 1625, 'pvc': 1800,
-     'pap_min': 1800, 'pap_max': 2500, 'commentaire': ''},
+     'commentaire': ''},
     {'marque': 'NATUR EAU', 'role': 'Upsize (Grand format)',
      'format': 'NATUR EAU 150', 'vol': 1.50,
      'pvf': 2500, 'prop_pvf': 2500,
      'pva': 1850, 'pv_ds': 2250, 'pvc': 2500,
-     'pap_min': 2500, 'pap_max': 3000, 'commentaire': ''},
+     'commentaire': ''},
+]
+
+
+# =============================================================================
+# DONNÉES — ENERGY
+# =============================================================================
+DATA_ENERGY = [
+    {'marque': 'Red Bull', 'role': 'Upscale (Premium)',
+     'format': 'CAN 25', 'vol': 0.25,
+     'pvf': 9900, 'prop_pvf': 9900,
+     'pva': 0, 'pv_ds': 0, 'pvc': 9900,
+     'commentaire': 'Exclusivement moderne trade'},
+    {'marque': 'Monster', 'role': 'Upscale (Premium)',
+     'format': 'CAN 50', 'vol': 0.50,
+     'pvf': 9900, 'prop_pvf': 9900,
+     'pva': 0, 'pv_ds': 0, 'pvc': 9900,
+     'commentaire': 'Exclusivement moderne trade'},
+    {'marque': 'FOSA', 'role': 'Upscale (Premium)',
+     'format': 'CAN 50', 'vol': 0.50,
+     'pvf': 5000, 'prop_pvf': 5500,
+     'pva': 3830, 'pv_ds': 4596, 'pvc': 5000,
+     'commentaire': '414 PVA / 500 PVC'},
+    {'marque': 'XXL', 'role': 'Entry (Entrée de gamme)',
+     'format': 'VC 30', 'vol': 0.30,
+     'pvf': 2500, 'prop_pvf': 2500,
+     'pva': 1750, 'pv_ds': 2100, 'pvc': 2500,
+     'commentaire': ''},
+    {'marque': 'XXL', 'role': 'Frequency (Cœur de gamme)',
+     'format': 'PET 35', 'vol': 0.35,
+     'pvf': 3500, 'prop_pvf': 3500,
+     'pva': 2600, 'pv_ds': 3120, 'pvc': 3500,
+     'commentaire': 'Réduction PET : -500Ar / Soit augmenter la FOSA à 7000Ar Vs Index P/L 140'},
+    {'marque': 'XXL', 'role': 'Upscale (Premium)',
+     'format': 'CAN 33', 'vol': 0.33,
+     'pvf': 4000, 'prop_pvf': 4000,
+     'pva': 3000, 'pv_ds': 3600, 'pvc': 4000,
+     'commentaire': 'Réduction PET : -500Ar / Soit augmenter la CAN Vs index P/L 140'},
+    {'marque': 'DYNAMIC', 'role': 'Upscale (Premium)',
+     'format': 'CAN 25', 'vol': 0.25,
+     'pvf': 3500, 'prop_pvf': 3500,
+     'pva': 3000, 'pv_ds': 3000, 'pvc': 3500,
+     'commentaire': ''},
+    {'marque': 'BOOST VITALITY', 'role': 'Upscale (Premium)',
+     'format': 'CAN 33', 'vol': 0.33,
+     'pvf': 4000, 'prop_pvf': 4000,
+     'pva': 3335, 'pv_ds': 3335, 'pvc': 4000,
+     'commentaire': ''},
 ]
 
 
@@ -411,8 +457,18 @@ CATEGORIES = {
         'ref_pl': 2100 / 1.00,
         'ref_label_pvf': 'Cristalline 100 cl PET (Frequency)',
         'ref_label_pl': 'Cristalline 100 cl PET (Frequency)',
-        'star_brands': None,
-        'has_competitors': False,
+        'star_brands': {'Cristal', 'Cristalline', 'Eau vive'},
+        'has_competitors': True,
+    },
+    'ENERGY': {
+        'label': 'ENERGY — Boissons Énergisantes',
+        'data': DATA_ENERGY,
+        'ref_pvf': 3500,
+        'ref_pl': 3500 / 0.35,  # 10 000
+        'ref_label_pvf': 'XXL PET 35 (Frequency)',
+        'ref_label_pl': 'XXL PET 35 (Frequency)',
+        'star_brands': {'XXL', 'FOSA', 'BOOST VITALITY'},
+        'has_competitors': True,
     },
 }
 
@@ -430,12 +486,14 @@ ROLE_COLORS = {
 ROLE_TARGET = {'Entry': '101–110', 'Frequency': '100',
                'Upsize': '90–99', 'Upscale': '≥ 111'}
 
+
 def role_simple(r):
     if r.startswith('Upscale'):   return 'Upscale'
     if r.startswith('Entry'):     return 'Entry'
     if r.startswith('Frequency'): return 'Frequency'
     if r.startswith('Upsize'):    return 'Upsize'
     return 'Autre'
+
 
 def status_from_idx(idx, role):
     if role == 'Entry':     return 'OK' if 101 <= idx <= 110 else 'KO'
@@ -444,12 +502,14 @@ def status_from_idx(idx, role):
     if role == 'Upscale':   return 'OK' if idx >= 111 else 'KO'
     return '—'
 
+
 def fmt(v):
     if pd.isna(v): return '—'
     try: v = float(v)
     except (TypeError, ValueError): return str(v)
     if v.is_integer(): v = int(v)
     return f"{v:,.0f}".replace(',', ' ')
+
 
 def safe_pct(v, d=0):
     try:
@@ -459,12 +519,43 @@ def safe_pct(v, d=0):
     except (TypeError, ValueError):
         return '—'
 
+
 def brand_tag(marque, star_brands):
     if star_brands is None:
         return f'<span class="tag tag-star">{marque}</span>'
     if marque in star_brands:
         return f'<span class="tag tag-star">{marque}</span>'
     return f'<span class="tag tag-comp">{marque}</span>'
+
+
+def _detect_emballage(format_str):
+    f = str(format_str).upper()
+    if 'PET' in f:  return 'PET'
+    if 'CAN' in f:  return 'CAN'
+    if 'VER' in f or 'VERRE' in f: return 'VERRE'
+    if 'VC' in f:   return 'VERRE'
+    return None
+
+
+def _normalize(s):
+    """Retire espaces, apostrophes, tirets, accents pour comparaison souple."""
+    s = str(s).upper().strip()
+    s = (s.replace(' ', '')
+          .replace("'", '')
+          .replace('’', '')
+          .replace('-', '')
+          .replace('_', ''))
+    accents = {
+        'É': 'E', 'È': 'E', 'Ê': 'E', 'Ë': 'E',
+        'À': 'A', 'Â': 'A', 'Ä': 'A',
+        'Î': 'I', 'Ï': 'I',
+        'Ô': 'O', 'Ö': 'O',
+        'Ù': 'U', 'Û': 'U', 'Ü': 'U',
+        'Ç': 'C',
+    }
+    for k, v in accents.items():
+        s = s.replace(k, v)
+    return s
 
 
 # =============================================================================
@@ -604,11 +695,13 @@ if 'pap_max_data' not in st.session_state:
 
 # Mapping des marques OBPPC -> nom produit dans CR PANEL
 MAPPING_MARQUE = {
+    # BG
     'WOCO': 'WORLD COLA',
     'COCA': 'COCA COLA',
     'FANTA': 'FANTA',
     'CAPRICE': 'CAPRICE',
     'TONIC': 'TONIC',
+    # EAUX
     'CRISTAL': 'CRISTAL',
     'CRISTALLINE': 'CRISTALLINE',
     'EAU VIVE': 'EAU VIVE',
@@ -616,25 +709,20 @@ MAPPING_MARQUE = {
     'VISY GASY': 'VISY GASY',
     'OLYMPIKO': 'OLYMPIKO',
     'NATUR EAU': "NATUR'EAU",
+    # BI
     'BEAUFORT': 'BEAUFORT',
     'GOLD': 'GOLD',
     'THB': 'THB',
     'QUEEN': 'QUEENS',
     'FRESH': 'FRESH',
+    # ENERGY
+    'XXL': 'XXL',
+    'FOSA': 'FOSA',
+    'BOOST VITALITY': 'BOOST',
+    'DYNAMIC': 'DYNAMIC',
+    'RED BULL': 'RED BULL',
+    'MONSTER': 'MONSTER',
 }
-
-
-def _detect_emballage(format_str):
-    f = format_str.upper()
-    if 'PET' in f:
-        return 'PET'
-    if 'CAN' in f:
-        return 'CAN'
-    if 'VER' in f or 'VERRE' in f:
-        return 'VERRE'
-    if 'VC' in f or 'BRIQUE' in f:
-        return None
-    return None
 
 
 pap_tab1, pap_tab2 = st.tabs(["📥 Importer CR PANEL (Excel)", "✏️ Saisie manuelle"])
@@ -650,7 +738,6 @@ with pap_tab1:
         try:
             df_cr = pd.read_excel(uploaded, sheet_name='Saisie')
 
-            # Vérification des colonnes
             required_cols = ['Nom Produit', 'Format (en cl)', 'Emballage', 'Prix de vente']
             missing = [c for c in required_cols if c not in df_cr.columns]
             if missing:
@@ -659,7 +746,6 @@ with pap_tab1:
                 df_cr = df_cr[required_cols].copy()
                 df_cr.columns = ['nom_produit', 'format_cl', 'emballage', 'prix_vente']
 
-                # Normalisation
                 df_cr['nom_produit'] = (
                     df_cr['nom_produit'].astype(str).str.upper().str.strip()
                 )
@@ -669,6 +755,9 @@ with pap_tab1:
                 df_cr['format_cl'] = pd.to_numeric(df_cr['format_cl'], errors='coerce')
                 df_cr['prix_vente'] = pd.to_numeric(df_cr['prix_vente'], errors='coerce')
                 df_cr = df_cr.dropna(subset=['format_cl', 'prix_vente'])
+
+                # Pré-calcul des noms normalisés
+                df_cr['nom_norm'] = df_cr['nom_produit'].apply(_normalize)
 
                 pap_max_dict = {}
                 non_trouves = []
@@ -682,13 +771,12 @@ with pap_tab1:
                     emb_obppc = _detect_emballage(format_obppc)
 
                     nom_cr = MAPPING_MARQUE.get(marque_obppc, marque_obppc)
+                    nom_cr_norm = _normalize(nom_cr)
 
-                    mask = (
-                        df_cr['nom_produit'].str.contains(
-                            re.escape(nom_cr), case=False, na=False
-                        ) &
-                        (df_cr['format_cl'] == vol_cl)
-                    )
+                    mask = df_cr['nom_norm'].str.contains(
+                        re.escape(nom_cr_norm), case=False, na=False
+                    ) & (df_cr['format_cl'] == vol_cl)
+
                     if emb_obppc:
                         mask &= (df_cr['emballage'] == emb_obppc)
 
@@ -719,12 +807,12 @@ with pap_tab2:
     pap_edit_rows = []
     for _, row in df.iterrows():
         key = (row['marque'], row['format'])
-        current_max = st.session_state.pap_max_data.get(key, row.get('pap_max', 0))
+        current_max = st.session_state.pap_max_data.get(key, 0)
         pap_edit_rows.append({
             'marque': row['marque'],
             'format': row['format'],
             'pvc': row['pvc'],
-            'pap_min': row['pvc'],  # PAP min = PVC
+            'pap_min': row['pvc'],
             'pap_max': int(current_max) if pd.notna(current_max) else 0,
         })
     pap_edit_df = pd.DataFrame(pap_edit_rows)
@@ -753,7 +841,7 @@ with pap_tab2:
 
 
 # =============================================================================
-# ÉDITEUR
+# ÉDITEUR PRIX
 # =============================================================================
 with st.expander("✏️ Éditer les prix", expanded=False):
     editable = df[['marque', 'format', 'pvf', 'prop_pvf', 'pva', 'pv_ds', 'pvc']].copy()
@@ -779,22 +867,20 @@ with st.expander("✏️ Éditer les prix", expanded=False):
         height=min(500, 80 + 36 * len(editable)),
         key=f"prop_editor_{cat_key}",
     )
-    for col in ['role', 'vol', 'pap_min', 'pap_max', 'commentaire']:
+    for col in ['role', 'vol', 'commentaire']:
         edited[col] = df[col].reset_index(drop=True).values
 
 d = compute(edited, cfg)
 
-# Réinjection des PAP après compute (car compute recrée d)
-d['pap_min'] = d['pvc']  # PAP min = PVC
+# Réinjection PAP
+d['pap_min'] = d['pvc']
 d['pap_max'] = d.apply(
     lambda r: st.session_state.pap_max_data.get(
         (r['marque'], r['format']), 0
     ), axis=1)
 
-# Calculs PAP
 d['marge_pdv_pap_min'] = d['pap_min'] - d['pvc']
 d['marge_pdv_pap_min_pct'] = d['marge_pdv_pap_min'] / d['pvc'].replace(0, pd.NA)
-
 d['marge_pdv_pap_max'] = d['pap_max'] - d['pvc']
 d['marge_pdv_pap_max_pct'] = d['marge_pdv_pap_max'] / d['pvc'].replace(0, pd.NA)
 
@@ -959,7 +1045,6 @@ if cfg['has_competitors']:
 
     st.markdown("---")
     st.markdown("##### Comparaison par format — même contenance")
-    st.caption("Pour chaque format, positionnement tarifaire STAR vs Concurrents.")
 
     formats = sorted(d['format'].unique())
 
