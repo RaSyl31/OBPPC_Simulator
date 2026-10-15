@@ -30,11 +30,9 @@ st.markdown("""
     .obppc td.muted { color: #8b949e; }
     .obppc tr:hover td { background: #161b22; }
 
-    /* Nom de marque STAR en rouge */
     .brand-star { color: #f85149 !important; font-weight: 700; }
     .brand-comp { color: #e6edf3; font-weight: 700; }
 
-    /* Logo officiel (image PNG) */
     .brand-logo {
         display: inline-block;
         width: 22px; height: 22px;
@@ -47,7 +45,6 @@ st.markdown("""
         box-shadow: 0 0 0 1px rgba(255,255,255,0.12);
     }
 
-    /* Fallback : pastille colorée avec initiale si logo manquant */
     .brand-logo-fallback {
         display: inline-flex; align-items: center; justify-content: center;
         width: 22px; height: 22px; border-radius: 4px;
@@ -56,7 +53,6 @@ st.markdown("""
         text-transform: uppercase;
     }
 
-    /* Tags STAR / CONCUR */
     .tag {
         display: inline-block; padding: 1px 6px; border-radius: 3px;
         font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
@@ -768,7 +764,7 @@ with st.sidebar:
         for k in list(st.session_state.keys()):
             if (k.startswith('prop_editor')
                 or k.startswith('pap_editor')
-                or k.startswith('comment_editor')
+                or k.startswith('prix_index_editor')
                 or k == 'commentaires'):
                 del st.session_state[k]
         st.rerun()
@@ -1015,7 +1011,7 @@ d['marge_pdv_pap_min_pct'] = d['marge_pdv_pap_min'] / d['pvc'].replace(0, pd.NA)
 d['marge_pdv_pap_max'] = d['pap_max'] - d['pvc']
 d['marge_pdv_pap_max_pct'] = d['marge_pdv_pap_max'] / d['pvc'].replace(0, pd.NA)
 
-# Réinjection commentaires édités (session_state prioritaire)
+# Réinjection commentaires édités
 d['commentaire'] = d.apply(
     lambda r: st.session_state.commentaires.get(
         (r['marque'], r['format']), r.get('commentaire', '')
@@ -1065,7 +1061,7 @@ st.markdown(kpi_html, unsafe_allow_html=True)
 
 
 # =============================================================================
-# TABLEAU PRINCIPAL  (logo + nom STAR en rouge)
+# TABLEAU PRINCIPAL (vue d'ensemble HTML)
 # =============================================================================
 st.markdown("### Vue d'ensemble")
 
@@ -1181,7 +1177,7 @@ if cfg['has_competitors']:
             unsafe_allow_html=True)
 
     # =========================================================================
-    # COMPARAISON PAR CONTENANCE — trié du PVF le plus bas au plus élevé
+    # COMPARAISON PAR CONTENANCE
     # =========================================================================
     st.markdown("---")
     st.markdown("##### Comparaison par contenance — tous formats confondus")
@@ -1287,37 +1283,74 @@ st.markdown("### Détails par SKU")
 tab1, tab2, tab3 = st.tabs(["Prix & Index", "Marges 2026", "Marges 2027"])
 
 with tab1:
-    html = ['<table class="obppc"><thead><tr>',
-            '<th class="left">Marque</th>',
-            '<th class="left">Format</th>',
-            '<th colspan="4">2026</th>',
-            '<th colspan="4">2027</th>',
-            '<th class="left">Commentaire</th>',
-            '</tr><tr>',
-            '<th></th><th></th>',
-            '<th>PVF</th><th>P/L</th><th>Idx PVF</th><th>Idx P/L</th>',
-            '<th>PVF</th><th>P/L</th><th>Idx P/L</th><th>Hausse</th>',
-            '<th></th>',
-            '</tr></thead><tbody>']
+    # =========================================================================
+    # ✅ Tableau éditable : seule la colonne Commentaire est modifiable
+    # =========================================================================
+    editor_rows = []
     for _, row in d.iterrows():
-        statut_cls = 'ok' if row['statut'] == 'OK' else 'ko'
-        html.append(
-            '<tr>'
-            f'<td class="left bold">{brand_name_html(row["marque"], cfg["star_brands"])}</td>'
-            f'<td class="left">{row["format"]}</td>'
-            f'<td>{fmt(row["pvf"])}</td>'
-            f'<td>{fmt(row["p_litre"])}</td>'
-            f'<td class="muted">{row["idx_pvf"]}</td>'
-            f'<td class="{statut_cls}">{row["idx_pl"]}</td>'
-            f'<td>{fmt(row["prop_pvf"])}</td>'
-            f'<td>{fmt(row["prop_p_litre"])}</td>'
-            f'<td class="muted">{row["idx_pl_prop"]}</td>'
-            f'<td>{row["hausse_pct"]*100:+.1f}%</td>'
-            f'<td class="left muted">{row["commentaire"]}</td>'
-            '</tr>'
+        key = (row['marque'], row['format'])
+        current_comment = st.session_state.commentaires.get(
+            key, row.get('commentaire', '')
         )
-    html.append('</tbody></table>')
-    st.markdown(''.join(html), unsafe_allow_html=True)
+        editor_rows.append({
+            'marque': row['marque'],
+            'format': row['format'],
+            'pvf': int(row['pvf']),
+            'p_litre': int(round(row['p_litre'])),
+            'idx_pvf': int(row['idx_pvf']),
+            'idx_pl': int(row['idx_pl']),
+            'prop_pvf': int(row['prop_pvf']),
+            'prop_p_litre': int(round(row['prop_p_litre'])),
+            'idx_pl_prop': int(row['idx_pl_prop']),
+            'hausse_pct': float(row['hausse_pct']),
+            'commentaire': current_comment,
+        })
+    editor_df = pd.DataFrame(editor_rows)
+
+    edited_pi = st.data_editor(
+        editor_df,
+        column_config={
+            'marque': st.column_config.TextColumn(
+                "Marque", disabled=True, width=110),
+            'format': st.column_config.TextColumn(
+                "Format", disabled=True, width=240),
+            'pvf': st.column_config.NumberColumn(
+                "PVF 2026", disabled=True, format="%d", width=90),
+            'p_litre': st.column_config.NumberColumn(
+                "P/L 2026", disabled=True, format="%d", width=90),
+            'idx_pvf': st.column_config.NumberColumn(
+                "Idx PVF", disabled=True, format="%d", width=80),
+            'idx_pl': st.column_config.NumberColumn(
+                "Idx P/L", disabled=True, format="%d", width=80),
+            'prop_pvf': st.column_config.NumberColumn(
+                "PVF 2027", disabled=True, format="%d", width=90),
+            'prop_p_litre': st.column_config.NumberColumn(
+                "P/L 2027", disabled=True, format="%d", width=90),
+            'idx_pl_prop': st.column_config.NumberColumn(
+                "Idx P/L 27", disabled=True, format="%d", width=80),
+            'hausse_pct': st.column_config.NumberColumn(
+                "Hausse", disabled=True, format="%.1f%%", width=80),
+            'commentaire': st.column_config.TextColumn(
+                "Commentaire", width=500,
+                help="Cliquez pour saisir ou modifier"),
+        },
+        hide_index=True,
+        use_container_width=True,
+        num_rows="fixed",
+        height=min(600, 80 + 36 * len(editor_df)),
+        key=f"prix_index_editor_{cat_key}",
+    )
+
+    # Sauvegarde des commentaires édités
+    for _, r in edited_pi.iterrows():
+        key = (r['marque'], r['format'])
+        st.session_state.commentaires[key] = r['commentaire']
+
+    # Réinjection dans d (pour cohérence et export CSV)
+    d['commentaire'] = d.apply(
+        lambda r: st.session_state.commentaires.get(
+            (r['marque'], r['format']), r.get('commentaire', '')
+        ), axis=1)
 
 with tab2:
     html = ['<table class="obppc"><thead><tr>',
@@ -1372,56 +1405,6 @@ with tab3:
         )
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
-
-
-# =============================================================================
-# ✅ COLONNE COMMENTAIRE ÉDITABLE (indépendante, sous les onglets)
-# =============================================================================
-st.markdown("---")
-st.markdown("### ✏️ Commentaires (modifiables)")
-st.caption("Cliquez dans une cellule pour saisir ou modifier un commentaire.")
-
-comment_rows = []
-for _, row in d.iterrows():
-    key = (row['marque'], row['format'])
-    current = st.session_state.commentaires.get(
-        key, row.get('commentaire', '')
-    )
-    comment_rows.append({
-        'marque': row['marque'],
-        'format': row['format'],
-        'commentaire': current,
-    })
-
-comment_df = pd.DataFrame(comment_rows)
-
-edited_comments = st.data_editor(
-    comment_df,
-    column_config={
-        'marque': st.column_config.TextColumn(
-            "Marque", disabled=True, width=120),
-        'format': st.column_config.TextColumn(
-            "Format", disabled=True, width=280),
-        'commentaire': st.column_config.TextColumn(
-            "Commentaire", width=650,
-            help="Saisir une note libre (ex : PVC +500 / PVA +400)"),
-    },
-    hide_index=True,
-    use_container_width=True,
-    num_rows="fixed",
-    height=min(500, 80 + 36 * len(comment_df)),
-    key=f"comment_editor_{cat_key}",
-)
-
-for _, r in edited_comments.iterrows():
-    key = (r['marque'], r['format'])
-    st.session_state.commentaires[key] = r['commentaire']
-
-# Réinjection (utile pour l'export CSV)
-d['commentaire'] = d.apply(
-    lambda r: st.session_state.commentaires.get(
-        (r['marque'], r['format']), r.get('commentaire', '')
-    ), axis=1)
 
 
 # =============================================================================
