@@ -818,7 +818,7 @@ with st.sidebar:
         for k in list(st.session_state.keys()):
             if (k.startswith('prop_editor')
                 or k.startswith('pap_editor')
-                or k.startswith('comment_editor')
+                or k.startswith('prix_index_editor')
                 or k == 'commentaires'):
                 del st.session_state[k]
         st.rerun()
@@ -1231,7 +1231,7 @@ if cfg['has_competitors']:
             unsafe_allow_html=True)
 
     # =========================================================================
-    # COMPARAISON PAR CONTENANCE
+    # COMPARAISON PAR CONTENANCE — MAX au lieu de moyenne
     # =========================================================================
     st.markdown("---")
     st.markdown("##### Comparaison par contenance — tous formats confondus")
@@ -1247,8 +1247,9 @@ if cfg['has_competitors']:
         star_rows = sub[sub['type'] == 'STAR']
         comp_rows = sub[sub['type'] == 'Concurrent']
 
-        star_pl = star_rows['p_litre'].mean() if not star_rows.empty else None
-        comp_pl = comp_rows['p_litre'].mean() if not comp_rows.empty else None
+        # ✅ MAX au lieu de mean()
+        star_pl = star_rows['p_litre'].max() if not star_rows.empty else None
+        comp_pl = comp_rows['p_litre'].max() if not comp_rows.empty else None
 
         if star_pl is not None and comp_pl is not None and comp_pl > 0:
             ecart = (star_pl - comp_pl) / comp_pl * 100
@@ -1338,7 +1339,11 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "Prix & Index", "Marges 2026", "Marges 2027", "📊 Tarifs 2026/2027"
 ])
 
+# =============================================================================
+# ONGLET 1 : PRIX & INDEX avec Commentaire ÉDITABLE
+# =============================================================================
 with tab1:
+    # En-têtes fusionnés 2026 / 2027 / Commentaire
     html = ['<table class="obppc"><thead>',
             '<tr>',
             '<th class="left" rowspan="2">Marque</th>',
@@ -1374,6 +1379,9 @@ with tab1:
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
 
+    # -------------------------------------------------------------------------
+    # ✅ Éditeur des commentaires (uniquement 3 colonnes)
+    # -------------------------------------------------------------------------
     st.markdown("###### ✏️ Modifier les commentaires")
     st.caption("Cliquez dans la colonne Commentaire pour saisir ou modifier.")
 
@@ -1417,6 +1425,10 @@ with tab1:
             (r['marque'], r['format']), r.get('commentaire', '')
         ), axis=1)
 
+
+# =============================================================================
+# ONGLET 2 : MARGES 2026
+# =============================================================================
 with tab2:
     html = ['<table class="obppc"><thead><tr>',
             '<th class="left">Marque</th>',
@@ -1449,6 +1461,10 @@ with tab2:
     html.append('</tbody></table>')
     st.markdown(''.join(html), unsafe_allow_html=True)
 
+
+# =============================================================================
+# ONGLET 3 : MARGES 2027
+# =============================================================================
 with tab3:
     html = ['<table class="obppc"><thead><tr>',
             '<th class="left">Marque</th>',
@@ -1477,17 +1493,15 @@ with tab3:
 
 
 # =============================================================================
-# ✅ ONGLET 4 : MATRICE TARIFS DYNAMIQUE
+# ONGLET 4 : MATRICE TARIFS DYNAMIQUE
 # =============================================================================
 with tab4:
     st.markdown("##### 📊 Tarifs — Matrice Marque × Format")
     st.caption("Date de la dernière modification générale des tarifs : **Décembre 2025**")
     st.caption("Ancien prix ~~barré~~ en haut · Nouveau prix 2027 en bas · Montants en **Ariary (Ar)**")
 
-    # Marques présentes dans la catégorie filtrée
     brands_in_cat = sorted(df['marque'].unique())
 
-    # Détection emballage
     def _emb_of(fmt_str):
         f = str(fmt_str).upper()
         if 'FUT' in f: return 'FUT'
@@ -1497,13 +1511,11 @@ with tab4:
         if 'VER' in f or 'VERRE' in f: return 'VER'
         return '?'
 
-    # Colonnes uniques (vol, emballage) présentes dans la catégorie
     col_pairs = set()
     for _, row in df.iterrows():
         col_pairs.add((round(float(row['vol']), 2), _emb_of(row['format'])))
     col_pairs = sorted(col_pairs, key=lambda x: (-x[0], x[1]))
 
-    # Rendu HTML
     html = ['<table class="tarif-table"><thead>']
     html.append('<tr><th class="corner">en Ariary</th>')
     for vol, emb in col_pairs:
